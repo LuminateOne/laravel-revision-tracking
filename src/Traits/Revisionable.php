@@ -1,7 +1,7 @@
 <?php
 namespace LuminateOne\RevisionTracking\Traits;
 
-use LuminateOne\Revisionable\Classes\Initialise;
+use LuminateOne\RevisionTracking\Classes\Initialise;
 
 trait Revisionable
 {
