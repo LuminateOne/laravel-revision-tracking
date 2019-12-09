@@ -8,8 +8,34 @@
 
 namespace LuminateOne\Revisionable\Classes;
 
+use Log;
 
 class EloquentDiff
 {
 
+
+    /**
+     * @param $model
+     * @return array
+     */
+    public static function track($model)
+    {
+        // Log::info(print_r($model, true));
+
+        $changes = $model->getChanges();
+        $original = $model->getOriginal();
+
+        $originalValuesChanged = [];
+
+        foreach ($changes as $key => $value) {
+            $aOriginalValue = [
+                "value" => $original[$key],
+                "column" => $key
+            ];
+
+            array_push($originalValuesChanged, $aOriginalValue);
+        }
+
+        return $originalValuesChanged;
+    }
 }

@@ -10,52 +10,59 @@ namespace LuminateOne\Revisionable\Traits;
 
 use LuminateOne\Revisionable\Classes\Initialise;
 use Log;
+use LuminateOne\Revisionable\Classes\EloquentChecker;
+use LuminateOne\Revisionable\Classes\EloquentDiff;
 
 trait Revisionable
 {
 
+    // protected $appends = ['revision_table'];
     /**
      *  Catch the created, updated, deleted event
      */
     public static function bootRevisionable()
     {
         static::created(function ($model) {
-            Log::info('created');
-
-            $model->trackChanges();
-
-            Log::info(print_r($model, true));
+            $model->trackChanges('created');
         });
 
         static::updated(function ($model) {
-            Log::info('updated');
-
-            $model->trackChanges();
-
-            Log::info(print_r($model, true));
+            $model->trackChanges('updated');
         });
 
         static::deleted(function ($model) {
-            Log::info('deleted');
-
-            $model->trackChanges();
-
-            Log::info(print_r($model, true));
+            $model->trackChanges('deleted');
         });
     }
 
+
     /**
-     * Start to track the changes
+     * @param $action
      */
-    public function trackChanges()
+    public function trackChanges($action)
     {
+        Log::info('action: ' . $action);
+
         // Initialise the Model
         Initialise::ini($this);
 
-        $revision_table_name = $this->getRevisionTableName();
+        Log::info('Initialised');
 
-        
         Log::info($this->getRevisionTableName());
+
+        Log::info($this->getRevisionIdentifiers());
+
+        if($this->checkModel()){
+
+            Log::info('checkModel: succeed');
+
+            $revision_table_name = $this->getRevisionTableName();
+
+            $originalValuesChanged = EloquentDiff::track($this);
+
+            Log::info(print_r($originalValuesChanged, true));
+
+        }
     }
 
     /**
@@ -65,5 +72,48 @@ trait Revisionable
     public function getRevisionTableName()
     {
         return $this->revision_table;
+    }
+
+    /**
+     * Get primary key or unique keys
+     * @return mixed
+     */
+    public function getRevisionIdentifiers()
+    {
+        return $this->revision_identifiers;
+    }
+
+    /**
+     * Get the value of the primary key or the unique key
+     * @return array
+     */
+    // public function getRevisionIdentifiers(){
+    //     $revision_identifiers = [];
+    //
+    //     $unique_keys = $this->getPrimaryOrUniqueKey();
+    //
+    //     foreach ($unique_keys as $aUniqueKey){
+    //         $revision_identifiers[$aUniqueKey] = $this->attributes[$aUniqueKey];
+    //     }
+    //
+    //     return $revision_identifiers;
+    // }
+
+    /**
+     * Check if the model has a table for revision and primary key or unique key
+     * @return bool
+     */
+    public function checkModel()
+    {
+        if (!$this->getRevisionTableName()) {
+            Log::warning(print_r($this->getTable() . " does not revision table.", true));
+            return false;
+        }
+
+        if (!$this->getRevisionIdentifiers()) {
+            Log::warning(print_r($this->getTable() . " does not have unique keys.", true));
+            return false;
+        }
+        return true;
     }
 }
