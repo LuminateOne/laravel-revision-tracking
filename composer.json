@@ -1,0 +1,19 @@
+{
+    "name": "luminateone/revisionable",
+    "description": "Tracking the changes of Models and restoring the changes for a Model",
+    "type": "project",
+    "authors": [
+        {
+            "name": "LuminateOne",
+            "email": "nick@luminate.one"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LuminateOne\\Revisionable\\": "src/"
+        }
+    },
+
+    "minimum-stability": "dev",
+    "require": {}
+}
