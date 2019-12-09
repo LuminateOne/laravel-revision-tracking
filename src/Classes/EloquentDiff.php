@@ -6,7 +6,7 @@
  * Time: 12:57 PM
  */
 
-namespace LuminateOne\Revisionable\Classes;
+namespace LuminateOne\RevisionTracking\Classes;
 
 use Log;
 

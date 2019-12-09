@@ -11,15 +11,21 @@ class Initialise
      * Create the revision table name
      * Get the primary key or the unique key for the record
      * @param $model
+     * @return boolean
      */
     public static function ini(&$model){
         self::getRevisionTableName($model);
 
-        self::getRevisionIdentifiers($model);
+        if(!self::getRevisionIdentifiers($model)){
+            Log::warning(print_r($model->getTable() . " does not have unique keys.", true));
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Creat the revision table name
+     * Create the revision table name
      * @param $model
      */
     private static function getRevisionTableName(&$model){
@@ -27,8 +33,9 @@ class Initialise
     }
 
     /**
-     * Check if the model has the unique key
-     * Set the unique key to a new variable
+     * Check if the model has primary key
+     * Check the Model has the unique key, if the Model does not have a primary key
+     * Save the unique keys and value to a new variable
      * @param $model
      * @return bool
      */
@@ -40,7 +47,7 @@ class Initialise
             $revision_identifiers[$model->getKeyName()] = $model->getKey();
         }
 
-        // If this Model does not have a primary key, try to get the unique keys
+        // If this Model does not have a primary key, try to get the unique keys and values
         if(empty($revision_identifiers)){
             $index = DB::select(DB::raw('SHOW INDEX FROM ' . $model->getTable()));
 
@@ -50,6 +57,7 @@ class Initialise
         }
 
         $model->revision_identifiers = $revision_identifiers;
+
         return !empty($model->revision_identifiers);
     }
 }
