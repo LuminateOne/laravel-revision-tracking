@@ -45,7 +45,7 @@ trait Revisionable
 
             Log::info('checkModel: succeed');
 
-            $originalValuesChanged = EloquentDiff::track($this);
+            $originalValuesChanged = EloquentDiff::get($this);
 
             Log::info(print_r($originalValuesChanged, true));
 

@@ -13,10 +13,13 @@ use Log;
 class EloquentDiff
 {
     /**
+     * Get the original values of the changed values
+     * Loop through the changed values
+     * Use the key in changed values to get the original values
      * @param $model
      * @return array
      */
-    public static function track($model)
+    public static function get($model)
     {
         Log::info(print_r($model, true));
 
