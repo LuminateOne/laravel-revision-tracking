@@ -21,8 +21,6 @@ class EloquentDiff
      */
     public static function get($model)
     {
-        Log::info(print_r($model, true));
-
         $changes = $model->getChanges();
         $original = $model->getOriginal();
 
