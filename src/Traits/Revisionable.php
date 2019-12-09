@@ -1,8 +1,6 @@
 <?php
 namespace LuminateOne\RevisionTracking\Traits;
 
-use LuminateOne\RevisionTracking\Classes\Initialise;
-
 trait Revisionable
 {
 
