@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 6/12/2019
- * Time: 8:40 AM
- */
 
 namespace LuminateOne\Revisionable\Traits;
 
@@ -21,10 +15,14 @@ trait Revisionable
      */
     public static function bootRevisionable()
     {
+<<<<<<<
         static::created(function ($model) {
             $model->trackChanges('created');
         });
 
+=======
+
+>>>>>>>
         static::updated(function ($model) {
             $model->trackChanges('updated');
         });
@@ -43,6 +41,9 @@ trait Revisionable
         Log::info('action: ' . $action);
 
         // Initialise the Model
+        // Initialise the Model,
+        // get the revision table name,
+        // get the primary key or unique key of the record whit values
         Initialise::ini($this);
 
         Log::info('Initialised');

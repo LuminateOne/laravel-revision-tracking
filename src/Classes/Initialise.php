@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 9/12/2019
- * Time: 1:05 PM
- */
-
 namespace LuminateOne\Revisionable\Classes;
 
 use Log;
@@ -14,7 +7,9 @@ use DB;
 class Initialise
 {
     /**
-     * Initialise the Mode
+     * Initialise the Mode,
+     * Create the revision table name
+     * Get the primary key or the unique key for the record
      * @param $model
      */
     public static function ini(&$model){
