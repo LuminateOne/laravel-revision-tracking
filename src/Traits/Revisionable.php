@@ -16,7 +16,6 @@ use LuminateOne\Revisionable\Classes\EloquentDiff;
 trait Revisionable
 {
 
-    // protected $appends = ['revision_table'];
     /**
      *  Catch the created, updated, deleted event
      */
