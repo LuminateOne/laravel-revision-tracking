@@ -1,6 +1,5 @@
 <?php
-
-namespace LuminateOne\Revisionable\Traits;
+namespace LuminateOne\RevisionTracking\Traits;
 
 use LuminateOne\Revisionable\Classes\Initialise;
 use Log;

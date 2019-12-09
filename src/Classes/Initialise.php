@@ -1,5 +1,5 @@
 <?php
-namespace LuminateOne\Revisionable\Classes;
+namespace LuminateOne\RevisionTracking\Classes;
 
 use Log;
 use DB;
@@ -7,7 +7,7 @@ use DB;
 class Initialise
 {
     /**
-     * Initialise the Mode,
+     * Initialise the Model,
      * Create the revision table name
      * Get the primary key or the unique key for the record
      * @param $model
