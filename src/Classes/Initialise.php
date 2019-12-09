@@ -20,7 +20,7 @@ class Initialise
     public static function ini(&$model){
         self::getRevisionTableName($model);
 
-        self::getPrimaryOrUniqueKey($model);
+        self::getRevisionIdentifiers($model);
     }
 
     /**
@@ -37,13 +37,12 @@ class Initialise
      * @param $model
      * @return bool
      */
-    private static function getPrimaryOrUniqueKey(&$model){
+    private static function getRevisionIdentifiers(&$model){
         $revision_identifiers = [];
 
         // Check the primary key
         if($model->getKeyName()){
             $revision_identifiers[$model->getKeyName()] = $model->getKey();
-            // array_push($keys, $model->getKeyName());
         }
 
         // If this Model does not have a primary key, try to get the unique keys
@@ -52,7 +51,6 @@ class Initialise
 
             foreach($index as $aIndex){
                 $revision_identifiers[$aIndex->Column_name] = $model->attributes[$aIndex->Column_name];
-                // array_push($keys, $aIndex->Column_name);
             }
         }
 
