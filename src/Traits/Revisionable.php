@@ -27,8 +27,17 @@ trait Revisionable
     {
         // Initialise the Model,
         // get the revision table name,
-        // get the primary key or unique key of the record whit values
-        Initialise::ini($this);
+        $this->getRevisionTableName();
 
+        // get the primary key or unique key of the record whit values
+
+    }
+
+    /**
+     * Create the revision table name, with the prefix declared in the config file
+     * @param $model
+     */
+    private function getRevisionTableName(){
+        $this->revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
     }
 }
