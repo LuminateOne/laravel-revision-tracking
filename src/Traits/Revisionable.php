@@ -32,8 +32,7 @@ trait Revisionable
 
         // Initialise the Model,
         // get the revision table name,
-        // get the primary key or unique key of the record whit values
-        $initialiseResult = Initialise::ini($this);
+        $this->createRevisionTableName();
 
         Log::info('Initialised');
 
@@ -50,5 +49,12 @@ trait Revisionable
             Log::info(print_r($originalValuesChanged, true));
 
         }
+    }
+
+    /**
+     * Create the revision table name, with the prefix declared in the config file
+     */
+    private function createRevisionTableName(){
+        $this->revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
     }
 }
