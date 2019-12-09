@@ -29,6 +29,7 @@ trait Revisionable
      */
     public function trackChanges($action)
     {
+        $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
         Log::info('action: ' . $action);
 
         // Initialise the Model,
