@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 9/12/2019
- * Time: 12:13 PM
- */
 
 return [
 
@@ -20,7 +14,7 @@ return [
     |--------------------------------------------------------------------------
     |
     */
-    'revision_table_prefix' => env('REVISION_TABLE_PREFIX', 'revisions_'),
+    'table_prefix' => env('REVISION_TABLE_PREFIX', 'revisions_'),
 
     /*
     |--------------------------------------------------------------------------

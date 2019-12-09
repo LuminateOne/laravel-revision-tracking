@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 9/12/2019
- * Time: 1:05 PM
- */
-
 namespace LuminateOne\Revisionable\Classes;
 
 use Log;
@@ -13,7 +6,9 @@ use Log;
 class Initialise
 {
     /**
-     * Initialise the Mode
+     * Initialise the Mode,
+     * Create the revision table name
+     * Get the primary key or the unique key for the record
      * @param $model
      */
     public static function ini(&$model){
@@ -21,12 +16,10 @@ class Initialise
     }
 
     /**
-     * Check if the Model has a custom revision table name
+     * Create the revision table name, with the prefix declared in the config file
      * @param $model
      */
     private static function checkRevisionTableName(&$model){
-        if(!$model->revision_table){
-            $model->revision_table = config('revisionable.revision_table_prefix') . $model->getTable();
-        }
+        $model->revision_table = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
     }
 }

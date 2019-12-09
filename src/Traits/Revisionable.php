@@ -1,15 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 6/12/2019
- * Time: 8:40 AM
- */
 
 namespace LuminateOne\Revisionable\Traits;
 
 use LuminateOne\Revisionable\Classes\Initialise;
-use Log;
 
 trait Revisionable
 {
@@ -19,28 +12,12 @@ trait Revisionable
      */
     public static function bootRevisionable()
     {
-        static::created(function ($model) {
-            Log::info('created');
-
-            $model->trackChanges();
-
-            Log::info(print_r($model, true));
-        });
-
         static::updated(function ($model) {
-            Log::info('updated');
-
             $model->trackChanges();
-
-            Log::info(print_r($model, true));
         });
 
         static::deleted(function ($model) {
-            Log::info('deleted');
-
             $model->trackChanges();
-
-            Log::info(print_r($model, true));
         });
     }
 
@@ -49,21 +26,10 @@ trait Revisionable
      */
     public function trackChanges()
     {
-        // Initialise the Model
+        // Initialise the Model,
+        // get the revision table name,
+        // get the primary key or unique key of the record whit values
         Initialise::ini($this);
 
-        $revision_table_name = $this->getRevisionTableName();
-
-        
-        Log::info($this->getRevisionTableName());
-    }
-
-    /**
-     * Get the revision table name
-     * @return string
-     */
-    public function getRevisionTableName()
-    {
-        return $this->revision_table;
     }
 }
