@@ -23,16 +23,6 @@ trait Revisionable
      */
     public function trackChanges()
     {
-        // Initialise the Model,
-        // get the revision table name,
-        $this->createRevisionTableName();
-
-    }
-
-    /**
-     * Create the revision table name, with the prefix declared in the config file
-     */
-    private function createRevisionTableName(){
-        $this->revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
+        $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
     }
 }
