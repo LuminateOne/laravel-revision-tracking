@@ -1,6 +1,5 @@
 <?php
-
-namespace LuminateOne\Revisionable\Providers;
+namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
 

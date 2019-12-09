@@ -1,5 +1,5 @@
 {
-    "name": "luminateone/revisionable",
+    "name": "luminateone/revision-tracking",
     "description": "Tracking the changes of Models and restoring the changes for a Model",
     "type": "project",
     "authors": [
@@ -10,7 +10,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "LuminateOne\\Revisionable\\": "src/"
+            "LuminateOne\\RevisionTracking\\": "src/"
         }
     },
 
