@@ -30,14 +30,10 @@ trait Revisionable
     public function trackChanges($action)
     {
         $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
+
+        $revision_identifiers = $this->getRevisionIdentifiers();
+
         Log::info('action: ' . $action);
-
-        // Initialise the Model,
-        // get the revision table name,
-        $this->createRevisionTableName();
-
-        // get the revision table name,
-        $this->getRevisionIdentifiers();
 
         if(empty($this->revision_identifiers)){
             Log::warning(print_r($this->getTable() . " does not have unique keys.", true));
@@ -52,19 +48,12 @@ trait Revisionable
         }
     }
 
-    /**
-     * Create the revision table name, with the prefix declared in the config file
-     */
-    private function createRevisionTableName(){
-        $this->revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
-    }
-
 
     /**
      * Check if the model has primary key
      * Check the Model has the unique key, if the Model does not have a primary key
      * Save the unique keys and value to a new variable
-     * @return bool
+     * @return array
      */
     private function getRevisionIdentifiers(){
         $revision_identifiers = [];
@@ -83,6 +72,6 @@ trait Revisionable
             }
         }
 
-        $this->revision_identifiers = $revision_identifiers;
+        return $revision_identifiers;
     }
 }
