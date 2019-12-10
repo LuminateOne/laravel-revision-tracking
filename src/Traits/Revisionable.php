@@ -52,5 +52,8 @@ trait Revisionable
         $singleRevisionModel->revision_identifiers = serialize($revision_identifiers);
         $singleRevisionModel->original_values = serialize($originalValuesChanged);
         $singleRevisionModel->save();
+
+        $index = array_search('is_restoring', $this->appends);
+        array_splice( $this->appends, $index, 1);
     }
 }
