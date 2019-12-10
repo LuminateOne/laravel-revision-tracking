@@ -26,8 +26,8 @@ trait Revisionable
         $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
 
         if (!$this->getKeyName()) {
-            Log::warning(print_r($this->getTable() . " does not have primary keys.", true));
-            return;
+            // Log::warning(print_r($this->getTable() . " does not have primary keys.", true));
+            throw new \Exception($this->getTable() . " does not have primary keys.");
         }
 
         $revision_identifiers = [$this->getKeyName() => $this->getKey()];
