@@ -8,7 +8,7 @@ trait Revisionable
 {
 
     /**
-     *  Catch the created, updated, deleted event
+     *  Catch the updated, deleted event
      */
     public static function bootRevisionable()
     {
@@ -21,10 +21,6 @@ trait Revisionable
         });
     }
 
-
-    /**
-     * @param $action
-     */
     public function trackChanges()
     {
         $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
