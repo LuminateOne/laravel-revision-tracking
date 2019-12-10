@@ -1,9 +1,7 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Traits;
 
 use Log;
-use DB;
 use LuminateOne\RevisionTracking\Classes\EloquentDiff;
 
 trait Revisionable
@@ -15,11 +13,11 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::updated(function ($model) {
-            $model->trackChanges('updated');
+            $model->trackChanges();
         });
 
         static::deleted(function ($model) {
-            $model->trackChanges('deleted');
+            $model->trackChanges();
         });
     }
 
@@ -27,7 +25,7 @@ trait Revisionable
     /**
      * @param $action
      */
-    public function trackChanges($action)
+    public function trackChanges()
     {
         $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
 

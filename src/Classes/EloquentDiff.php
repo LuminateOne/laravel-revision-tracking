@@ -1,14 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: yiming
- * Date: 9/12/2019
- * Time: 12:57 PM
- */
-
 namespace LuminateOne\RevisionTracking\Classes;
-
-use Log;
 
 class EloquentDiff
 {
@@ -21,10 +12,10 @@ class EloquentDiff
      */
     public static function get($model)
     {
+        $originalValuesChanged = [];
+
         $changes = $model->getChanges();
         $original = $model->getOriginal();
-
-        $originalValuesChanged = [];
 
         foreach ($changes as $key => $value) {
             $aOriginalValue = [
