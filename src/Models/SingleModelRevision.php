@@ -4,11 +4,19 @@ namespace LuminateOne\RevisionTracking\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use LuminateOne\RevisionTracking\Models\RevisionsVersion;
 
 class SingleModelRevision extends Model
 {
-   protected $fillable = ['revision_identifiers', 'original_values'];
+   protected $fillable = ['revision_identifiers', 'original_values', 'revisions_version_id'];
 
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function revisionVersion(){
+        return $this->belongsTo(RevisionsVersion::class, 'revisions_version_id');
+    }
 
     /**
      *  Create a revision table for this Model
@@ -19,9 +27,12 @@ class SingleModelRevision extends Model
 
        Schema::create($this->table, function (Blueprint $table) {
            $table->bigIncrements('id');
-           $table->string('revision_identifiers');
-           $table->string('original_values');
+           $table->unsignedBigInteger('revisions_version_id');
+           $table->text('revision_identifiers');
+           $table->text('original_values');
            $table->timestamps();
+
+           $table->foreign('revisions_version_id')->references('id')->on('revisions_versions');
        });
    }
 }

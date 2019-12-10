@@ -1,8 +1,10 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use LuminateOne\RevisionTracking\Classes\EloquentDiff;
+use LuminateOne\RevisionTracking\Models\RevisionsVersion;
 use LuminateOne\RevisionTracking\Models\SingleModelRevision;
 
 trait Revisionable
@@ -25,7 +27,7 @@ trait Revisionable
     public function trackChanges()
     {
         if (!$this->getKeyName()) {
-            throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The ".
+            throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
         }
 
@@ -38,5 +40,14 @@ trait Revisionable
         $revision_identifiers = [$this->getKeyName() => $this->getKey()];
 
         $originalValuesChanged = EloquentDiff::get($this);
+
+        // Create a new revision version
+        $newRevisionVersion = RevisionsVersion::create(['revision_table_name' => $revision_table]);
+
+        // Store the Model changes
+        $singleRevisionModel->revisions_version_id = $newRevisionVersion->id;
+        $singleRevisionModel->revision_identifiers = serialize($revision_identifiers);
+        $singleRevisionModel->original_values = serialize($originalValuesChanged);
+        $singleRevisionModel->save();
     }
 }
