@@ -15,7 +15,7 @@ class CreateRevisionsVersionsTable extends Migration
     {
         Schema::create('revisions_versions', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('revision_table_name');
+            $table->string('model_name');
             $table->timestamps();
         });
     }

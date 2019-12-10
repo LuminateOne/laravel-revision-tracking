@@ -9,7 +9,6 @@ use LuminateOne\RevisionTracking\Models\SingleModelRevision;
 
 trait Revisionable
 {
-
     /**
      *  Catch the updated, deleted event
      */
@@ -26,6 +25,10 @@ trait Revisionable
 
     public function trackChanges()
     {
+        if(in_array("is_restoring", $this->appends)) {
+            \Log::info("Restoring revision returned");
+            return;
+        }
         if (!$this->getKeyName()) {
             throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
@@ -42,7 +45,7 @@ trait Revisionable
         $originalValuesChanged = EloquentDiff::get($this);
 
         // Create a new revision version
-        $newRevisionVersion = RevisionsVersion::create(['revision_table_name' => $revision_table]);
+        $newRevisionVersion = RevisionsVersion::create(['model_name' => self::class]);
 
         // Store the Model changes
         $singleRevisionModel->revisions_version_id = $newRevisionVersion->id;
