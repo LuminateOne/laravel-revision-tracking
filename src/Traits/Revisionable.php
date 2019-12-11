@@ -15,15 +15,15 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::updated(function ($model) {
-            $model->trackChanges();
+            $model->trackChanges('updated');
         });
 
         static::deleted(function ($model) {
-            $model->trackChanges();
+            $model->trackChanges('deleted');
         });
     }
 
-    public function trackChanges()
+    public function trackChanges($action)
     {
         if (!$this->getKeyName()) {
             throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
@@ -31,6 +31,14 @@ trait Revisionable
         }
 
         $revision_identifiers = [$this->getKeyName() => $this->getKey()];
+
+        if ($action === "deleted" && config('revision_tracking.remove_on_delete', true) === true) {
+            RevisionsVersion::where([
+                'model_name' => self::class,
+                'revision_identifiers' => serialize($revision_identifiers)
+            ])->delete();
+            return;
+        }
 
         $originalValuesChanged = EloquentDiff::get($this);
 
