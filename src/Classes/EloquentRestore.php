@@ -43,7 +43,7 @@ class EloquentRestore
 
         if (!$targetRecord) {
             throw new ErrorException('The target record for the Model: ' . $targetModelName .
-                'There are three possible reasons: ' .
+                'not found. There are three possible reasons: ' .
                 '1. Table name changed. ' .
                 '2. Model name changed. ' .
                 '3. The record has been deleted. ' .
