@@ -27,4 +27,15 @@ return [
 
     'remove_on_delete' => env('REVISION_REMOVE_ON_DELETE', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Defines the Revision Mode
+    |--------------------------------------------------------------------------
+    |
+    | If set to 0, all the revision will be stored in one table called revisions_versions
+    | If set to 1, a revision table will be created for the Model which uses the Revisionable Trait
+    */
+
+    'mode' => env('REVISION_MODE', 0),
+
 ];

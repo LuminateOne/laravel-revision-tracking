@@ -4,8 +4,8 @@ namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use LuminateOne\RevisionTracking\Classes\EloquentDiff;
+use LuminateOne\RevisionTracking\Classes\EloquentStoreRevision;
 use LuminateOne\RevisionTracking\Models\RevisionsVersion;
-use LuminateOne\RevisionTracking\Models\SingleModelRevision;
 
 trait Revisionable
 {
@@ -31,15 +31,8 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $revision_identifiers = [$this->getKeyName() => $this->getKey()];
-
         $originalValuesChanged = EloquentDiff::get($this);
 
-        // Create a new revision
-        $newRevisionVersion = RevisionsVersion::create([
-            'model_name' => self::class,
-            'revision_identifiers' => serialize($revision_identifiers),
-            'original_values' => serialize($originalValuesChanged)
-        ]);
+        EloquentStoreRevision::save($this, $originalValuesChanged);
     }
 }
