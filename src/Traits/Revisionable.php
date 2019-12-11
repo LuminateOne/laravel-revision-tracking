@@ -4,7 +4,9 @@ namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use LuminateOne\RevisionTracking\Classes\EloquentDiff;
+use LuminateOne\RevisionTracking\Classes\EloquentStoreRevision;
 use LuminateOne\RevisionTracking\Models\RevisionsVersion;
+use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
 
 trait Revisionable
 {
@@ -28,26 +30,37 @@ trait Revisionable
             throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
         }
-
-        $revision_identifiers = [$this->getKeyName() => $this->getKey()];
-
-        if ($action === "deleted") {
-            if(config('revision_tracking.remove_on_delete', true)){
-                RevisionsVersion::where([
-                    'model_name' => self::class,
-                    'revision_identifiers' => serialize($revision_identifiers)
-                ])->delete();
-            }
-            return;
-        }
+        //
+        // $revision_identifiers = [$this->getKeyName() => $this->getKey()];
+        //
+        // if ($action === "deleted") {
+        //     if(config('revision_tracking.remove_on_delete', true)){
+        //         RevisionsVersion::where([
+        //             'model_name' => self::class,
+        //             'revision_identifiers' => serialize($revision_identifiers)
+        //         ])->delete();
+        //     }
+        //     return;
+        // }
 
         $originalValuesChanged = EloquentDiff::get($this);
 
-        // Create a new revision
-        RevisionsVersion::create([
-            'model_name' => self::class,
-            'revision_identifiers' => serialize($revision_identifiers),
-            'original_values' => serialize($originalValuesChanged)
-        ]);
+        EloquentStoreRevision::save($this, $originalValuesChanged);
+    }
+
+    public function getRevisionModel(){
+        $revisionMode = config('revision_tracking.mode', 0);
+
+        if($revisionMode === 0){
+            return new RevisionsVersion();
+        }else {
+            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
+
+            $singleRevisionModel = new SingleRevisionModel();
+            $singleRevisionModel->setTable($revisionTableName);
+            $singleRevisionModel->createTableIfNotExist();
+
+           return $singleRevisionModel;
+        }
     }
 }

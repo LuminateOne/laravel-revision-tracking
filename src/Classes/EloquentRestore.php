@@ -10,37 +10,53 @@ class EloquentRestore
 {
     /**
      *  Restoring the revision.
-     *  Get the latest record from revisions_versions table.
-     *  Get the latest record from the revision table.
+     *
      * @param $targetModelName
+     * @param null $revisionID
      * @throws ErrorException
      */
-    public static function restore($targetModelName = null)
+    public static function restore($targetModelName, $revisionID = null)
     {
-        $latestRevision = null;
-        if (!$targetModelName) {
-            $latestRevision = RevisionsVersion::latest('id')->first();
-        } else {
-            $latestRevision = RevisionsVersion::where(['model_name' => $targetModelName])->latest('id')->first();
-        }
-
-        if (!$latestRevision) {
-            Log::info("No revisions found for Model: " . $targetModelName);
-            return;
-        }
-
-        $targetModelName = $latestRevision->model_name;
-
-        if (!class_exists($targetModelName)) {
-            throw new ErrorException('The target Model: ' . $targetModelName . ' does not exist, looks like you changed the model name.');
+        if(!class_exists($targetModelName)){
+            throw new ErrorException("The Model: " . $targetModelName . ' does not exists, look like you changed the Model name.');
         }
 
         $targetModel = new $targetModelName();
 
-        $targetRecord = $targetModel->where($latestRevision->revision_identifiers)->first();
+        $revisionModel = $targetModel->getRevisionModel();
+
+        $targetRevision = null;
+
+        // Get all the revisions,
+        // if the mode is 0, then get the revision with model_name
+        // Else get all
+        $revisionMode = config('revision_tracking.mode', 0);
+        if($revisionMode === 0){
+            // $whereClause['model_name'] = get_class($targetModel);
+            $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
+        }else{
+            // Get all is not working properly when set table name dynamically, where id > -1 do the trick
+            $targetRevision = $revisionModel->where('id', '>', '-1');
+        }
+
+        // If no revision ID provided, get the latest one
+        // Else get the revision with the id.
+        if (!$revisionID) {
+            $targetRevision = $targetRevision->latest('id')->first();
+        }
+        else {
+            $targetRevision = $targetRevision->where(['id' =>$revisionID])->first();
+        }
+
+        if (!$targetRevision) {
+            Log::info("No revisions found for Model: " . get_class($targetModel));
+            return;
+        }
+
+        $targetRecord = $targetModel->where($targetRevision->revision_identifiers)->first();
 
         if (!$targetRecord) {
-            throw new ErrorException('The target record for the Model: ' . $targetModelName .
+            throw new ErrorException('The target record for the Model: ' . get_class($targetModel) .
                 ' not found. There are three possible reasons: ' .
                 '1. Table name changed. ' .
                 '2. Model name changed. ' .
@@ -49,7 +65,7 @@ class EloquentRestore
             );
         }
 
-        foreach ($latestRevision->original_values as $key => $value) {
+        foreach ($targetRevision->original_values as $key => $value) {
             $targetRecord[$value['column']] = $value['value'];
         }
 
