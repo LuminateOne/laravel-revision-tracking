@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Models;
 
 use Illuminate\Database\Eloquent\Model;
