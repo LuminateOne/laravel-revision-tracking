@@ -32,11 +32,13 @@ trait Revisionable
 
         $revision_identifiers = [$this->getKeyName() => $this->getKey()];
 
-        if ($action === "deleted" && config('revision_tracking.remove_on_delete', true)) {
-            RevisionsVersion::where([
-                'model_name' => self::class,
-                'revision_identifiers' => serialize($revision_identifiers)
-            ])->delete();
+        if ($action === "deleted") {
+            if(config('revision_tracking.remove_on_delete', true)){
+                RevisionsVersion::where([
+                    'model_name' => self::class,
+                    'revision_identifiers' => serialize($revision_identifiers)
+                ])->delete();
+            }
             return;
         }
 
