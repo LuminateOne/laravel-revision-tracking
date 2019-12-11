@@ -13,6 +13,11 @@ class EloquentDeleted
 {
     public static function handle($model){
 
+        if (!$model->getKeyName()) {
+            throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
+                self::class . " model does not have a primary key.");
+        }
+
         if(config('revision_tracking.remove_on_delete', true)){
 
             $revisionModel = $model->getRevisionModel();
