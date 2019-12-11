@@ -16,7 +16,7 @@ class EloquentRestore
      */
     public static function restore($targetModelName, $revisionID = null)
     {
-        if(!class_exists($targetModelName)){
+        if (!class_exists($targetModelName)) {
             throw new ErrorException("The Model: " . $targetModelName . ' does not exists, look like you changed the Model name.');
         }
 
@@ -29,10 +29,10 @@ class EloquentRestore
         // Get all the revisions,
         // if the mode is 0, then get the revision with model_name
         // Else get all
-        if($targetModel->revisionMode() === 0){
+        if ($targetModel->revisionMode() === 0) {
             // $whereClause['model_name'] = get_class($targetModel);
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
-        }else{
+        } else {
             // Get all is not working properly when set table name dynamically, where id > -1 do the trick
             $targetRevision = $revisionModel->where('id', '>', '-1');
         }
@@ -41,9 +41,8 @@ class EloquentRestore
         // Else get the revision with the id.
         if (!$revisionID) {
             $targetRevision = $targetRevision->latest('id')->first();
-        }
-        else {
-            $targetRevision = $targetRevision->where(['id' =>$revisionID])->first();
+        } else {
+            $targetRevision = $targetRevision->where(['id' => $revisionID])->first();
         }
 
         if (!$targetRevision) {
