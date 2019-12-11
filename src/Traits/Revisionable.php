@@ -30,23 +30,15 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $revision_table = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
-
-        $singleRevisionModel = new SingleModelRevision();
-        $singleRevisionModel->setTable($revision_table);
-        $singleRevisionModel->createTableIfNotExists();
-
         $revision_identifiers = [$this->getKeyName() => $this->getKey()];
 
         $originalValuesChanged = EloquentDiff::get($this);
 
-        // Create a new revision version
-        $newRevisionVersion = RevisionsVersion::create(['model_name' => self::class]);
-
-        // Store the Model changes
-        $singleRevisionModel->revisions_version_id = $newRevisionVersion->id;
-        $singleRevisionModel->revision_identifiers = $revision_identifiers;
-        $singleRevisionModel->original_values = $originalValuesChanged;
-        $singleRevisionModel->save();
+        // Create a new revision
+        $newRevisionVersion = RevisionsVersion::create([
+            'model_name' => self::class,
+            'revision_identifiers' => serialize($revision_identifiers),
+            'original_values' => serialize($originalValuesChanged)
+        ]);
     }
 }
