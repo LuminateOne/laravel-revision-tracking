@@ -19,7 +19,7 @@ class EloquentDeleted
 
             $whereClause = [];
 
-            if(config('revision_tracking.mode', 0) === 0){
+            if($model->revisionMode() === 0){
                 $whereClause['model_name'] = get_class($model);
             }
 

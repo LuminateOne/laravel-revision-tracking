@@ -17,24 +17,19 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::updated(function ($model) {
-            $model->trackChanges('updated');
+            $model->trackChanges();
         });
 
         static::deleted(function ($model) {
-            $model->trackChanges('deleted');
+            EloquentDeleted::handle($model);
         });
     }
 
-    public function trackChanges($action)
+    public function trackChanges()
     {
         if (!$this->getKeyName()) {
             throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
-        }
-
-        if ($action === "deleted") {
-            EloquentDeleted::handle($this);
-            return;
         }
 
         $originalValuesChanged = EloquentDiff::get($this);
@@ -51,7 +46,7 @@ trait Revisionable
      */
     public function getRevisionModel(){
 
-        if(config('revision_tracking.mode', 0) === 0){
+        if($this->revisionMode() === 0){
             return new RevisionsVersion();
         }else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
@@ -62,5 +57,9 @@ trait Revisionable
 
            return $singleRevisionModel;
         }
+    }
+
+    public function revisionMode(){
+        return config('revision_tracking.mode', 0);
     }
 }
