@@ -3,9 +3,7 @@
 namespace LuminateOne\RevisionTracking\Classes;
 
 use Log;
-use Illuminate\Support\Facades\Schema;
 use ErrorException;
-use LuminateOne\RevisionTracking\Models\SingleModelRevision;
 use LuminateOne\RevisionTracking\Models\RevisionsVersion;
 
 class EloquentRestore

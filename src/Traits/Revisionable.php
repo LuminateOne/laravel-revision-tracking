@@ -5,7 +5,6 @@ namespace LuminateOne\RevisionTracking\Traits;
 use ErrorException;
 use LuminateOne\RevisionTracking\Classes\EloquentDiff;
 use LuminateOne\RevisionTracking\Models\RevisionsVersion;
-use LuminateOne\RevisionTracking\Models\SingleModelRevision;
 
 trait Revisionable
 {
