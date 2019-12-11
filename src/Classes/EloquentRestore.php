@@ -4,7 +4,6 @@ namespace LuminateOne\RevisionTracking\Classes;
 
 use Log;
 use ErrorException;
-use LuminateOne\RevisionTracking\Models\RevisionsVersion;
 
 class EloquentRestore
 {
