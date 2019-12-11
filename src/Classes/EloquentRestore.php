@@ -30,7 +30,6 @@ class EloquentRestore
         // if the mode is 0, then get the revision with model_name
         // Else get all
         if ($targetModel->revisionMode() === 0) {
-            // $whereClause['model_name'] = get_class($targetModel);
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
         } else {
             // Get all is not working properly when set table name dynamically, where id > -1 do the trick
