@@ -35,7 +35,7 @@ trait Revisionable
         $originalValuesChanged = EloquentDiff::get($this);
 
         // Create a new revision
-        $newRevisionVersion = RevisionsVersion::create([
+        RevisionsVersion::create([
             'model_name' => self::class,
             'revision_identifiers' => serialize($revision_identifiers),
             'original_values' => serialize($originalValuesChanged)

@@ -11,65 +11,50 @@ use LuminateOne\RevisionTracking\Models\RevisionsVersion;
 class EloquentRestore
 {
     /**
-     * @param null $targetModelName
-     * @throws ErrorException
-     */
-    public static function handle($targetModelName = null)
-    {
-        if(!$targetModelName){
-            $latestRevisionVersion = RevisionsVersion::latest('id')->first();
-
-            if (!$latestRevisionVersion) {
-                Log::info("No revisions found");
-                return;
-            }
-
-            $targetModelName = $latestRevisionVersion->model_name;
-        }
-
-        if (!class_exists($targetModelName)) {
-            throw new ErrorException('The target Model: ' . $targetModelName . ' does not exist, looks like you changed the model name.');
-        }
-
-        self::restore($targetModelName);
-    }
-
-    /**
      *  Restoring the revision.
      *  Get the latest record from revisions_versions table.
      *  Get the latest record from the revision table.
      * @param $targetModelName
      * @throws ErrorException
      */
-    public static function restore($targetModelName)
+    public static function restore($targetModelName = null)
     {
-        $latestRevisionVersion = RevisionsVersion::where(['model_name' => $targetModelName])->latest('id')->first();
+        $latestRevision = null;
+        if(!$targetModelName){
+            $latestRevision = RevisionsVersion::latest('id')->first();
+        }else{
+            $latestRevision = RevisionsVersion::where(['model_name' => $targetModelName])->latest('id')->first();
+        }
 
-        if (!$latestRevisionVersion) {
+        if (!$latestRevision) {
             Log::info("No revisions found for Model: ". $targetModelName);
             return;
         }
 
-        $targetModel = new $targetModelName();
+        $targetModelName = $latestRevision->model_name;
 
-        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $targetModel->getTable();
-        if (!Schema::hasTable($revisionTableName)) {
-            throw new ErrorException("No revisions found for " . $targetModelName . ', looks like you changed the model name or revision table name.');
+        if (!class_exists($targetModelName)) {
+            throw new ErrorException('The target Model: ' . $targetModelName . ' does not exist, looks like you changed the model name.');
         }
 
-        $singleRevisionModel = new SingleModelRevision();
-        $singleRevisionModel->setTable($revisionTableName);
-        $singleLatestRevision = $singleRevisionModel->latest('id')->first();
+        $targetModel = new $targetModelName();
 
-        $targetRecord = $targetModel->where($singleLatestRevision->revision_identifiers)->first();
+        $targetRecord = $targetModel->where($latestRevision->revision_identifiers)->first();
 
-        foreach ($singleLatestRevision->original_values as $key => $value) {
+        if(!$targetRecord){
+            throw new ErrorException('The target record for the Model: ' . $targetModelName .
+                'There are three possible reasons: ' .
+                '1. Table name changed. ' .
+                '2. Model name changed. ' .
+                '3. The record has been deleted. ' .
+                '4. Not restoring revision from the latest one.'
+            );
+        }
+
+        foreach ($latestRevision->original_values as $key => $value) {
             $targetRecord[$value['column']] = $value['value'];
         }
 
         $targetRecord->save();
-
-        $latestRevisionVersion->delete();
-        $singleLatestRevision->delete();
     }
 }
