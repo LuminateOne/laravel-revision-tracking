@@ -44,22 +44,24 @@ trait Revisionable
      * If mode != 0, return SingleRevisionModel, and set the corresponding table to the Model
      * @return RevisionsVersion|SingleRevisionModel
      */
-    public function getRevisionModel(){
+    public function getRevisionModel()
+    {
 
-        if($this->revisionMode() === 0){
+        if ($this->revisionMode() === 0) {
             return new RevisionsVersion();
-        }else {
+        } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
 
             $singleRevisionModel = new SingleRevisionModel();
             $singleRevisionModel->setTable($revisionTableName);
             $singleRevisionModel->createTableIfNotExist();
 
-           return $singleRevisionModel;
+            return $singleRevisionModel;
         }
     }
 
-    public function revisionMode(){
+    public function revisionMode()
+    {
         return config('revision_tracking.mode', 0);
     }
 }
