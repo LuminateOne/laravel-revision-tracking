@@ -20,14 +20,14 @@ class EloquentRestore
     public static function restore($targetModelName = null)
     {
         $latestRevision = null;
-        if(!$targetModelName){
+        if (!$targetModelName) {
             $latestRevision = RevisionsVersion::latest('id')->first();
-        }else{
+        } else {
             $latestRevision = RevisionsVersion::where(['model_name' => $targetModelName])->latest('id')->first();
         }
 
         if (!$latestRevision) {
-            Log::info("No revisions found for Model: ". $targetModelName);
+            Log::info("No revisions found for Model: " . $targetModelName);
             return;
         }
 
@@ -41,7 +41,7 @@ class EloquentRestore
 
         $targetRecord = $targetModel->where($latestRevision->revision_identifiers)->first();
 
-        if(!$targetRecord){
+        if (!$targetRecord) {
             throw new ErrorException('The target record for the Model: ' . $targetModelName .
                 'There are three possible reasons: ' .
                 '1. Table name changed. ' .
