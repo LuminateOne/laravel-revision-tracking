@@ -11,16 +11,54 @@ class SingleModelRevision extends Model
 {
     protected $fillable = ['revision_identifiers', 'original_values', 'revisions_version_id'];
 
+    // public static function boot()
+    // {
+    //     parent::boot();
+    //     // Hook before creating to serialize the revision identifiers and original values
+    //     self::creating(function($model){
+    //         $model->revision_identifiers = serialize($model->revision_identifiers);
+    //         $model->original_values = serialize($model->original_values);
+    //     });
+    // }
 
-    public static function boot()
+    /** An mutator to serialize revision_identifiers
+     * @param $value
+     * @return mixed
+     */
+    public function setRevisionIdentifiersAttribute($value)
     {
-        parent::boot();
-
-        self::creating(function($model){
-            $model->revision_identifiers = serialize($model->revision_identifiers);
-            $model->original_values = serialize($model->original_values);
-        });
+        return $this->attributes['revision_identifiers'] = serialize($value);
     }
+
+    /**
+     * An mutator to serialize original_values
+     * @param $value
+     * @return mixed
+     */
+    public function setOriginalValuesAttribute($value)
+    {
+        return $this->attributes['original_values'] = serialize($value);
+    }
+
+    /** An accessor for retrieve the unserialized revision_identifiers
+     * @param $value
+     * @return mixed
+     */
+    public function getRevisionIdentifiersAttribute($value)
+    {
+        return unserialize($value);
+    }
+
+    /**
+     * An accessor for retrieve the unserialized original_values
+     * @param $value
+     * @return mixed
+     */
+    public function getOriginalValuesAttribute($value)
+    {
+        return unserialize($value);
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

@@ -61,16 +61,12 @@ class EloquentRestore
         $singleRevisionModel->setTable($revisionTableName);
         $singleLatestRevision = $singleRevisionModel->latest('id')->first();
 
-        $ids = unserialize($singleLatestRevision->revision_identifiers);
-        $oriValues = unserialize($singleLatestRevision->original_values);
+        $targetRecord = $targetModel->where($singleLatestRevision->revision_identifiers)->first();
 
-        $targetRecord = $targetModel->where($ids)->first();
-
-        foreach ($oriValues as $key => $value) {
+        foreach ($singleLatestRevision->original_values as $key => $value) {
             $targetRecord[$value['column']] = $value['value'];
         }
 
-        $targetRecord->append('is_restoring');
         $targetRecord->save();
 
         $latestRevisionVersion->delete();

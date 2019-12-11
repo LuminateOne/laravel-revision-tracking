@@ -25,10 +25,6 @@ trait Revisionable
 
     public function trackChanges()
     {
-        if(in_array("is_restoring", $this->appends)) {
-            \Log::info("Restoring revision returned");
-            return;
-        }
         if (!$this->getKeyName()) {
             throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
@@ -52,8 +48,5 @@ trait Revisionable
         $singleRevisionModel->revision_identifiers = $revision_identifiers;
         $singleRevisionModel->original_values = $originalValuesChanged;
         $singleRevisionModel->save();
-
-        $index = array_search('is_restoring', $this->appends);
-        array_splice( $this->appends, $index, 1);
     }
 }
