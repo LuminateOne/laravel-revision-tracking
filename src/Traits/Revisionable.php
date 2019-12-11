@@ -49,8 +49,8 @@ trait Revisionable
 
         // Store the Model changes
         $singleRevisionModel->revisions_version_id = $newRevisionVersion->id;
-        $singleRevisionModel->revision_identifiers = serialize($revision_identifiers);
-        $singleRevisionModel->original_values = serialize($originalValuesChanged);
+        $singleRevisionModel->revision_identifiers = $revision_identifiers;
+        $singleRevisionModel->original_values = $originalValuesChanged;
         $singleRevisionModel->save();
 
         $index = array_search('is_restoring', $this->appends);

@@ -12,6 +12,15 @@ class SingleModelRevision extends Model
     protected $fillable = ['revision_identifiers', 'original_values', 'revisions_version_id'];
 
 
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function($model){
+            $model->revision_identifiers = serialize($model->revision_identifiers);
+            $model->original_values = serialize($model->original_values);
+        });
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
