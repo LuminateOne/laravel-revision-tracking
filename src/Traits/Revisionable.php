@@ -1,11 +1,10 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
-use LuminateOne\RevisionTracking\Classes\EloquentDiff;
-use LuminateOne\RevisionTracking\Classes\EloquentStoreRevision;
-use LuminateOne\RevisionTracking\Models\RevisionsVersion;
+use LuminateOne\RevisionTracking\RevisionTracking;
+use LuminateOne\RevisionTracking\Models\RevisionVersion;
+use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
 
 trait Revisionable
 {
@@ -31,8 +30,33 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $originalValuesChanged = EloquentDiff::get($this);
+        $originalValuesChanged = RevisionTracking::eloquentDiff($this);
 
-        EloquentStoreRevision::save($this, $originalValuesChanged);
+        RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
+    }
+
+    /**
+     * Check the current Revision Mode and get the corresponding Model
+     * for the revision table
+     *
+     * @return RevisionVersion|SingleRevisionModel
+     */
+    public function getRevisionModel()
+    {
+        if ($this->revisionMode() === 0) {
+            return new RevisionVersion();
+        } else {
+            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
+
+            $singleRevisionModel = new SingleRevisionModel();
+            $singleRevisionModel->setTable($revisionTableName);
+
+            return $singleRevisionModel;
+        }
+    }
+
+    public function revisionMode()
+    {
+        return config('revision_tracking.mode', 0);
     }
 }
