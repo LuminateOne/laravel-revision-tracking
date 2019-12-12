@@ -52,8 +52,8 @@ class RemoveRevisionModel extends Command
             $data = file_get_contents($fileName);
 
             $newContent = preg_replace([
-                "/([\n\r]?use LuminateOne.RevisionTracking.Traits.Revisionable;[\n\r]?)/",
-                "/([\n\r]?use Revisionable;[\n\r]?)/",
+                "/([\n\r]?use LuminateOne.RevisionTracking.Traits.Revisionable;[\n\r]*)/",
+                "/([\n\r]*?use Revisionable;[\n\r]*)/",
                 "/(,[ ]?Revisionable)/",
                 "/(Revisionable[ ]?,)/"
             ], "", $data);

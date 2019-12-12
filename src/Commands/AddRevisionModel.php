@@ -55,7 +55,7 @@ class AddRevisionModel extends Command
             $revisionableInUse = preg_match("/(use Revisionable;)|(,[ ]?Revisionable)|(Revisionable[ ]?,)/", $data);
 
             if ($namespaceInUse === 0) {
-                $data = preg_replace("/(namespace.+;)/", "$1" . chr(13) . chr(10) . chr(13) . chr(10) .
+                $data = preg_replace("/(namespace.+;)/i", "$1" . chr(13) . chr(10) . chr(13) . chr(10) .
                     "use LuminateOne\RevisionTracking\Traits\Revisionable;", $data);
                 file_put_contents($fileName, $data);
             }
@@ -63,7 +63,7 @@ class AddRevisionModel extends Command
             if ($revisionableInUse === 0) {
                 $data = preg_replace([
                     "/(class.+extends.+[\n\r]?{)/i",
-                ], "$1" . chr(13) . chr(10) . "use Revisionable;", $data);
+                ], "$1" . chr(13) . chr(10) . "\tuse Revisionable;", $data);
             }
 
             if ($namespaceInUse === 1 && $revisionableInUse === 1) {
