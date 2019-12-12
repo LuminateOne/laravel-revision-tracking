@@ -1,12 +1,9 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
-use LuminateOne\RevisionTracking\Classes\EloquentDeleted;
-use LuminateOne\RevisionTracking\Classes\EloquentDiff;
-use LuminateOne\RevisionTracking\Classes\EloquentStoreRevision;
-use LuminateOne\RevisionTracking\Models\RevisionsVersion;
+use LuminateOne\RevisionTracking\RevisionTracking;
+use LuminateOne\RevisionTracking\Models\RevisionVersion;
 use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
 
 trait Revisionable
@@ -32,28 +29,26 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $originalValuesChanged = EloquentDiff::get($this);
+        $originalValuesChanged = RevisionTracking::eloquentDiff($this);
 
-        EloquentStoreRevision::save($this, $originalValuesChanged);
+        RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
     }
 
-
     /**
-     * Check the Revision Mode
-     * If mode = 0, return RevisionsVersion
-     * If mode != 0, return SingleRevisionModel, and set the corresponding table to the Model
-     * @return RevisionsVersion|SingleRevisionModel
+     * Check the current Revision Mode and get the corresponding Model
+     * for the revision table
+     *
+     * @return RevisionVersion|SingleRevisionModel
      */
     public function getRevisionModel()
     {
         if ($this->revisionMode() === 0) {
-            return new RevisionsVersion();
+            return new RevisionVersion();
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
 
             $singleRevisionModel = new SingleRevisionModel();
             $singleRevisionModel->setTable($revisionTableName);
-            $singleRevisionModel->createTableIfNotExist();
 
             return $singleRevisionModel;
         }
