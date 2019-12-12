@@ -2,6 +2,8 @@
 namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use LuminateOne\RevisionTracking\Commands\AddRevisionModel;
+use LuminateOne\RevisionTracking\Commands\RemoveRevisionModel;
 
 class LaravelServiceProvider extends ServiceProvider
 {
@@ -12,5 +14,12 @@ class LaravelServiceProvider extends ServiceProvider
 
         $migrationPath = realpath(__DIR__ . '/../../migrations');
         $this->loadMigrationsFrom($migrationPath);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                AddRevisionModel::class,
+                RemoveRevisionModel::class,
+            ]);
+        }
     }
 }
