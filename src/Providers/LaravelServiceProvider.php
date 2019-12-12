@@ -7,8 +7,10 @@ class LaravelServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $path = realpath(__DIR__ . '/../../config/config.php');
+        $configPath = realpath(__DIR__ . '/../../config/config.php');
+        $this->publishes([$configPath => config_path('revision_tracking.php')], 'config');
 
-        $this->publishes([$path => config_path('revision_tracking.php')], 'config');
+        $migrationPath = realpath(__DIR__ . '/../../migrations');
+        $this->loadMigrationsFrom($migrationPath);
     }
 }
