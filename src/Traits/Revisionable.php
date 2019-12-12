@@ -46,7 +46,6 @@ trait Revisionable
      */
     public function getRevisionModel()
     {
-
         if ($this->revisionMode() === 0) {
             return new RevisionsVersion();
         } else {
