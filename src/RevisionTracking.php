@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking;
 
 use ErrorException;
