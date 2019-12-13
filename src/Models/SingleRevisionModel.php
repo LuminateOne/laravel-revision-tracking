@@ -1,19 +1,17 @@
 <?php
 namespace LuminateOne\RevisionTracking\Models;
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 
 class SingleRevisionModel extends Model
 {
-    protected $fillable = ['revision_identifiers', 'original_values'];
+    protected $fillable = ['revision_identifier', 'original_values'];
 
-    /** An accessor to retrieve the unserialized revision_identifiers
+    /** An accessor to retrieve the unserialized revision_identifier
      * @param $value
      * @return mixed
      */
-    public function getRevisionIdentifiersAttribute($value){
+    public function getRevisionIdentifierAttribute($value){
         return unserialize($value);
     }
 
@@ -23,17 +21,5 @@ class SingleRevisionModel extends Model
      */
     public function getOriginalValuesAttribute($value){
         return unserialize($value);
-    }
-
-    public function createTableIfNotExist(){
-
-        if(Schema::hasTable($this->getTable())) return;
-
-        Schema::create($this->getTable(), function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->text('revision_identifiers');
-            $table->text('original_values');
-            $table->timestamps();
-        });
     }
 }

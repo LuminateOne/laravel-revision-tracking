@@ -1,12 +1,10 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
-use LuminateOne\RevisionTracking\Classes\EloquentDeleted;
-use LuminateOne\RevisionTracking\Classes\EloquentDiff;
-use LuminateOne\RevisionTracking\Classes\EloquentStoreRevision;
-use LuminateOne\RevisionTracking\Models\RevisionsVersion;
+use Illuminate\Support\Facades\Schema;
+use LuminateOne\RevisionTracking\RevisionTracking;
+use LuminateOne\RevisionTracking\Models\RevisionVersion;
 use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
 
 trait Revisionable
@@ -21,7 +19,7 @@ trait Revisionable
         });
 
         static::deleted(function ($model) {
-            EloquentDeleted::handle($model);
+            RevisionTracking::eloquentDelete($model);
         });
     }
 
@@ -32,28 +30,34 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $originalValuesChanged = EloquentDiff::get($this);
+        $originalValuesChanged = RevisionTracking::eloquentDiff($this);
 
-        EloquentStoreRevision::save($this, $originalValuesChanged);
+        RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
     }
 
-
     /**
-     * Check the Revision Mode
-     * If mode = 0, return RevisionsVersion
-     * If mode != 0, return SingleRevisionModel, and set the corresponding table to the Model
-     * @return RevisionsVersion|SingleRevisionModel
+     * Check the current Revision Mode and
+     * get the corresponding Eloquent Model for the revision table
+     *
+     * @throws ErrorException
+     * @return RevisionVersion|SingleRevisionModel
      */
     public function getRevisionModel()
     {
         if ($this->revisionMode() === 0) {
-            return new RevisionsVersion();
+            return new RevisionVersion();
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
 
+            if(!Schema::hasTable($revisionTableName)){
+                throw new ErrorException('The revision table for the Model: ' . get_class($this) .
+                    ' could not be found. There are three possible reasons: ' . '1. Table name changed. ' . '2. Model name changed. ' .
+                    '3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
+                );
+            }
+
             $singleRevisionModel = new SingleRevisionModel();
             $singleRevisionModel->setTable($revisionTableName);
-            $singleRevisionModel->createTableIfNotExist();
 
             return $singleRevisionModel;
         }

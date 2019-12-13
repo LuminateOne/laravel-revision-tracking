@@ -1,19 +1,17 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RevisionsVersion extends Model
+class RevisionVersion extends Model
 {
-    protected $fillable = ['revision_identifiers', 'original_values', 'model_name'];
+    protected $fillable = ['revision_identifier', 'original_values', 'model_name'];
 
-
-    /** An accessor to retrieve the unserialized revision_identifiers
+    /** An accessor to retrieve the unserialized revision_identifier
      * @param $value
      * @return mixed
      */
-    public function getRevisionIdentifiersAttribute($value){
+    public function getRevisionIdentifierAttribute($value){
         return unserialize($value);
     }
 
