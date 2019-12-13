@@ -2,7 +2,6 @@
 namespace LuminateOne\RevisionTracking\Commands;
 
 use Illuminate\Console\Command;
-use ErrorException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
