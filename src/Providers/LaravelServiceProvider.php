@@ -2,8 +2,7 @@
 namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use LuminateOne\RevisionTracking\Commands\AddRevisionModel;
-use LuminateOne\RevisionTracking\Commands\RemoveRevisionModel;
+use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
 class LaravelServiceProvider extends ServiceProvider
 {
@@ -17,8 +16,7 @@ class LaravelServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                AddRevisionModel::class,
-                RemoveRevisionModel::class,
+                CreateModelRevisionTable::class
             ]);
         }
     }
