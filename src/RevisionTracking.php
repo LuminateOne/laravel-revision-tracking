@@ -36,7 +36,7 @@ class RevisionTracking
     /**
      * Get the primary key of the record, store it in the revision table as serialized format
      * Store the original value of changed value as as serialized format
-     * If the the revision Mode is set to 0, set the current Model name as "model_name" in the revision table
+     * If the the revision Mode is set to 0, insert the current Model name as "model_name" in the revision table
      *
      * @param $model
      * @param $originalValuesChanged
