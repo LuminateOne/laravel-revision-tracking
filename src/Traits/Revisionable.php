@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
+use Illuminate\Support\Facades\Schema;
 use LuminateOne\RevisionTracking\RevisionTracking;
 use LuminateOne\RevisionTracking\Models\RevisionVersion;
 use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
@@ -18,7 +19,7 @@ trait Revisionable
         });
 
         static::deleted(function ($model) {
-            EloquentDeleted::handle($model);
+            RevisionTracking::eloquentDelete($model);
         });
     }
 
@@ -35,9 +36,10 @@ trait Revisionable
     }
 
     /**
-     * Check the current Revision Mode and get the corresponding Model
-     * for the revision table
+     * Check the current Revision Mode and
+     * get the corresponding Eloquent Model for the revision table
      *
+     * @throws ErrorException
      * @return RevisionVersion|SingleRevisionModel
      */
     public function getRevisionModel()
@@ -46,6 +48,13 @@ trait Revisionable
             return new RevisionVersion();
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
+
+            if(!Schema::hasTable($revisionTableName)){
+                throw new ErrorException('The revision table for the Model: ' . get_class($this) .
+                    ' could not be found. There are three possible reasons: ' . '1. Table name changed. ' . '2. Model name changed. ' .
+                    '3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
+                );
+            }
 
             $singleRevisionModel = new SingleRevisionModel();
             $singleRevisionModel->setTable($revisionTableName);

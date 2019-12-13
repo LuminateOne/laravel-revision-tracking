@@ -7,7 +7,7 @@ class SingleRevisionModel extends Model
 {
     protected $fillable = ['revision_identifier', 'original_values'];
 
-    /** An accessor to retrieve the unserialized revision_identifiers
+    /** An accessor to retrieve the unserialized revision_identifier
      * @param $value
      * @return mixed
      */
