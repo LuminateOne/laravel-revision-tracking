@@ -44,7 +44,7 @@ class RevisionTracking
 
         $revisionModel = $model->getRevisionModel();
 
-        if($model->revisionMode() === 0){
+        if($model->revisionMode() === 'all'){
             $revisionModel->model_name = get_class($model);
         }
 

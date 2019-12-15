@@ -3,7 +3,7 @@ namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use LuminateOne\RevisionTracking\RevisionTracking;
-use LuminateOne\RevisionTracking\Models\RevisionVersion;
+use LuminateOne\RevisionTracking\Models\RevisionModel;
 use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
 
 trait Revisionable
@@ -36,27 +36,28 @@ trait Revisionable
     }
 
     /**
-     * Check the current Revision Mode and get the corresponding Model
+     * Check the current RevisionModel Mode and get the corresponding Model
      * for the revision table
      *
-     * @return RevisionVersion|SingleRevisionModel
+     * @return RevisionModel|SingleRevisionModel
      */
     public function getRevisionModel()
     {
-        if ($this->revisionMode() === 0) {
-            return new RevisionVersion();
+        $revisionTableName = null;
+        if ($this->revisionMode() === 'all') {
+            $revisionTableName = 'revision_versions';
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
-
-            $singleRevisionModel = new SingleRevisionModel();
-            $singleRevisionModel->setTable($revisionTableName);
-
-            return $singleRevisionModel;
         }
+
+        $revisionModel = new RevisionModel();
+        $revisionModel->setTable($revisionTableName);
+
+        return $revisionModel;
     }
 
     public function revisionMode()
     {
-        return config('revision_tracking.mode', 0);
+        return config('revision_tracking.mode', 'all');
     }
 }
