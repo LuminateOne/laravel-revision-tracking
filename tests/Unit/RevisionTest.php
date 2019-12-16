@@ -13,7 +13,7 @@ use App\Models\CustomPrimaryKey;
 use App\Models\DefaultPrimaryKey;
 use Log;
 
-class ModelUpdateTest extends TestCase
+class RevisionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -36,9 +36,9 @@ class ModelUpdateTest extends TestCase
 
     /**
      */
-    public function testUpdate()
+    public function testUpdate($dataProvider = null)
     {
-        $faker = \Faker\Factory::create($dataProvider = null);
+        $faker = \Faker\Factory::create();
 
         //Get the Model name and columns
         if(!$dataProvider){
@@ -80,5 +80,33 @@ class ModelUpdateTest extends TestCase
         $this->assertTrue($aRevision->revision_identifier === $identifier, 'Identifiers not match');
 
         return $record;
+    }
+
+
+    public function testRestore()
+    {
+        //Get the fake data
+        $dataProvider = $this->modelProvider(0);
+        $modelName = $dataProvider['model'];
+        $columns = $dataProvider['columns'];
+        $model = new $modelName();
+
+        // Insert and update the Model
+        $oldRecord = $this->testUpdate($dataProvider);
+
+        // Restore the revision
+        RevisionTracking::eloquentRestore($modelName);
+
+        $restoredRecord = $model->find($oldRecord->getKey())->first();
+
+        var_dump('restored record: ' . print_r($restoredRecord->getAttributes(), true));
+
+        foreach ($columns as $key => $value) {
+            if ($value !== $restoredRecord->getAttributes()[$key]) {
+                $this->assertTrue(false, 'name does not match');
+            }
+        }
+
+        $this->assertTrue(true, 'Restored!!!');
     }
 }
