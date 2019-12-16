@@ -11,7 +11,7 @@ use Tests\TestCase;
 use Faker\Generator as Faker;
 use Log;
 
-class ModelUpdateTest extends TestCase
+class RevisionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -59,7 +59,7 @@ class ModelUpdateTest extends TestCase
         $faker = \Faker\Factory::create();
 
         //Get the Model name and columns
-        $dataProvider = $this->modelProvider()[3];
+        $dataProvider = $this->modelProvider()[2];
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
 
