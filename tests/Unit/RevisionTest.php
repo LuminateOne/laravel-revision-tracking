@@ -86,6 +86,7 @@ class RevisionTest extends TestCase
     public function testRestore()
     {
         //Get the Model and fake data
+        //Get the Model and the fake data
         $dataProvider = $this->modelProvider()[0];
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
