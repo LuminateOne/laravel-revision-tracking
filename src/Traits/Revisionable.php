@@ -35,12 +35,81 @@ trait Revisionable
         RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
     }
 
+
+    /**
+     * Get a specific revision by the revision ID.
+     *
+     * @param $revisionId   A revision ID
+     *
+     * @return Model a revision retrieved by ID
+     * @throws ErrorException
+     */
+    public function getRevisions($revisionId)
+    {
+       return $this->allRevisions()->where(['id' => $revisionId])->first();
+    }
+
+    /**
+     * Get all revisions for this Model.
+     *
+     * @return mixed a revision retrieved by ID
+     * @throws ErrorException
+     */
+    public function allRevisions()
+    {
+        $targetRevision = null;
+
+        $revisionModel = $this->getRevisionModel();
+        //Since we set the RevisionModel dynamically, so we need to check revision Mode.
+        if ($this->revisionMode() === 0) {
+            $targetRevision = $revisionModel->where(['model_name' => get_class($this)]);
+        } else {
+            // When set table dynamically, the Model::all() is not working properly, so where id > -1 do the trick.
+            $targetRevision = $revisionModel->where('id', '>', '-1');
+        }
+
+        return $targetRevision;
+    }
+
+    /**
+     * Restoring the revision.
+     * Using the Model name and the revision ID provide to retrieve the revision for the Model
+     *
+     * @param null $revisionId      Revision ID for the Model
+     * @param null $saveAsRevision  Revision ID for the Model
+     * @throws ErrorException
+     */
+    public function rollback($revisionId, $saveAsRevision)
+    {
+        $targetRevision = $this->allRevisions()->getRevisions($revisionId);
+
+        if (!$targetRevision) {
+            throw new ErrorException("No revisions found for Model: " . get_class($this));
+        }
+
+        $targetRecord = $this->where($targetRevision->revision_identifiers)->first();
+
+        if (!$targetRecord) {
+            throw new ErrorException('The target record for the Model: ' . get_class($this) .
+                ' could not be found. There are five possible reasons: ' .
+                '1. Table name changed. ' . '2. Model name changed. ' . '3. The record has been deleted. ' . '4. Not restoring revision from the latest one.' . '5. The primary key has been changed'
+            );
+        }
+
+        foreach ($targetRevision->original_values as $key => $value) {
+            $targetRecord[$value['column']] = $value['value'];
+        }
+
+        $targetRecord->save();
+    }
+
+
     /**
      * Check the current Revision Mode and
      * get the corresponding Eloquent Model for the revision table
      *
      * @throws ErrorException
-     * @return RevisionModel
+     * @return Revision
      */
     public function getRevisionModel()
     {
