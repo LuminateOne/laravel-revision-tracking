@@ -121,8 +121,7 @@ class RevisionTracking
         }
 
         if (!$targetRevision) {
-            \Log::info("No revisions found for Model: " . get_class($targetModel));
-            return;
+            throw new ErrorException("No revisions found for Model: " . get_class($targetModel));
         }
 
         $targetRecord = $targetModel->where($targetRevision->revision_identifiers)->first();
