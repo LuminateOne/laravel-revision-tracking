@@ -1,76 +1,60 @@
 <?php
-namespace LuminateOne\RevisionTracking\Tests\Unit;
+namespace Tests\Unit;
 
-use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
-use LuminateOne\RevisionTracking\TestModels\TableOneUnique;
-use LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey;
-use LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Faker\Generator as Faker;
 use LuminateOne\RevisionTracking\RevisionTracking;
 use Tests\TestCase;
-use Faker\Generator as Faker;
+use App\Models\TableNoPrimaryKey;
+use App\Models\TableOneUnique;
+use App\Models\User;
+use App\Models\CustomPrimaryKey;
+use App\Models\DefaultPrimaryKey;
 use Log;
 
 class RevisionTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Create the fake data for the Test Models
-     * @param $index
-     * @return mixed
-     */
-    public function modelProvider()
+    public function modelProvider($index)
     {
         $faker = \Faker\Factory::create();
 
-        return [
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
-                'columns' => ['name' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
-                'columns' => ['name1' => $faker->name, 'name2' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
-                'columns' => ['name' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
-                'columns' => [
-                    'name' => $faker->name,
-                    'name1' => $faker->name,
-                    'name2' => $faker->name,
-                    'name3' => $faker->name,
-                    'name4' => $faker->name,
-                    'name5' => $faker->name
-                ]
-            ],
+        $models = [
+            ['model' => 'App\Models\DefaultPrimaryKey', 'columns' => ['name' => $faker->name]],
+            ['model' => 'App\Models\CustomPrimaryKey', 'columns' => ['name1' => $faker->name, 'name2' => $faker->name]],
+            ['model' => 'App\Models\TableNoPrimaryKey', 'columns' => ['name' => $faker->name]],
+            ['model' => 'App\Models\TableOneUnique', 'columns' => ['name' => $faker->name, 'name1' => $faker->name,
+                'name2' => $faker->name, 'name3' => $faker->name, 'name4' => $faker->name, 'name5' => $faker->name]],
         ];
+
+        $this->assertTrue(true);
+
+        return $models[$index];
     }
 
     /**
-     * Test if the updated event can be catched be Revisionable.
      */
-    public function testUpdate($dataProvider)
+    public function testUpdate($dataProvider = null)
     {
         $faker = \Faker\Factory::create();
 
         //Get the Model name and columns
         if(!$dataProvider){
-            $dataProvider = $this->modelProvider()[0];
+            $dataProvider = $this->modelProvider(0);
         }
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
+
+        var_dump('Testing Model: ' . $modelName);
 
         // Create a new Model
         $model = new $modelName();
 
         //Create a record
         $record = $model->create($columns);
-        $insertedRecord = clone $record;
+        var_dump('Old record: ' . print_r($record->getAttributes(), true));
 
         //Update the record
         foreach ($columns as $key => $value) {
@@ -81,17 +65,23 @@ class RevisionTest extends TestCase
         //Get the changed value
         $originalValuesChanged = RevisionTracking::eloquentDiff($record);
 
+        var_dump('eloquentDiff: ' . print_r($originalValuesChanged, true));
+        var_dump('updated record: ' . print_r($record->getAttributes(), true));
+
         // Get the latest revision
         $revisionModel = $record->getRevisionModel();
         $aRevision = $revisionModel->latest('id')->first();
 
+
         $identifier = [$record->getKeyName() => $record->getKey()];
+        var_dump('updated record revision identifier: ' . print_r($aRevision->revision_identifier, true));
 
         // Check if the revision identifier are equal
-        $this->assertEquals($identifier, $aRevision->revision_identifier, 'Identifiers do not match');
+        $this->assertTrue($aRevision->revision_identifier === $identifier, 'Identifiers not match');
 
-        return $insertedRecord;
+        return $record;
     }
+
 
     public function testRestore()
     {
@@ -109,14 +99,14 @@ class RevisionTest extends TestCase
 
         $restoredRecord = $model->find($oldRecord->getKey())->first();
 
-        $hasDifferent = true;
+        var_dump('restored record: ' . print_r($restoredRecord->getAttributes(), true));
+
         foreach ($columns as $key => $value) {
             if ($value !== $restoredRecord->getAttributes()[$key]) {
-                $hasDifferent = false;
-                break;
+                $this->assertTrue(false, 'name does not match');
             }
         }
 
-        $this->assertEquals(true, $hasDifferent, 'Names does not match');
+        $this->assertTrue(true, 'Restored!!!');
     }
 }

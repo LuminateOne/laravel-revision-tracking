@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * The Model use the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
- * Class Revision
- * @package LuminateOne\RevisionTracking\TestModels
+ * Class RevisionModel
+ * @package LuminateOne\RevisionTracking\Models
  */
-class Revision extends Model
+class RevisionModel extends Model
 {
     protected $fillable = ['revision_identifier', 'original_values', 'model_name'];
 
