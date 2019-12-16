@@ -5,7 +5,7 @@ namespace LuminateOne\RevisionTracking\Traits;
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
 use LuminateOne\RevisionTracking\RevisionTracking;
-use LuminateOne\RevisionTracking\Models\RevisionModel;
+use LuminateOne\RevisionTracking\Models\Revision;
 
 trait Revisionable
 {
@@ -46,7 +46,7 @@ trait Revisionable
     {
         $revisionTableName = null;
         if ($this->revisionMode() === 'all') {
-            $revisionTableName = 'revisions_all';
+            $revisionTableName = 'revisions';
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
         }
@@ -58,7 +58,7 @@ trait Revisionable
             );
         }
 
-        $revisionModel = new RevisionModel();
+        $revisionModel = new Revision();
         $revisionModel->setTable($revisionTableName);
 
         return $revisionModel;

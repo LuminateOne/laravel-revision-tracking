@@ -13,7 +13,7 @@ class CreateRevisionsVersionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('revisions_all', function (Blueprint $table) {
+        Schema::create('revisions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('model_name');
             $table->text('revision_identifier');
@@ -29,6 +29,6 @@ class CreateRevisionsVersionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('revisions_all');
+        Schema::dropIfExists('revisions');
     }
 }
