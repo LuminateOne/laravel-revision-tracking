@@ -45,7 +45,7 @@ trait Revisionable
     {
         $revisionTableName = null;
         if ($this->revisionMode() === 'all') {
-            $revisionTableName = 'revision_versions';
+            $revisionTableName = 'revisions_all';
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
         }
