@@ -10,12 +10,12 @@ class RevisionTracking
      * Loop through the changed values
      * Use the key in changed values to get the original values
      *
-     * @param $model
-     * @return array
+     * @param Model     $model          The Eloquent Model will be tracked after the attribute value changed
+     * @return array    originalFields  An array of changed field name and the original values (key => value) pair
      */
     public static function eloquentDiff($model)
     {
-        $originalValuesChanged = [];
+        $originalFields = [];
 
         $changes = $model->getChanges();
         $original = $model->getOriginal();
@@ -26,10 +26,10 @@ class RevisionTracking
                 "column" => $key
             ];
 
-            array_push($originalValuesChanged, $aOriginalValue);
+            array_push($originalFields, $aOriginalValue);
         }
 
-        return $originalValuesChanged;
+        return $originalFields;
     }
 
     /**
@@ -37,10 +37,10 @@ class RevisionTracking
      * Store the original value of changed value as as serialized format
      * If the the revision Mode is set to 0, insert the current Model name as "model_name" in the revision table
      *
-     * @param $model
-     * @param $originalValuesChanged
+     * @param Model $model            The Eloquent Model that the revision will be stored for
+     * @param array $originalFields   An array of changed field name and the original values (key => value) pair
      */
-    public static function eloquentStoreDiff($model, $originalValuesChanged)
+    public static function eloquentStoreDiff($model, $originalFields)
     {
         $revisionIdentifier = [$model->getKeyName() => $model->getKey()];
 
@@ -51,16 +51,16 @@ class RevisionTracking
         }
 
         $revisionModel->revision_identifier = serialize($revisionIdentifier);
-        $revisionModel->original_values = serialize($originalValuesChanged);
+        $revisionModel->original_values = serialize($originalFields);
 
         $revisionModel->save();
     }
 
     /**
      * Delete the revision or not when a Model is deleted
-     * Delete the revisions if the "remove_on_delete" is set to true in the config file
+     * Depends on the "remove_on_delete" variable in the config file
      *
-     * @param $model
+     * @param Model $model      The Eloquent Model
      * @throws ErrorException
      */
     public static function eloquentDelete($model)
@@ -86,19 +86,20 @@ class RevisionTracking
     }
 
     /**
-     *  Restoring the revision.
+     * Restoring the revision.
+     * Using the Model name and the revision ID provide to retrieve the revision for the Model
      *
-     * @param $targetModelName
-     * @param null $revisionID
+     * @param Model $modelName      The Eloquent Model that the revision will be restored for
+     * @param null  $revisionID     Revision ID for the Model
      * @throws ErrorException
      */
-    public static function eloquentRestore($targetModelName, $revisionID = null)
+    public static function eloquentRestore($modelName, $revisionID = null)
     {
-        if (!class_exists($targetModelName)) {
-            throw new ErrorException("The Model: " . $targetModelName . ' does not exists, look like you changed the Model name.');
+        if (!class_exists($modelName)) {
+            throw new ErrorException("The Model: " . $modelName . ' does not exists, look like you changed the Model name.');
         }
 
-        $targetModel = new $targetModelName();
+        $targetModel = new $modelName();
 
         $revisionModel = $targetModel->getRevisionModel();
 
