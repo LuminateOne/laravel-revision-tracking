@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
@@ -9,6 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\RevisionTracking;
 use Tests\TestCase;
 use Faker\Generator as Faker;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Log;
 
 class RevisionTest extends TestCase
@@ -19,11 +22,11 @@ class RevisionTest extends TestCase
      * Create the fake data for the Test Models
      * @return mixed
      */
-    public function modelProvider()
+    public function modelProvider($index)
     {
         $faker = \Faker\Factory::create();
 
-        return [
+        $models = [
             [
                 'model' => 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
                 'columns' => ['name' => $faker->name]
@@ -48,20 +51,26 @@ class RevisionTest extends TestCase
                 ]
             ],
         ];
+
+        $modelName = $models[$index]['model'];
+        $model = new $modelName();
+
+        if($model->revisionMode() === 'single'){
+            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $model->getTable(), function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->text('revision_identifier');
+                $table->text('original_values');
+                $table->timestamps();
+            });
+        }
+
+        return $models[$index];
     }
 
-    /**
-     * Test if the updated event can be catched be Revisionable.
-     *
-     * @param null $dataProvider    The dataProvider may be passed from other function
-     * @return $insertedRecord      Clone the created the record.
-     */
-    public function testUpdate($dataProvider = null)
+    public function testInsert($dataProvider = null)
     {
-        $faker = \Faker\Factory::create();
-
         //Get the Model name and columns
-        if(!$dataProvider){
+        if (!$dataProvider) {
             $dataProvider = $this->modelProvider()[0];
         }
         $modelName = $dataProvider['model'];
@@ -72,10 +81,27 @@ class RevisionTest extends TestCase
 
         //Create a record
         $record = $model->create($columns);
-        $insertedRecord = clone $record;
 
-        //Update the record
-        foreach ($columns as $key => $value) {
+        $this->assertTrue($record !== null, "The record has not been inserted");
+
+        return $record;
+    }
+
+    /**
+     * Test if the updated event can be catched be Revisionable.
+     *
+     * @param null $record      The newly created model
+     * @return $insertedRecord  Clone the created the model.
+     */
+    public function testUpdate($record = null)
+    {
+        $faker = \Faker\Factory::create();
+
+        if (!$record) {
+            $record = $this->testInsert($this->modelProvider(0));
+        }
+
+        foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
         }
         $record->save();
@@ -92,40 +118,115 @@ class RevisionTest extends TestCase
         // Check if the revision identifier are equal
         $this->assertEquals($identifier, $aRevision->revision_identifier, 'Identifiers do not match');
 
-        return $insertedRecord;
+        return $record;
+    }
+
+    /**
+     * Test get all revisions
+     * This will create and updated two different Model,
+     * So it can test if the "allRevision" method only return
+     * the revisions that belongs to the current Model
+     *
+     * @throws \ErrorException
+     */
+    public function testGetAllRevision()
+    {
+        //Get the Model and the fake data
+        $dataProvider = $this->modelProvider(0);
+
+        $record = $this->testInsert($dataProvider);
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        // Create and updated a different Model
+        $record2 = $this->testInsert($this->modelProvider()[1]);
+        for ($i = 0; $i < $updateCount; $i++) {
+           $this->testUpdate($record2);
+        }
+
+        // Restore the revision
+        $allReivisons = $record->allRevisions()->get();
+
+        $this->assertEquals($updateCount, count($allReivisons), "Revision count should be " . $updateCount);
+    }
+
+    /**
+     * Test get revisions
+     *
+     * @throws \ErrorException
+     */
+    public function testGetRevision()
+    {
+        //Get the Model and the fake data
+        $dataProvider = $this->modelProvider(0);
+        $record = $this->testInsert($dataProvider);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        $singleRevision = $record->getRevision(1);
+
+        $recordIds = [$oldRecord->getKeyName() => $oldRecord->getKey()];
+
+        $this->assertEquals($recordIds, $singleRevision->revision_identifier, "Identifiers do not match");
+
+        $hasDifferent = true;
+        foreach ($singleRevision->original_values as $value) {
+            if ($oldRecord[$value['column']] !== $value['value']) {
+                $hasDifferent = false;
+                break;
+            }
+        }
+        $this->assertTrue($hasDifferent, "Attribute values do not match");
     }
 
 
     /**
-     * Test reviosn restore, it will insert a new recored, and then update the record, then restore the revision.
+     * Test rollback, it will insert a new recored, and then update the record, then restore the revision.
      * Then check if the restored record is equal to the old record
-     * 
+     *
      * @throws \ErrorException
      */
-    public function testRestore()
+    public function testRollback()
     {
         //Get the Model and the fake data
-        $dataProvider = $this->modelProvider()[0];
+        $dataProvider = $this->modelProvider(0);
         $modelName = $dataProvider['model'];
-        $columns = $dataProvider['columns'];
         $model = new $modelName();
 
-        // Insert and update the Model
-        $oldRecord = $this->testUpdate($dataProvider);
+        $record = $this->testInsert($dataProvider);
+        $oldRecord = clone $record;
 
-        // Restore the revision
-        RevisionTracking::eloquentRestore($modelName);
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
 
-        $restoredRecord = $model->find($oldRecord->getKey())->first();
+        $saveAsRevision = false;
+        $revisionId = 1;
+        $record->rollback($revisionId, $saveAsRevision);
+
+        $restoredRecord = $model->find($record->getKey())->first();
 
         $hasDifferent = true;
-        foreach ($columns as $key => $value) {
-            if ($value !== $restoredRecord->getAttributes()[$key]) {
+        foreach ($oldRecord->getFillable() as $key) {
+            if ($oldRecord[$key] !== $restoredRecord[$key]) {
                 $hasDifferent = false;
                 break;
             }
         }
 
-        $this->assertEquals(true, $hasDifferent, 'Names does not match');
+        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+
+        if(!$saveAsRevision){
+            $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
+            $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+        }
     }
 }

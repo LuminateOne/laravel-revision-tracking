@@ -39,49 +39,49 @@ trait Revisionable
     /**
      * Get a specific revision by the revision ID.
      *
-     * @param $revisionId   A revision ID
-     *
-     * @return Model a revision retrieved by ID
+     * @param $revisionId
+     * @return mixed
      * @throws ErrorException
      */
-    public function getRevisions($revisionId)
+    public function getRevision($revisionId)
     {
-       return $this->allRevisions()->where(['id' => $revisionId])->first();
+        return $this->allRevisions()->where(['id' => $revisionId])->first();
     }
 
     /**
      * Get all revisions for this Model.
      *
-     * @return mixed a revision retrieved by ID
+     * @return mixed            A collection of revision Model
      * @throws ErrorException
      */
     public function allRevisions()
     {
         $targetRevision = null;
 
-        $revisionModel = $this->getRevisionModel();
-        //Since we set the RevisionModel dynamically, so we need to check revision Mode.
-        if ($this->revisionMode() === 0) {
-            $targetRevision = $revisionModel->where(['model_name' => get_class($this)]);
-        } else {
-            // When set table dynamically, the Model::all() is not working properly, so where id > -1 do the trick.
-            $targetRevision = $revisionModel->where('id', '>', '-1');
+        $whereClause = [['revision_identifier', '=', serialize([$this->getKeyName() => $this->getKey()])]];
+
+        //Check the revision mode to see if we need to add "model_name" in the where clause
+        if ($this->revisionMode() === 'all') {
+            array_push($whereClause, ['model_name', '=', get_class($this)]);
         }
+
+        $targetRevision = $this->getRevisionModel()->where($whereClause);
 
         return $targetRevision;
     }
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provide to retrieve the revision for the Model
+     * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
      * @param null $revisionId      Revision ID for the Model
-     * @param null $saveAsRevision  Revision ID for the Model
+     * @param true $saveAsRevision  true =>  save the “rollback” as a new revision of the model.
+     *                              false => rollback to a specific revision and delete all the revisions that came after that revision,
      * @throws ErrorException
      */
-    public function rollback($revisionId, $saveAsRevision)
+    public function rollback($revisionId, $saveAsRevision = true)
     {
-        $targetRevision = $this->allRevisions()->getRevisions($revisionId);
+        $targetRevision = $this->allRevisions()->where(['id' => $revisionId])->first();
 
         if (!$targetRevision) {
             throw new ErrorException("No revisions found for Model: " . get_class($this));
@@ -101,6 +101,10 @@ trait Revisionable
         }
 
         $targetRecord->save();
+
+        if(!$saveAsRevision){
+            $this->allRevisions()->where([['id', '>=', $revisionId]])->delete();
+        }
     }
 
 
