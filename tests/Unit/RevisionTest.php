@@ -83,6 +83,11 @@ class RevisionTest extends TestCase
     }
 
 
+    /**
+     * Test reviosn restore, it will insert a new recored, and then update the record, then restore the revision.
+     * Then check if the restored record is equal to the old record
+     * @throws \ErrorException
+     */
     public function testRestore()
     {
         //Get the Model and fake data
