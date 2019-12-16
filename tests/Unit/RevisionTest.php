@@ -17,7 +17,6 @@ class RevisionTest extends TestCase
 
     /**
      * Create the fake data for the Test Models
-     * @param $index
      * @return mixed
      */
     public function modelProvider()
@@ -53,8 +52,11 @@ class RevisionTest extends TestCase
 
     /**
      * Test if the updated event can be catched be Revisionable.
+     *
+     * @param null $dataProvider    The dataProvider may be passed from other function
+     * @return $insertedRecord      Clone the created the record.
      */
-    public function testUpdate($dataProvider)
+    public function testUpdate($dataProvider = null)
     {
         $faker = \Faker\Factory::create();
 
