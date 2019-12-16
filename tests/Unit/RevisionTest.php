@@ -54,12 +54,14 @@ class RevisionTest extends TestCase
     /**
      * Test if the updated event can be catched be Revisionable.
      */
-    public function testUpdate()
+    public function testUpdate($dataProvider)
     {
         $faker = \Faker\Factory::create();
 
         //Get the Model name and columns
-        $dataProvider = $this->modelProvider()[2];
+        if(!$dataProvider){
+            $dataProvider = $this->modelProvider()[0];
+        }
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
 
@@ -68,6 +70,7 @@ class RevisionTest extends TestCase
 
         //Create a record
         $record = $model->create($columns);
+        $insertedRecord = clone $record;
 
         //Update the record
         foreach ($columns as $key => $value) {
@@ -86,12 +89,14 @@ class RevisionTest extends TestCase
 
         // Check if the revision identifier are equal
         $this->assertEquals($identifier, $aRevision->revision_identifier, 'Identifiers do not match');
+
+        return $insertedRecord;
     }
 
     public function testRestore()
     {
         //Get the fake data
-        $dataProvider = $this->modelProvider(0);
+        $dataProvider = $this->modelProvider()[0];
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
         $model = new $modelName();
@@ -104,14 +109,14 @@ class RevisionTest extends TestCase
 
         $restoredRecord = $model->find($oldRecord->getKey())->first();
 
-        var_dump('restored record: ' . print_r($restoredRecord->getAttributes(), true));
-
+        $hasDifferent = true;
         foreach ($columns as $key => $value) {
             if ($value !== $restoredRecord->getAttributes()[$key]) {
-                $this->assertTrue(false, 'name does not match');
+                $hasDifferent = false;
+                break;
             }
         }
 
-        $this->assertTrue(true, 'Restored!!!');
+        $this->assertEquals(true, $hasDifferent, 'Names does not match');
     }
 }
