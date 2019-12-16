@@ -26,7 +26,7 @@ class RevisionTest extends TestCase
     {
         $models = [
             'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\customizedPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
         ];
