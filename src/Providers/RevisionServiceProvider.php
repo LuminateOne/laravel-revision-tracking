@@ -3,7 +3,7 @@ namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
-class LaravelServiceProvider extends ServiceProvider
+class RevisionServiceProvider extends ServiceProvider
 {
     public function boot()
     {

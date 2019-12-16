@@ -1,11 +1,11 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
 use LuminateOne\RevisionTracking\RevisionTracking;
-use LuminateOne\RevisionTracking\Models\RevisionVersion;
-use LuminateOne\RevisionTracking\Models\SingleRevisionModel;
+use LuminateOne\RevisionTracking\Models\RevisionModel;
 
 trait Revisionable
 {
@@ -40,31 +40,32 @@ trait Revisionable
      * get the corresponding Eloquent Model for the revision table
      *
      * @throws ErrorException
-     * @return RevisionVersion|SingleRevisionModel
+     * @return RevisionModel
      */
     public function getRevisionModel()
     {
-        if ($this->revisionMode() === 0) {
-            return new RevisionVersion();
+        $revisionTableName = null;
+        if ($this->revisionMode() === 'all') {
+            $revisionTableName = 'revisions_all';
         } else {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $this->getTable();
-
-            if(!Schema::hasTable($revisionTableName)){
-                throw new ErrorException('The revision table for the Model: ' . get_class($this) .
-                    ' could not be found. There are three possible reasons: ' . '1. Table name changed. ' . '2. Model name changed. ' .
-                    '3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
-                );
-            }
-
-            $singleRevisionModel = new SingleRevisionModel();
-            $singleRevisionModel->setTable($revisionTableName);
-
-            return $singleRevisionModel;
         }
+
+        if (!Schema::hasTable($revisionTableName)) {
+            throw new ErrorException('The revision table for the Model: ' . get_class($this) .
+                ' could not be found. There are three possible reasons: ' . '1. Table name changed. ' . '2. Model name changed. ' .
+                '3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
+            );
+        }
+
+        $revisionModel = new RevisionModel();
+        $revisionModel->setTable($revisionTableName);
+
+        return $revisionModel;
     }
 
     public function revisionMode()
     {
-        return config('revision_tracking.mode', 0);
+        return config('revision_tracking.mode', 'all');
     }
 }
