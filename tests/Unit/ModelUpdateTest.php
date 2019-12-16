@@ -1,5 +1,4 @@
 <?php
-
 namespace Tests\Unit;
 
 use Illuminate\Database\Eloquent\Model;
@@ -39,10 +38,12 @@ class ModelUpdateTest extends TestCase
      */
     public function testUpdate()
     {
-        $faker = \Faker\Factory::create();
+        $faker = \Faker\Factory::create($dataProvider = null);
 
         //Get the Model name and columns
-        $dataProvider = $this->modelProvider(0);
+        if(!$dataProvider){
+            $dataProvider = $this->modelProvider(0);
+        }
         $modelName = $dataProvider['model'];
         $columns = $dataProvider['columns'];
 
@@ -77,5 +78,7 @@ class ModelUpdateTest extends TestCase
 
         // Check if the revision identifier are equal
         $this->assertTrue($aRevision->revision_identifier === $identifier, 'Identifiers not match');
+
+        return $record;
     }
 }
