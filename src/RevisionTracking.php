@@ -46,7 +46,7 @@ class RevisionTracking
 
         $revisionModel = $model->getRevisionModel();
 
-        if ($model->revisionMode() === 0) {
+        if($model->revisionMode() === 'all'){
             $revisionModel->model_name = get_class($model);
         }
 
@@ -104,21 +104,11 @@ class RevisionTracking
 
         $targetRevision = null;
 
-        // This step is to get all the revisions for the given Model, or we can call it as filtering revision
-        // Since we are loading the Eloquent Model for the revision table dynamically ($targetModel->revisionMode()),
-        // we have to check revision Mode, because they have the different table structure
-        //
-        // if the Mode is set to 0 (Put all the revisions into a single table),
-        // when query the revision we have to include the "model_name" in where clause
-        //
-        // if the Mode is not set to 0,
-        // (Each Model will have its own revision table and we set the table name dynamically to tell the Eloquent Model which table to use),
-        // The method $revisionModel->all() is not working properly when set table name dynamically,
-        // It will call the static ::all() method
-        // then where id > -1 do the trick to fetch all the revisions for the corresponding Model
+        //Since we set the RevisionModel dynamically, so we need to check revision Mode.
         if ($targetModel->revisionMode() === 0) {
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
         } else {
+            // When set table dynamically, the Model::all() is not working properly, so where id > -1 do the trick.
             $targetRevision = $revisionModel->where('id', '>', '-1');
         }
 

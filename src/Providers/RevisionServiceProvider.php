@@ -4,7 +4,7 @@ namespace LuminateOne\RevisionTracking\Providers;
 use Illuminate\Support\ServiceProvider;
 use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
-class LaravelServiceProvider extends ServiceProvider
+class RevisionServiceProvider extends ServiceProvider
 {
     public function boot()
     {

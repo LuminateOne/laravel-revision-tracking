@@ -32,10 +32,10 @@ return [
     | Defines the Revision Mode
     |--------------------------------------------------------------------------
     |
-    | If set to 0, all the revision will be stored in one table called revisions_versions
-    | If set to 1, a revision table will be created for the Model which uses the Revisionable Trait
+    | If set to all, all the revision will be stored in one table called revisions_versions
+    | If set to single, a revision table will be created for the Model which uses the Revisionable Trait
     */
 
-    'mode' => env('REVISION_MODE', 0),
+    'mode' => env('REVISION_MODE', 'all'),
 
 ];

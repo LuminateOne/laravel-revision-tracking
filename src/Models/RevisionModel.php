@@ -1,9 +1,15 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RevisionVersion extends Model
+/**
+ * The Model use the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
+ * Class RevisionModel
+ * @package LuminateOne\RevisionTracking\Models
+ */
+class RevisionModel extends Model
 {
     protected $fillable = ['revision_identifier', 'original_values', 'model_name'];
 
@@ -11,7 +17,8 @@ class RevisionVersion extends Model
      * @param $value
      * @return mixed
      */
-    public function getRevisionIdentifierAttribute($value){
+    public function getRevisionIdentifierAttribute($value)
+    {
         return unserialize($value);
     }
 
@@ -19,7 +26,8 @@ class RevisionVersion extends Model
      * @param $value
      * @return mixed
      */
-    public function getOriginalValuesAttribute($value){
+    public function getOriginalValuesAttribute($value)
+    {
         return unserialize($value);
     }
 }
