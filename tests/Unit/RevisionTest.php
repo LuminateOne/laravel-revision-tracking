@@ -67,14 +67,14 @@ class RevisionTest extends TestCase
         return $models[$index];
     }
 
-    public function testInsert($dataProvider = null)
+    public function testInsert($modelProvider = null)
     {
         //Get the Model name and columns
-        if (!$dataProvider) {
-            $dataProvider = $this->modelProvider()[0];
+        if (!$modelProvider) {
+            $modelProvider = $this->modelProvider()[0];
         }
-        $modelName = $dataProvider['model'];
-        $columns = $dataProvider['columns'];
+        $modelName = $modelProvider['model'];
+        $columns = $modelProvider['columns'];
 
         // Create a new Model
         $model = new $modelName();
@@ -132,9 +132,9 @@ class RevisionTest extends TestCase
     public function testGetAllRevision()
     {
         //Get the Model and the fake data
-        $dataProvider = $this->modelProvider(0);
+        $modelProvider = $this->modelProvider(0);
 
-        $record = $this->testInsert($dataProvider);
+        $record = $this->testInsert($modelProvider);
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
@@ -161,8 +161,8 @@ class RevisionTest extends TestCase
     public function testGetRevision()
     {
         //Get the Model and the fake data
-        $dataProvider = $this->modelProvider(0);
-        $record = $this->testInsert($dataProvider);
+        $modelProvider = $this->modelProvider(0);
+        $record = $this->testInsert($modelProvider);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -196,11 +196,11 @@ class RevisionTest extends TestCase
     public function testRollback()
     {
         //Get the Model and the fake data
-        $dataProvider = $this->modelProvider(0);
-        $modelName = $dataProvider['model'];
+        $modelProvider = $this->modelProvider(0);
+        $modelName = $modelProvider['model'];
         $model = new $modelName();
 
-        $record = $this->testInsert($dataProvider);
+        $record = $this->testInsert($modelProvider);
         $oldRecord = clone $record;
 
         $updateCount = 3;
