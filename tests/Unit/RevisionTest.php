@@ -4,7 +4,7 @@ namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
 use LuminateOne\RevisionTracking\TestModels\TableOneUnique;
-use LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey;
+use LuminateOne\RevisionTracking\TestModels\customizedPrimaryKey;
 use LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\RevisionTracking;
@@ -26,7 +26,7 @@ class RevisionTest extends TestCase
     {
         $models = [
             'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\customizedPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
         ];
@@ -152,7 +152,7 @@ class RevisionTest extends TestCase
 
     /**
      * Test get revisions
-     * Test differently when user set a custom primary key
+     * Test differently when user set a customized primary key
      *
      * @throws \ErrorException
      */
@@ -169,7 +169,7 @@ class RevisionTest extends TestCase
         }
 
         $revisionId = 1;
-        //When user set the custom primary key
+        //When user set the customized primary key
         if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
             $revisionId = 3;
         }
@@ -179,7 +179,7 @@ class RevisionTest extends TestCase
         $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier,
             "Identifiers do not match");
 
-        // If the user did not set a custom primary key, then comppare the changed the fields
+        // If the user did not set a customized primary key, then comppare the changed the fields
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
             $hasDifferent = true;
             foreach ($singleRevision->original_values as $value) {
@@ -217,7 +217,7 @@ class RevisionTest extends TestCase
         $saveAsRevision = true;
 
         $revisionId = 1;
-        //When user set the custom primary key
+        //When user set the customized primary key
         if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
             $revisionId = 3;
         }
