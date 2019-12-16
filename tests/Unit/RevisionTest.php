@@ -24,63 +24,47 @@ class RevisionTest extends TestCase
      */
     public function modelProvider($index)
     {
-        $faker = \Faker\Factory::create();
-
         $models = [
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
-                'columns' => ['name' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
-                'columns' => ['name1' => $faker->name, 'name2' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
-                'columns' => ['name' => $faker->name]
-            ],
-            [
-                'model' => 'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
-                'columns' => [
-                    'name' => $faker->name,
-                    'name1' => $faker->name,
-                    'name2' => $faker->name,
-                    'name3' => $faker->name,
-                    'name4' => $faker->name,
-                    'name5' => $faker->name
-                ]
-            ],
+            'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
         ];
 
-        $modelName = $models[$index]['model'];
+        $modelName = $models[$index];
         $model = new $modelName();
 
-        if($model->revisionMode() === 'single'){
-            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $model->getTable(), function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->text('revision_identifier');
-                $table->text('original_values');
-                $table->timestamps();
-            });
+        if ($model->revisionMode() === 'single') {
+            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $model->getTable(),
+                function (Blueprint $table) {
+                    $table->bigIncrements('id');
+                    $table->text('revision_identifier');
+                    $table->text('original_values');
+                    $table->timestamps();
+                });
         }
 
         return $models[$index];
     }
 
-    public function testInsert($modelProvider = null)
+    public function testInsert($modelName = null)
     {
+        $faker = \Faker\Factory::create();
+
         //Get the Model name and columns
-        if (!$modelProvider) {
-            $modelProvider = $this->modelProvider()[0];
+        if (!$modelName) {
+            $modelName = $this->modelProvider(0);
         }
-        $modelName = $modelProvider['model'];
-        $columns = $modelProvider['columns'];
 
         // Create a new Model
-        $model = new $modelName();
+        $record = new $modelName();
+
+        foreach (($record->getFillable()) as $key) {
+            $record[$key] = $faker->name;
+        }
 
         //Create a record
-        $record = $model->create($columns);
+        $record->save();
 
         $this->assertTrue($record !== null, "The record has not been inserted");
 
@@ -90,7 +74,7 @@ class RevisionTest extends TestCase
     /**
      * Test if the updated event can be catched be Revisionable.
      *
-     * @param null $record      The newly created model
+     * @param null $record The newly created model
      * @return $insertedRecord  Clone the created the model.
      */
     public function testUpdate($record = null)
@@ -98,8 +82,9 @@ class RevisionTest extends TestCase
         $faker = \Faker\Factory::create();
 
         if (!$record) {
-            $record = $this->testInsert($this->modelProvider(0));
+            $record = $this->testInsert($this->modelProvider(3));
         }
+        $oldRecord = clone $record;
 
         foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
@@ -110,13 +95,21 @@ class RevisionTest extends TestCase
         $originalValuesChanged = RevisionTracking::eloquentDiff($record);
 
         // Get the latest revision
-        $revisionModel = $record->getRevisionModel();
-        $aRevision = $revisionModel->latest('id')->first();
-
-        $identifier = [$record->getKeyName() => $record->getKey()];
+        $aRevision = $record->allRevisions()->latest('id')->first();
 
         // Check if the revision identifier are equal
-        $this->assertEquals($identifier, $aRevision->revision_identifier, 'Identifiers do not match');
+        $this->assertEquals([$record->getKeyName() => $record->getKey()], $aRevision->revision_identifier,
+            'Identifiers do not match');
+
+        // The the values stored in the revision table
+        $hasDifferent = true;
+        foreach ($aRevision->original_values as $value) {
+            if ($oldRecord[$value['column']] !== $value['value']) {
+                $hasDifferent = false;
+                break;
+            }
+        }
+        $this->assertTrue($hasDifferent, "Attribute values do not match");
 
         return $record;
     }
@@ -131,10 +124,10 @@ class RevisionTest extends TestCase
      */
     public function testGetAllRevision()
     {
-        //Get the Model and the fake data
-        $modelProvider = $this->modelProvider(0);
+        //Get the Model
+        $modelName = $this->modelProvider(0);
 
-        $record = $this->testInsert($modelProvider);
+        $record = $this->testInsert($modelName);
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
@@ -142,27 +135,32 @@ class RevisionTest extends TestCase
         }
 
         // Create and updated a different Model
-        $record2 = $this->testInsert($this->modelProvider()[1]);
+        $record2 = $this->testInsert($this->modelProvider(1));
         for ($i = 0; $i < $updateCount; $i++) {
-           $this->testUpdate($record2);
+            $this->testUpdate($record2);
         }
 
         // Restore the revision
         $allReivisons = $record->allRevisions()->get();
 
-        $this->assertEquals($updateCount, count($allReivisons), "Revision count should be " . $updateCount);
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $this->assertEquals($updateCount, count($allReivisons), "Revision count should be " . $updateCount);
+        } else {
+            $this->assertEquals(1, count($allReivisons), "Revision count should be " . $updateCount);
+        }
     }
 
     /**
      * Test get revisions
+     * Test differently when user set a custom primary key
      *
      * @throws \ErrorException
      */
     public function testGetRevision()
     {
-        //Get the Model and the fake data
-        $modelProvider = $this->modelProvider(0);
-        $record = $this->testInsert($modelProvider);
+        //Get the Model
+        $modelName = $this->modelProvider(1);
+        $record = $this->testInsert($modelName);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -170,22 +168,31 @@ class RevisionTest extends TestCase
             $record = $this->testUpdate($record);
         }
 
-        $singleRevision = $record->getRevision(1);
-
-        $recordIds = [$oldRecord->getKeyName() => $oldRecord->getKey()];
-
-        $this->assertEquals($recordIds, $singleRevision->revision_identifier, "Identifiers do not match");
-
-        $hasDifferent = true;
-        foreach ($singleRevision->original_values as $value) {
-            if ($oldRecord[$value['column']] !== $value['value']) {
-                $hasDifferent = false;
-                break;
-            }
+        $revisionId = 1;
+        //When user set the custom primary key
+        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
+            $revisionId = 3;
         }
-        $this->assertTrue($hasDifferent, "Attribute values do not match");
-    }
 
+        $singleRevision = $record->getRevision($revisionId);
+
+        $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier,
+            "Identifiers do not match");
+
+        // If the user did not set a custom primary key, then comppare the changed the fields
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $hasDifferent = true;
+            foreach ($singleRevision->original_values as $value) {
+                if ($oldRecord[$value['column']] !== $value['value']) {
+                    $hasDifferent = false;
+                    break;
+                }
+            }
+            $this->assertTrue($hasDifferent, "Attribute values do not match");
+        } else {
+
+        }
+    }
 
     /**
      * Test rollback, it will insert a new recored, and then update the record, then restore the revision.
@@ -195,12 +202,11 @@ class RevisionTest extends TestCase
      */
     public function testRollback()
     {
-        //Get the Model and the fake data
-        $modelProvider = $this->modelProvider(0);
-        $modelName = $modelProvider['model'];
+        //Get the Model
+        $modelName = $this->modelProvider(1);
         $model = new $modelName();
 
-        $record = $this->testInsert($modelProvider);
+        $record = $this->testInsert($modelName);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -208,23 +214,31 @@ class RevisionTest extends TestCase
             $record = $this->testUpdate($record);
         }
 
-        $saveAsRevision = false;
+        $saveAsRevision = true;
+
         $revisionId = 1;
+        //When user set the custom primary key
+        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
+            $revisionId = 3;
+        }
+        $latestRevision = $record->getRevision($revisionId);
+
         $record->rollback($revisionId, $saveAsRevision);
 
-        $restoredRecord = $model->find($record->getKey())->first();
+        $restoredRecord = $model->find($latestRevision->revision_identifier)->first();
 
-        $hasDifferent = true;
-        foreach ($oldRecord->getFillable() as $key) {
-            if ($oldRecord[$key] !== $restoredRecord[$key]) {
-                $hasDifferent = false;
-                break;
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $hasDifferent = true;
+            foreach ($oldRecord->getFillable() as $key) {
+                if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                    $hasDifferent = false;
+                    break;
+                }
             }
+            $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
         }
 
-        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
-
-        if(!$saveAsRevision){
+        if (!$saveAsRevision) {
             $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
             $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
         }

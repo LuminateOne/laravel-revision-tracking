@@ -42,16 +42,14 @@ class RevisionTracking
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
-        $revisionIdentifier = [$model->getKeyName() => $model->getKey()];
-
         $revisionModel = $model->getRevisionModel();
 
         if($model->revisionMode() === 'all'){
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = serialize($revisionIdentifier);
-        $revisionModel->original_values = serialize($originalFields);
+        $revisionModel->revision_identifier = [$model->getKeyName() => $model->getKey()];
+        $revisionModel->original_values = $originalFields;
 
         $revisionModel->save();
     }
