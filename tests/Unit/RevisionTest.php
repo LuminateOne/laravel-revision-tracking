@@ -17,7 +17,6 @@ class RevisionTest extends TestCase
 
     /**
      * Create the fake data for the Test Models
-     * @param $index
      * @return mixed
      */
     public function modelProvider()
