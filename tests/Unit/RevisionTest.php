@@ -12,7 +12,6 @@ use Tests\TestCase;
 use Faker\Generator as Faker;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Log;
 
 class RevisionTest extends TestCase
 {
