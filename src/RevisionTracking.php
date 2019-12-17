@@ -10,9 +10,9 @@ class RevisionTracking
      * Loop through the changed values
      * Use the field name in changed values to get the original values
      *
-     * @param   Model $model            The Model will be tracked
+     * @param  Model $model             The Model will be tracked
      *
-     * @return  array $originalFields   A key => value pair array, which stores the fields and the original values
+     * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentDiff($model)
     {
