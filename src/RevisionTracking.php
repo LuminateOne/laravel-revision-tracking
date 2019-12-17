@@ -1,17 +1,18 @@
 <?php
 namespace LuminateOne\RevisionTracking;
 
+use Illuminate\Database\Eloquent\Model;
 use ErrorException;
 
 class RevisionTracking
 {
     /**
-     * Get the original values of the changed values
      * Loop through the changed values
-     * Use the key in changed values to get the original values
+     * Use the field name in changed values to get the original values
      *
-     * @param Model     $model          The Eloquent Model will be tracked after the attribute value changed
-     * @return array    originalFields  An array of changed field name and the original values (key => value) pair
+     * @param  Model $model             The Model will be tracked
+     *
+     * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentDiff($model)
     {
@@ -33,12 +34,12 @@ class RevisionTracking
     }
 
     /**
-     * Get the primary key of the record, store it in the revision table as serialized format
+     * Get the primary key of the record,
+     * Store the primary key name and value as serialized format
      * Store the original value of changed value as as serialized format
-     * If the the revision Mode is set to 0, insert the current Model name as "model_name" in the revision table
      *
-     * @param Model $model            The Eloquent Model that the revision will be stored for
-     * @param array $originalFields   An array of changed field name and the original values (key => value) pair
+     * @param Model $model            The changes will be stored for
+     * @param array $originalFields   A key => value pair array, which stores the field names and the original values
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
@@ -58,10 +59,11 @@ class RevisionTracking
 
     /**
      * Delete the revision or not when a Model is deleted
-     * Depends on the "remove_on_delete" variable in the config file
+     * Depends on the "remove_on_delete" value in the config file
      *
-     * @param Model $model      The Eloquent Model
-     * @throws ErrorException
+     * @param Model $model The Eloquent Model
+     *
+     * @throws ErrorException If the Model cannot be found
      */
     public static function eloquentDelete($model)
     {
@@ -87,11 +89,12 @@ class RevisionTracking
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provide to retrieve the revision for the Model
+     * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param Model $modelName      The Eloquent Model that the revision will be restored for
-     * @param null  $revisionID     Revision ID for the Model
-     * @throws ErrorException
+     * @param string   $modelName   The Eloquent Model name that the revision will be restored for
+     * @param integer  $revisionID  Revision ID for the Model
+     *
+     * @throws ErrorException  If the Model or the revision cannot be found
      */
     public static function eloquentRestore($modelName, $revisionID = null)
     {
@@ -105,7 +108,7 @@ class RevisionTracking
 
         $targetRevision = null;
 
-        //Since we set the RevisionModel dynamically, so we need to check revision Mode.
+        // There are two revision modes, so we need to check the mode to see if we need to set the "model_name" in the query.
         if ($targetModel->revisionMode() === 0) {
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
         } else {
@@ -113,7 +116,7 @@ class RevisionTracking
             $targetRevision = $revisionModel->where('id', '>', '-1');
         }
 
-        // If there is a revision ID provided, we continually filter the revision data
+        // We keep filter the revision data, if there is a revision ID provided,
         if (!$revisionID) {
             $targetRevision = $targetRevision->latest('id')->first();
         } else {
@@ -128,8 +131,7 @@ class RevisionTracking
 
         if (!$targetRecord) {
             throw new ErrorException('The target record for the Model: ' . get_class($targetModel) .
-                ' could not be found. There are five possible reasons: ' .
-                '1. Table name changed. ' . '2. Model name changed. ' . '3. The record has been deleted. ' . '4. Not restoring revision from the latest one.' . '5. The primary key has been changed'
+                ' could not be found. There are five possible reasons: 1. Table name changed. 2. Model name changed. 3. The record has been deleted. 4. Not restoring revision from the latest one. 5. The primary key has been changed'
             );
         }
 
