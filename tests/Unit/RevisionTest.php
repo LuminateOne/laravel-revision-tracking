@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
@@ -22,7 +21,7 @@ class RevisionTest extends TestCase
         parent::setUp();
 
         $testModelName = [
-            'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
+            'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
         ][0];
@@ -100,7 +99,7 @@ class RevisionTest extends TestCase
      * So it can test if the "allRevision" method only return
      * the revisions that belongs to the current Model
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     public function testGetAllRevision()
     {
