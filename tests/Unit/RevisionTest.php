@@ -21,9 +21,21 @@ class RevisionTest extends TestCase
     {
         parent::setUp();
 
-        $testModelName = $this->getAllModels()[0];
+        $testModelName = [
+            'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
+            'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
+        ][0];
 
         $this->testModel = new $testModelName();
+
+        // Create a Model for testing
+        $faker = \Faker\Factory::create();
+        foreach (($this->testModel->getFillable()) as $key) {
+            $this->testModel[$key] = $faker->name;
+        }
+        $this->testModel->save();
 
         if ($this->testModel->revisionMode() === 'single') {
             Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $testModel->getTable(), function (Blueprint $table) {
@@ -34,20 +46,18 @@ class RevisionTest extends TestCase
             });
         }
     }
-    
+
     /**
-     * Insert a new Model
+     * Test if the updated event can be catched be Revisionable.
      *
-     * @param null $record The newly created model
      * @return $insertedRecord  Clone the created the model.
      */
-    public function testUpdate($record = null)
+    public function testUpdate(l)
     {
         $faker = \Faker\Factory::create();
 
-        if (!$record) {
-            $record = $this->createNewModel();
-        }
+        $record = $this->testModel;
+
         $oldRecord = clone $record;
 
         foreach (($record->getFillable()) as $key) {
@@ -65,7 +75,7 @@ class RevisionTest extends TestCase
         $this->assertEquals($modelIdentifiers, $aRevision->revision_identifier,
             'The identifiers of revision and the primary key of the Model should match');
 
-        // Test the values stored in the revision table
+        // Check if the values stored in the revision table equals to the old record
         $hasDifferent = true;
         foreach ($aRevision->original_values as $value) {
             if ($oldRecord[$value['column']] !== $value['value']) {
@@ -88,10 +98,7 @@ class RevisionTest extends TestCase
      */
     public function testGetAllRevision()
     {
-        //Get the Model
-        $testModel = $this->modelProvider(0);
-
-        $record = $this->createNewModel($testModel);
+        $record = $this->testModel;
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
@@ -122,9 +129,7 @@ class RevisionTest extends TestCase
      */
     public function testGetRevision()
     {
-        //Get the Model
-        $testModel = $this->modelProvider(0);
-        $record = $this->createNewModel($testModel);
+        $record = $this->testModel;
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -163,10 +168,7 @@ class RevisionTest extends TestCase
      */
     public function testRollback()
     {
-        //Get the Model
-        $testModel = $this->modelProvider(3);
-
-        $record = $this->createNewModel($testModel);
+        $record = $this->testModel;
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -185,7 +187,7 @@ class RevisionTest extends TestCase
 
         $record->rollback($revisionId, $saveAsRevision);
 
-        $restoredRecord = $testModel->find($latestRevision->revision_identifier)->first();
+        $restoredRecord = $record->find($latestRevision->revision_identifier)->first();
 
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
             $hasDifferent = true;
@@ -204,6 +206,7 @@ class RevisionTest extends TestCase
         }
     }
 
+
     /**
      * Test delete
      * Test will the revision be deleted after delete a Model
@@ -212,10 +215,7 @@ class RevisionTest extends TestCase
      */
     public function testDelete()
     {
-        //Get the Model
-        $testModel = $this->modelProvider(1);
-
-        $record = $this->createNewModel($testModel);
+        $record = $this->testModel;
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -228,42 +228,5 @@ class RevisionTest extends TestCase
         $revisionCount = $record->allRevisions()->count();
 
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
-    }
-
-    /**
-     * Create a Model for testing
-     *
-     * @return Model
-     */
-    public function createNewModel()
-    {
-        $faker = \Faker\Factory::create();
-
-        $record = new $this->testModel();
-
-        foreach (($record->getFillable()) as $key) {
-            $record[$key] = $faker->name;
-        }
-
-        $record->save();
-
-        $this->assertTrue($record !== null, "The record has not been inserted");
-
-        return $record;
-    }
-
-    /**
-     * An array of Models for testing
-     *
-     * @return array
-     */
-    private function getAllModels()
-    {
-        return [
-            'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
-        ];
     }
 }
