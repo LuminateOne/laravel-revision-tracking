@@ -58,8 +58,7 @@ trait Revisionable
 
         return $revisionModel;
     }
-
-
+    
     /**
      * Read the config to get the current revision mode
      *
