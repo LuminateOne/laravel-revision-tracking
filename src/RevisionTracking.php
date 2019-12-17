@@ -91,8 +91,8 @@ class RevisionTracking
      * Restoring the revision.
      * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param string  $modelName  The Eloquent Model name that the revision will be restored for
-     * @param integer $revisionID Revision ID for the Model
+     * @param string   $modelName   The Eloquent Model name that the revision will be restored for
+     * @param integer  $revisionID  Revision ID for the Model
      *
      * @throws ErrorException  If the Model or the revision cannot be found
      */
