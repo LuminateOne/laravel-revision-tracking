@@ -43,20 +43,20 @@ class RevisionTest extends TestCase
             });
         }
 
-        return $models[$index];
+        return $model;
     }
 
-    public function testInsert($modelName = null)
+    public function testInsert($testModel = null)
     {
         $faker = \Faker\Factory::create();
 
         //Get the Model name and columns
-        if (!$modelName) {
-            $modelName = $this->modelProvider(0);
+        if (!$testModel) {
+            $testModel = $this->modelProvider(0);
         }
 
         // Create a new Model
-        $record = new $modelName();
+        $record = new $testModel();
 
         foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
@@ -124,9 +124,9 @@ class RevisionTest extends TestCase
     public function testGetAllRevision()
     {
         //Get the Model
-        $modelName = $this->modelProvider(0);
+        $testModel = $this->modelProvider(0);
 
-        $record = $this->testInsert($modelName);
+        $record = $this->testInsert($testModel);
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
@@ -158,8 +158,8 @@ class RevisionTest extends TestCase
     public function testGetRevision()
     {
         //Get the Model
-        $modelName = $this->modelProvider(1);
-        $record = $this->testInsert($modelName);
+        $testModel = $this->modelProvider(0);
+        $record = $this->testInsert($testModel);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -175,8 +175,7 @@ class RevisionTest extends TestCase
 
         $singleRevision = $record->getRevision($revisionId);
 
-        $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier,
-            "Identifiers do not match");
+        $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier, "Identifiers do not match");
 
         // If the user did not set a customized primary key, then comppare the changed the fields
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
@@ -188,8 +187,6 @@ class RevisionTest extends TestCase
                 }
             }
             $this->assertTrue($hasDifferent, "Attribute values do not match");
-        } else {
-
         }
     }
 
@@ -202,10 +199,9 @@ class RevisionTest extends TestCase
     public function testRollback()
     {
         //Get the Model
-        $modelName = $this->modelProvider(1);
-        $model = new $modelName();
+        $testModel = $this->modelProvider(3);
 
-        $record = $this->testInsert($modelName);
+        $record = $this->testInsert($testModel);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -216,7 +212,7 @@ class RevisionTest extends TestCase
         $saveAsRevision = true;
 
         $revisionId = 1;
-        //When user set the customized primary key
+        //Check if user set a customized primary key
         if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
             $revisionId = 3;
         }
@@ -224,7 +220,7 @@ class RevisionTest extends TestCase
 
         $record->rollback($revisionId, $saveAsRevision);
 
-        $restoredRecord = $model->find($latestRevision->revision_identifier)->first();
+        $restoredRecord = $testModel->find($latestRevision->revision_identifier)->first();
 
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
             $hasDifferent = true;
