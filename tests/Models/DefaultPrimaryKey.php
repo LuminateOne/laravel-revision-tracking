@@ -10,12 +10,15 @@ class DefaultPrimaryKey extends Model
 {
     use Revisionable;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'name1', 'name2'];
 
     public function createTable(){
-        Schema::create('default_primary_keys', function (Blueprint $table) {
+        Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('name');
+            $table->text('name1');
+            $table->text('name2');
+
             $table->timestamps();
         });
     }

@@ -13,7 +13,7 @@ class CustomPrimaryKey extends Model
     protected $fillable = ['name', 'name1', 'name2', 'name3', 'name4', 'name5'];
 
     public function createTable(){
-        Schema::create('table_one_uniques', function (Blueprint $table) {
+        Schema::create($this->getTable(), function (Blueprint $table) {
             $table->string('name')->unique();
             $table->string('name1');
             $table->string('name2');

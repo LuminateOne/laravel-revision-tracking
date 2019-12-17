@@ -1,10 +1,10 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
-use LuminateOne\RevisionTracking\TestModels\TableOneUnique;
-use LuminateOne\RevisionTracking\TestModels\customizedPrimaryKey;
-use LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\TableNoPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\TableOneUnique;
+use LuminateOne\RevisionTracking\Tests\Models\customizedPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\RevisionTracking;
 use Tests\TestCase;
@@ -22,8 +22,8 @@ class RevisionTest extends TestCase
 
         $testModelName = [
             'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
+            'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey',
+            'LuminateOne\RevisionTracking\Tests\Models\TableNoPrimaryKey',
         ][0];
 
         $this->testModel = new $testModelName();
@@ -56,8 +56,9 @@ class RevisionTest extends TestCase
         $faker = \Faker\Factory::create();
 
         // Create a Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
-        $record = new $modelName();
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey';
+        $record = $this->initialiseModel($modelName);
+
         foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
         }
@@ -106,7 +107,7 @@ class RevisionTest extends TestCase
         $faker = \Faker\Factory::create();
 
         // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = new $modelName();
         foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
@@ -121,7 +122,7 @@ class RevisionTest extends TestCase
         }
 
         // Create and updated a different Model
-        $modelName2 = 'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey';
+        $modelName2 = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
         $record2 = new $modelName2();
         foreach (($record2->getFillable()) as $key) {
             $record2[$key] = $faker->name;
@@ -156,7 +157,7 @@ class RevisionTest extends TestCase
         $faker = \Faker\Factory::create();
 
         // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = new $modelName();
         foreach ($record->getFillable() as $key) {
             $record[$key] = $faker->name;
@@ -188,7 +189,7 @@ class RevisionTest extends TestCase
         $faker = \Faker\Factory::create();
 
         // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = new $modelName();
         foreach ($record->getFillable() as $key) {
             $record[$key] = $faker->name;
@@ -239,7 +240,7 @@ class RevisionTest extends TestCase
     public function testDelete()
     {
         // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = new $modelName();
         foreach ($record->getFillable() as $key) {
             $record[$key] = $faker->name;
@@ -263,5 +264,12 @@ class RevisionTest extends TestCase
         $revisionCount = $record->allRevisions()->count();
 
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+    }
+
+
+    private function initialiseModel($modelName){
+        $model = new $modelName();
+        $model->createTable();
+        return $model;
     }
 }

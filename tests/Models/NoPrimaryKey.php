@@ -10,12 +10,18 @@ class NoPrimaryKey extends Model
 {
     use Revisionable;
     
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'name1', 'name2'];
+
+    protected $primaryKey = null;
+
+    public $incrementing = false;
 
     public function createTable(){
-        Schema::create('default_primary_keys', function (Blueprint $table) {
-            $table->bigIncrements('id');
+        Schema::create($this->getTable(), function (Blueprint $table) {
             $table->text('name');
+            $table->text('name1');
+            $table->text('name2');
+
             $table->timestamps();
         });
     }
