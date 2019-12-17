@@ -36,8 +36,7 @@ trait Revisionable
     }
 
     /**
-     * Check the current Revision Mode and
-     * get the corresponding Eloquent Model for the revision table
+     * Get the Model for the revision with the correct table by checking the revision mode
      *
      * @throws ErrorException
      * @return RevisionModel
