@@ -73,7 +73,7 @@ trait Revisionable
      * Restoring the revision.
      * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param null $revisionId      Revision ID for the Model
+     * @param      $revisionId      Revision ID for the Model
      * @param true $saveAsRevision  true =>  save the “rollback” as a new revision of the model.
      *                              false => rollback to a specific revision and delete all the revisions that came after that revision,
      * @throws ErrorException
