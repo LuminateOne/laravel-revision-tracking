@@ -34,7 +34,7 @@ class RevisionTracking
 
     /**
      * Get the primary key of the record,
-     * Store the primary key name and value in the revision table as serialized format
+     * Store the primary key name and value as serialized format
      * Store the original value of changed value as as serialized format
      *
      * @param $model            Eloquent Model, the changes will be stored for
@@ -58,9 +58,9 @@ class RevisionTracking
 
     /**
      * Delete the revision or not when a Model is deleted
-     * Depends on the "remove_on_delete" variable in the config file
+     * Depends on the "remove_on_delete" value in the config file
      *
-     * @param $model            Model The Eloquent Model
+     * @param $model            Eloquent Model, The Eloquent Model
      * @throws ErrorException   Throw ErrorException if the Model cannot be found
      */
     public static function eloquentDelete($model)
@@ -87,10 +87,10 @@ class RevisionTracking
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provide to retrieve the revision for the Model
+     * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param Model $modelName      The Eloquent Model that the revision will be restored for
-     * @param null  $revisionID     Revision ID for the Model
+     * @param $modelName            Eloquent Model, The Eloquent Model that the revision will be restored for
+     * @param $revisionID           integer, Revision ID for the Model
      * @throws ErrorException       Throw ErrorException if the Model or the revision cannot be found
      */
     public static function eloquentRestore($modelName, $revisionID = null)
