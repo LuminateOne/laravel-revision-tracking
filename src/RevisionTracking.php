@@ -8,12 +8,12 @@ class RevisionTracking
      * Loop through the changed values
      * Use the key in changed values to get the original values
      *
-     * @param $model
-     * @return array
+     * @param $model    An Eloquent Model, the Model will be tracked
+     * @return array    A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentDiff($model)
     {
-        $originalValuesChanged = [];
+        $originalFields = [];
 
         $changes = $model->getChanges();
         $original = $model->getOriginal();
@@ -24,21 +24,21 @@ class RevisionTracking
                 "column" => $key
             ];
 
-            array_push($originalValuesChanged, $aOriginalValue);
+            array_push($originalFields, $aOriginalValue);
         }
 
-        return $originalValuesChanged;
+        return $originalFields;
     }
 
     /**
-     * Get the primary key of the record, store it in the revision table as serialized format
+     * Get the primary key of the record,
+     * Store the primary key name and value in the revision table as serialized format
      * Store the original value of changed value as as serialized format
-     * If the the revision Mode is set to 0, set the current Model name as "model_name" in the revision table
      *
-     * @param $model
-     * @param $originalValuesChanged
+     * @param $model            An Eloquent Model, the changes will be stored for the Model
+     * @param $originalFields   A key => value pair array, which stores the fields and the original values
      */
-    public static function eloquentStoreDiff($model, $originalValuesChanged)
+    public static function eloquentStoreDiff($model, $originalFields)
     {
         $revisionIdentifier = [$model->getKeyName() => $model->getKey()];
 
@@ -49,7 +49,7 @@ class RevisionTracking
         }
 
         $revisionModel->revision_identifier = serialize($revisionIdentifier);
-        $revisionModel->original_values = serialize($originalValuesChanged);
+        $revisionModel->original_values = serialize($originalFields);
 
         $revisionModel->save();
     }
