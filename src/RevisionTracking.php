@@ -2,7 +2,6 @@
 namespace LuminateOne\RevisionTracking;
 
 use Illuminate\Database\Eloquent\Model;
-
 use ErrorException;
 
 class RevisionTracking
@@ -62,8 +61,9 @@ class RevisionTracking
      * Delete the revision or not when a Model is deleted
      * Depends on the "remove_on_delete" value in the config file
      *
-     * @param $model            Eloquent Model, The Eloquent Model
-     * @throws ErrorException   Throw ErrorException if the Model cannot be found
+     * @param Model $model The Eloquent Model
+     *
+     * @throws ErrorException If the Model cannot be found
      */
     public static function eloquentDelete($model)
     {
@@ -91,9 +91,10 @@ class RevisionTracking
      * Restoring the revision.
      * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param $modelName            Eloquent Model, The Eloquent Model that the revision will be restored for
-     * @param $revisionID           integer, Revision ID for the Model
-     * @throws ErrorException       Throw ErrorException if the Model or the revision cannot be found
+     * @param string  $modelName  The Eloquent Model name that the revision will be restored for
+     * @param integer $revisionID Revision ID for the Model
+     *
+     * @throws ErrorException  If the Model or the revision cannot be found
      */
     public static function eloquentRestore($modelName, $revisionID = null)
     {
