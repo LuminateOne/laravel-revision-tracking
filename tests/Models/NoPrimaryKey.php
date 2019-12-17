@@ -6,7 +6,7 @@ use LuminateOne\RevisionTracking\Traits\Revisionable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class DefaultPrimaryKey extends Model
+class NoPrimaryKey extends Model
 {
     use Revisionable;
     
