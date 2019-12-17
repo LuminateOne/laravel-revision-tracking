@@ -34,8 +34,8 @@ class RevisionTracking
 
     /**
      * Get the primary key of the record,
-     * Store the original values as serialized format
-     * Store the primary field name and value in the revision table as serialized format
+     * Store the original values as a serialized format
+     * Store the primary field name and value in the revision table as a serialized format
      *
      * @param Model $model            The changes will be stored for
      * @param array $originalFields   A key => value pair array, which stores the field names and the original values
