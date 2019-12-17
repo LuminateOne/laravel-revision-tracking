@@ -46,6 +46,13 @@ class RevisionTest extends TestCase
         return $model;
     }
 
+
+    /**
+     * Insert a new Model
+     *
+     * @param null $testModel
+     * @return mixed
+     */
     public function testInsert($testModel = null)
     {
         $faker = \Faker\Factory::create();
