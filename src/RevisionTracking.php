@@ -4,7 +4,7 @@ namespace LuminateOne\RevisionTracking;
 class RevisionTracking
 {
     /**
-     * Get the original values of the changed values
+     * Get the original values and changed values
      * Loop through the changed values
      * Use the key in changed values to get the original values
      *
