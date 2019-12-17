@@ -5,14 +5,18 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * The Model use the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
+ *
  * Class Revision
- * @package LuminateOne\RevisionTracking\TestModels
+ *
+ * @package LuminateOne\RevisionTracking\Model
  */
 class Revision extends Model
 {
     protected $fillable = ['revision_identifier', 'original_values', 'model_name'];
 
-    /** An accessor to retrieve the unserialized revision_identifier
+    /**
+     * An accessor to retrieve the unserialized revision_identifier
+     *
      * @param $value
      * @return mixed
      */
@@ -21,7 +25,9 @@ class Revision extends Model
         return unserialize($value);
     }
 
-    /** An accessor to retrieve the unserialized original_values
+    /**
+     * An accessor to retrieve the unserialized original_values
+     *
      * @param $value
      * @return mixed
      */

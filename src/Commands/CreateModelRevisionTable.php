@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Commands;
 
 use Illuminate\Console\Command;
@@ -38,13 +37,13 @@ class CreateModelRevisionTable extends Command
      */
     public function handle()
     {
-        $modelName = $this->argument('model');
-        if (!class_exists($modelName)) {
-            $this->error("The Model: " . $modelName . ' does not exists, please include the name spaces.');
+        if (!$this->confirm('Do you wish to continue?')) {
             return;
         }
 
-        if (!$this->confirm('Do you wish to continue?')) {
+        $modelName = $this->argument('model');
+        if (!class_exists($modelName)) {
+            $this->error("The Model: " . $modelName . ' does not exists, please include the name spaces.');
             return;
         }
 
@@ -52,8 +51,8 @@ class CreateModelRevisionTable extends Command
 
         $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
 
-        if (Schema::hasTable($revisionTableName)) {
-            $this->error("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' already exists. Please check the Model name. If you just changed the revision table prefix in config file, please run 'php artisan config:clear'.");
+        if(Schema::hasTable($revisionTableName)){
+            $this->error("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' already exists. Please check the Model name.");
             return;
         }
 

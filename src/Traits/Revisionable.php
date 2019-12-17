@@ -22,6 +22,11 @@ trait Revisionable
         });
     }
 
+    /**
+     * This will find and store the changes as a revision for the current Model.
+     *
+     * @throws ErrorException If the current Model does not have a primary.
+     */
     public function trackChanges()
     {
         if (!$this->getKeyName()) {
@@ -29,9 +34,9 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $originalValuesChanged = RevisionTracking::eloquentDiff($this);
+        $originalFields = RevisionTracking::eloquentDiff($this);
 
-        RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
+        RevisionTracking::eloquentStoreDiff($this, $originalFields);
     }
 
 
@@ -108,11 +113,11 @@ trait Revisionable
 
 
     /**
-     * Check the current Revision Mode and
-     * get the corresponding Eloquent Model for the revision table
+     * Get the Model for the revision with the correct table by checking the revision mode
      *
-     * @throws ErrorException
-     * @return Revision
+     * @throws ErrorException   If the revision table cannot be found
+     *
+     * @return Revision         An Eloquent Model for the revision
      */
     public function getRevisionModel()
     {
@@ -135,7 +140,12 @@ trait Revisionable
 
         return $revisionModel;
     }
-
+    
+    /**
+     * Read the config to get the current revision mode
+     *
+     * @return string Represents the revision mode
+     */
     public function revisionMode()
     {
         return config('revision_tracking.mode', 'all');

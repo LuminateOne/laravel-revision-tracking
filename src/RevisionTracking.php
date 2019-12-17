@@ -1,17 +1,18 @@
 <?php
 namespace LuminateOne\RevisionTracking;
 
+use Illuminate\Database\Eloquent\Model;
 use ErrorException;
 
 class RevisionTracking
 {
     /**
-     * Get the original values of the changed values
      * Loop through the changed values
-     * Use the key in changed values to get the original values
+     * Use the field name in changed values to get the original values
      *
-     * @param Model     $model          The Eloquent Model will be tracked after the attribute value changed
-     * @return array    originalFields  An array of changed field name and the original values (key => value) pair
+     * @param  Model $model             The Model will be tracked
+     *
+     * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentDiff($model)
     {
@@ -33,12 +34,12 @@ class RevisionTracking
     }
 
     /**
-     * Get the primary key of the record, store it in the revision table as serialized format
+     * Get the primary key of the record,
+     * Store the primary key name and value as serialized format
      * Store the original value of changed value as as serialized format
-     * If the the revision Mode is set to 0, insert the current Model name as "model_name" in the revision table
      *
-     * @param Model $model            The Eloquent Model that the revision will be stored for
-     * @param array $originalFields   An array of changed field name and the original values (key => value) pair
+     * @param Model $model            The changes will be stored for
+     * @param array $originalFields   A key => value pair array, which stores the field names and the original values
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
@@ -56,10 +57,11 @@ class RevisionTracking
 
     /**
      * Delete the revision or not when a Model is deleted
-     * Depends on the "remove_on_delete" variable in the config file
+     * Depends on the "remove_on_delete" value in the config file
      *
-     * @param Model $model      The Eloquent Model
-     * @throws ErrorException
+     * @param Model $model The Eloquent Model
+     *
+     * @throws ErrorException If the Model cannot be found
      */
     public static function eloquentDelete($model)
     {
