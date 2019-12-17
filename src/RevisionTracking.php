@@ -35,7 +35,7 @@ class RevisionTracking
      * Store the primary key name and value in the revision table as serialized format
      * Store the original value of changed value as as serialized format
      *
-     * @param $model            An Eloquent Model, the changes will be stored for the Model
+     * @param $model            An Eloquent Model, the changes will be stored for
      * @param $originalFields   A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentStoreDiff($model, $originalFields)
