@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey;
@@ -15,7 +16,6 @@ use Illuminate\Support\Facades\Schema;
 class RevisionTest extends TestCase
 {
     use RefreshDatabase;
-    private $testModel = null;
 
     public function setUp(): void
     {
@@ -25,25 +25,25 @@ class RevisionTest extends TestCase
             'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey',
             'LuminateOne\RevisionTracking\TestModels\TableNoPrimaryKey',
-            'LuminateOne\RevisionTracking\TestModels\TableOneUnique',
         ][0];
 
         $this->testModel = new $testModelName();
 
         // Create a Model for testing
-        $faker = \Faker\Factory::create();
-        foreach (($this->testModel->getFillable()) as $key) {
-            $this->testModel[$key] = $faker->name;
-        }
-        $this->testModel->save();
+        // $faker = \Faker\Factory::create();
+        // foreach (($this->testModel->getFillable()) as $key) {
+        //     $this->testModel[$key] = $faker->name;
+        // }
+        // $this->testModel->save();
 
         if ($this->testModel->revisionMode() === 'single') {
-            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $testModel->getTable(), function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->text('revision_identifier');
-                $table->text('original_values');
-                $table->timestamps();
-            });
+            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $testModel->getTable(),
+                function (Blueprint $table) {
+                    $table->bigIncrements('id');
+                    $table->text('revision_identifier');
+                    $table->text('original_values');
+                    $table->timestamps();
+                });
         }
     }
 
@@ -52,11 +52,17 @@ class RevisionTest extends TestCase
      *
      * @return $insertedRecord  Clone the created the model.
      */
-    public function testUpdate(l)
+    public function testUpdate()
     {
         $faker = \Faker\Factory::create();
 
-        $record = $this->testModel;
+        // Create a Model for testing
+        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $record = new $modelName();
+        foreach (($record->getFillable()) as $key) {
+            $record[$key] = $faker->name;
+        }
+        $record->save();
 
         $oldRecord = clone $record;
 
@@ -83,7 +89,7 @@ class RevisionTest extends TestCase
                 break;
             }
         }
-        $this->assertTrue($hasDifferent, "Attribute values do not match");
+        $this->assertTrue($hasDifferent, "Attribute values of revisiopn and the old Model should match");
 
         return $record;
     }
@@ -98,66 +104,78 @@ class RevisionTest extends TestCase
      */
     public function testGetAllRevision()
     {
-        $record = $this->testModel;
+        $faker = \Faker\Factory::create();
 
+        // Create and update Model for testing
+        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $record = new $modelName();
+        foreach (($record->getFillable()) as $key) {
+            $record[$key] = $faker->name;
+        }
+        $record->save();
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
-            $record = $this->testUpdate($record);
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
         }
 
         // Create and updated a different Model
-        $record2 = $this->createNewModel($this->modelProvider(1));
+        $modelName2 = 'LuminateOne\RevisionTracking\TestModels\CustomPrimaryKey';
+        $record2 = new $modelName2();
+        foreach (($record2->getFillable()) as $key) {
+            $record2[$key] = $faker->name;
+        }
+        $record2->save();
         for ($i = 0; $i < $updateCount; $i++) {
-            $this->testUpdate($record2);
+            foreach (($record2->getFillable()) as $key) {
+                $record2[$key] = $faker->name;
+            }
+            $record->save();
         }
 
         // Restore the revision
-        $allReivisons = $record->allRevisions()->get();
+        $revisionCount = $record->allRevisions()->get()->count();
 
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
-            $this->assertEquals($updateCount, count($allReivisons), "Revision count should be " . $updateCount);
+            $this->assertEquals($updateCount, $revisionCount, "Revision count should be " . $updateCount);
         } else {
-            $this->assertEquals(1, count($allReivisons), "Revision count should be " . $updateCount);
+            $this->assertEquals(1, $revisionCount, "Revision count should be 1");
         }
     }
 
     /**
-     * Test get revisions
-     * Test differently when user set a customized primary key
+     * Test get a single revisions by revision ID
+     * This will create and updated Model,
+     * Then get the latest revision, and check if the
      *
      * @throws \ErrorException
      */
     public function testGetRevision()
     {
-        $record = $this->testModel;
-        $oldRecord = clone $record;
+        $faker = \Faker\Factory::create();
 
+        // Create and update Model for testing
+        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $record = new $modelName();
+        foreach ($record->getFillable() as $key) {
+            $record[$key] = $faker->name;
+        }
+        $record->save();
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
-            $record = $this->testUpdate($record);
-        }
-
-        $revisionId = 1;
-        //When user set the customized primary key
-        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
-            $revisionId = 3;
-        }
-
-        $singleRevision = $record->getRevision($revisionId);
-
-        $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier, "Identifiers do not match");
-
-        // If the user did not set a customized primary key, then comppare the changed the fields
-        if ($record->getKeyName() === "id" || $record->incrementing === true) {
-            $hasDifferent = true;
-            foreach ($singleRevision->original_values as $value) {
-                if ($oldRecord[$value['column']] !== $value['value']) {
-                    $hasDifferent = false;
-                    break;
-                }
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
             }
-            $this->assertTrue($hasDifferent, "Attribute values do not match");
+            $record->save();
         }
+
+        $singleRevision = $record->getRevision($updateCount);
+
+        $modelIdentifiers = [$record->getKeyName() => $record->getKey()];
+
+        $this->assertEquals($modelIdentifiers, $singleRevision->revision_identifier, "Identifiers do not match");
     }
 
     /**
@@ -168,37 +186,43 @@ class RevisionTest extends TestCase
      */
     public function testRollback()
     {
-        $record = $this->testModel;
+        $faker = \Faker\Factory::create();
+
+        // Create and update Model for testing
+        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $record = new $modelName();
+        foreach ($record->getFillable() as $key) {
+            $record[$key] = $faker->name;
+        }
+        $record->save();
+
         $oldRecord = clone $record;
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
-            $record = $this->testUpdate($record);
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
         }
 
         $saveAsRevision = true;
 
-        $revisionId = 1;
-        //Check if user set a customized primary key
-        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
-            $revisionId = 3;
-        }
-        $latestRevision = $record->getRevision($revisionId);
+        $latestRevision = $record->getRevision(1);
 
-        $record->rollback($revisionId, $saveAsRevision);
+        $record->rollback(1, $saveAsRevision);
 
-        $restoredRecord = $record->find($latestRevision->revision_identifier)->first();
+        $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
 
-        if ($record->getKeyName() === "id" || $record->incrementing === true) {
-            $hasDifferent = true;
-            foreach ($oldRecord->getFillable() as $key) {
-                if ($oldRecord[$key] !== $restoredRecord[$key]) {
-                    $hasDifferent = false;
-                    break;
-                }
+        $hasDifferent = true;
+        foreach ($record->getFillable() as $key) {
+            if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                $hasDifferent = false;
+                break;
             }
-            $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
         }
+        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+
 
         if (!$saveAsRevision) {
             $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
@@ -215,8 +239,20 @@ class RevisionTest extends TestCase
      */
     public function testDelete()
     {
-        $record = $this->testModel;
-        $oldRecord = clone $record;
+        // Create and update Model for testing
+        $modelName = 'LuminateOne\RevisionTracking\TestModels\DefaultPrimaryKey';
+        $record = new $modelName();
+        foreach ($record->getFillable() as $key) {
+            $record[$key] = $faker->name;
+        }
+        $record->save();
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
+        }
 
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
