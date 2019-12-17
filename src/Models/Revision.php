@@ -4,7 +4,7 @@ namespace LuminateOne\RevisionTracking\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The Model uses the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
+ * This Model uses the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
  *
  * Class Revision
  *
