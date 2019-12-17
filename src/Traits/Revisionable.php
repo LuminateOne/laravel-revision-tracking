@@ -23,7 +23,7 @@ trait Revisionable
     }
 
     /**
-     * This will find and store the changes as a revision for the current Model.
+     * Find and store the changes as a revision for the current Model.
      *
      * @throws ErrorException If the current Model does not have a primary.
      */
