@@ -244,4 +244,31 @@ class RevisionTest extends TestCase
             $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
         }
     }
+
+
+    /**
+     * Test delete
+     * Test will the revision be deleted after delete a Model
+     *
+     * @throws \ErrorException
+     */
+    public function testDelete()
+    {
+        //Get the Model
+        $testModel = $this->modelProvider(1);
+
+        $record = $this->testInsert($testModel);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        $record->delete();
+
+        $revisionCount = $record->allRevisions()->count();
+
+        $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+    }
 }
