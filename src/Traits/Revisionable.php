@@ -23,6 +23,11 @@ trait Revisionable
         });
     }
 
+    /**
+     * This will find and store the changes as a revision for the current Model.
+     *
+     * @throws ErrorException If the current Model does not have a primary.
+     */
     public function trackChanges()
     {
         if (!$this->getKeyName()) {
@@ -64,6 +69,12 @@ trait Revisionable
         return $revisionModel;
     }
 
+
+    /**
+     * Read the config to get the current revision mode
+     *
+     * @return string Represents the revision mode
+     */
     public function revisionMode()
     {
         return config('revision_tracking.mode', 'all');
