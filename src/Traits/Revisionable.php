@@ -38,8 +38,8 @@ trait Revisionable
     /**
      * Get a specific revision by the revision ID.
      *
-     * @param $revisionId
-     * @return mixed
+     * @param $revisionId       Revision ID for the Model
+     * @return mixed            A single revision Model
      * @throws ErrorException
      */
     public function getRevision($revisionId)
