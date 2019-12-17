@@ -89,7 +89,7 @@ class RevisionTracking
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provided to retrieve the revision for the Model
+     * Use the Model name and the revision ID provided to retrieve the revision for the Model
      *
      * @param string   $modelName   A Model name that the revision will be restored for
      * @param integer  $revisionID  Revision ID for the Model
