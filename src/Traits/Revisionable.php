@@ -38,7 +38,8 @@ trait Revisionable
     /**
      * Get the Model for the revision with the correct table by checking the revision mode
      *
-     * @throws ErrorException   Throw ErrorException if the revision table cannot be found
+     * @throws ErrorException   If the revision table cannot be found
+     *
      * @return Revision         An Eloquent Model for the revision
      */
     public function getRevisionModel()
