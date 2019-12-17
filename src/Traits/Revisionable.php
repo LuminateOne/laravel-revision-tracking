@@ -39,13 +39,13 @@ trait Revisionable
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
     }
 
-
     /**
      * Get a specific revision by the revision ID.
      *
      * @param $revisionId       Revision ID for the Model
+     *
      * @return mixed            A single revision Model
-     * @throws ErrorException
+     * @throws ErrorException   If the revision table cannot be found
      */
     public function getRevision($revisionId)
     {
@@ -56,7 +56,7 @@ trait Revisionable
      * Get all revisions for this Model.
      *
      * @return mixed            A collection of revision Model
-     * @throws ErrorException
+     * @throws ErrorException   If the revision table cannot be found
      */
     public function allRevisions()
     {
@@ -78,10 +78,11 @@ trait Revisionable
      * Restoring the revision.
      * Using the Model name and the revision ID provided to retrieve the revision for the Model
      *
-     * @param      $revisionId      Revision ID for the Model
-     * @param true $saveAsRevision  true =>  save the “rollback” as a new revision of the model.
-     *                              false => rollback to a specific revision and delete all the revisions that came after that revision,
-     * @throws ErrorException
+     * @param integer  $revisionId      Revision ID for the Model
+     * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
+     *                                  false => rollback to a specific revision and delete all the revisions that came after that revision
+     * 
+     * @throws ErrorException  If the revision or the original record cannot be found
      */
     public function rollback($revisionId, $saveAsRevision = true)
     {
@@ -110,7 +111,6 @@ trait Revisionable
             $this->allRevisions()->where([['id', '>=', $revisionId]])->delete();
         }
     }
-
 
     /**
      * Get the Model for the revision with the correct table by checking the revision mode

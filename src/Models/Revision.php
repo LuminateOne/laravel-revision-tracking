@@ -36,7 +36,9 @@ class Revision extends Model
         return unserialize($value);
     }
 
-    /** A mutator to serialize revision_identifier
+    /**
+     * A mutator to serialize revision_identifier
+     *
      * @param $value
      * @return void
      */
@@ -45,7 +47,9 @@ class Revision extends Model
         $this->attributes['revision_identifier'] = serialize($value);
     }
 
-    /** A mutator to serialize original_values
+    /**
+     * A mutator to serialize original_values
+     *
      * @param $value
      * @return void
      */
