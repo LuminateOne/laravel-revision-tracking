@@ -35,13 +35,12 @@ class RevisionTest extends TestCase
         $model = new $modelName();
 
         if ($model->revisionMode() === 'single') {
-            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $model->getTable(),
-                function (Blueprint $table) {
-                    $table->bigIncrements('id');
-                    $table->text('revision_identifier');
-                    $table->text('original_values');
-                    $table->timestamps();
-                });
+            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $model->getTable(), function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->text('revision_identifier');
+                $table->text('original_values');
+                $table->timestamps();
+            });
         }
 
         return $models[$index];
