@@ -80,6 +80,158 @@ class RevisionTest extends TestCase
     }
 
     /**
+     * Test get all revisions
+     * This will create and updated two different Model,
+     * So it can test if the "allRevision" method only return
+     * the revisions that belongs to the current Model
+     *
+     * @throws \ErrorException
+     */
+    public function testGetAllRevision()
+    {
+        //Get the Model
+        $testModel = $this->modelProvider(0);
+
+        $record = $this->createNewModel($testModel);
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        // Create and updated a different Model
+        $record2 = $this->createNewModel($this->modelProvider(1));
+        for ($i = 0; $i < $updateCount; $i++) {
+            $this->testUpdate($record2);
+        }
+
+        // Restore the revision
+        $allReivisons = $record->allRevisions()->get();
+
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $this->assertEquals($updateCount, count($allReivisons), "Revision count should be " . $updateCount);
+        } else {
+            $this->assertEquals(1, count($allReivisons), "Revision count should be " . $updateCount);
+        }
+    }
+
+    /**
+     * Test get revisions
+     * Test differently when user set a customized primary key
+     *
+     * @throws \ErrorException
+     */
+    public function testGetRevision()
+    {
+        //Get the Model
+        $testModel = $this->modelProvider(0);
+        $record = $this->createNewModel($testModel);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        $revisionId = 1;
+        //When user set the customized primary key
+        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
+            $revisionId = 3;
+        }
+
+        $singleRevision = $record->getRevision($revisionId);
+
+        $this->assertEquals([$record->getKeyName() => $record->getKey()], $singleRevision->revision_identifier, "Identifiers do not match");
+
+        // If the user did not set a customized primary key, then comppare the changed the fields
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $hasDifferent = true;
+            foreach ($singleRevision->original_values as $value) {
+                if ($oldRecord[$value['column']] !== $value['value']) {
+                    $hasDifferent = false;
+                    break;
+                }
+            }
+            $this->assertTrue($hasDifferent, "Attribute values do not match");
+        }
+    }
+
+    /**
+     * Test rollback, it will insert a new recored, and then update the record, then restore the revision.
+     * Then check if the restored record is equal to the old record
+     *
+     * @throws \ErrorException
+     */
+    public function testRollback()
+    {
+        //Get the Model
+        $testModel = $this->modelProvider(3);
+
+        $record = $this->createNewModel($testModel);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        $saveAsRevision = true;
+
+        $revisionId = 1;
+        //Check if user set a customized primary key
+        if ($record->getKeyName() !== "id" || $record->incrementing !== true) {
+            $revisionId = 3;
+        }
+        $latestRevision = $record->getRevision($revisionId);
+
+        $record->rollback($revisionId, $saveAsRevision);
+
+        $restoredRecord = $testModel->find($latestRevision->revision_identifier)->first();
+
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $hasDifferent = true;
+            foreach ($oldRecord->getFillable() as $key) {
+                if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                    $hasDifferent = false;
+                    break;
+                }
+            }
+            $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+        }
+
+        if (!$saveAsRevision) {
+            $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
+            $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+        }
+    }
+
+    /**
+     * Test delete
+     * Test will the revision be deleted after delete a Model
+     *
+     * @throws \ErrorException
+     */
+    public function testDelete()
+    {
+        //Get the Model
+        $testModel = $this->modelProvider(1);
+
+        $record = $this->createNewModel($testModel);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            $record = $this->testUpdate($record);
+        }
+
+        $record->delete();
+
+        $revisionCount = $record->allRevisions()->count();
+
+        $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+    }
+
+    /**
      * Create a Model for testing
      *
      * @return Model
