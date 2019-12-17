@@ -30,16 +30,16 @@ trait Revisionable
                 self::class . " model does not have a primary key.");
         }
 
-        $originalValuesChanged = RevisionTracking::eloquentDiff($this);
+        $originalFields = RevisionTracking::eloquentDiff($this);
 
-        RevisionTracking::eloquentStoreDiff($this, $originalValuesChanged);
+        RevisionTracking::eloquentStoreDiff($this, $originalFields);
     }
 
     /**
      * Get the Model for the revision with the correct table by checking the revision mode
      *
-     * @throws ErrorException
-     * @return RevisionModel
+     * @throws ErrorException   Throw ErrorException if the revision table cannot be found
+     * @return Revision         An Eloquent Model for the revision
      */
     public function getRevisionModel()
     {
