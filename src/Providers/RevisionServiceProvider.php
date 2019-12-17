@@ -13,5 +13,11 @@ class RevisionServiceProvider extends ServiceProvider
 
         $migrationPath = realpath(__DIR__ . '/../../migrations');
         $this->loadMigrationsFrom($migrationPath);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CreateModelRevisionTable::class
+            ]);
+        }
     }
 }
