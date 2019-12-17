@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Commands;
 
 use Illuminate\Console\Command;
@@ -43,24 +44,26 @@ class CreateModelRevisionTable extends Command
             return;
         }
 
-        if ($this->confirm('Do you wish to continue?')) {
-            $model = new $modelName();
-
-            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
-
-            if(Schema::hasTable($revisionTableName)){
-                $this->error("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' already exists. Please check the Model name. If you just changed the revision table prefix in config file, please run 'php artisan config:clear'.");
-                return;
-            }
-
-            Schema::create($revisionTableName, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->text('revision_identifier');
-                $table->text('original_values');
-                $table->timestamps();
-            });
-
-            $this->info("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' has been created.");
+        if (!$this->confirm('Do you wish to continue?')) {
+            return;
         }
+
+        $model = new $modelName();
+
+        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+
+        if (Schema::hasTable($revisionTableName)) {
+            $this->error("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' already exists. Please check the Model name. If you just changed the revision table prefix in config file, please run 'php artisan config:clear'.");
+            return;
+        }
+
+        Schema::create($revisionTableName, function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->text('revision_identifier');
+            $table->text('original_values');
+            $table->timestamps();
+        });
+
+        $this->info("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' has been created.");
     }
 }
