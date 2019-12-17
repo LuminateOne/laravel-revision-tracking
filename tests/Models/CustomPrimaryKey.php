@@ -10,6 +10,10 @@ class CustomPrimaryKey extends Model
 {
     use Revisionable;
 
+    protected $primaryKey = "name";
+
+    public $incrementing = false;
+
     protected $fillable = ['name', 'name1', 'name2', 'name3', 'name4', 'name5'];
 
     public function createTable(){

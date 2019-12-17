@@ -1,77 +1,36 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use LuminateOne\RevisionTracking\Tests\Models\TableNoPrimaryKey;
-use LuminateOne\RevisionTracking\Tests\Models\TableOneUnique;
-use LuminateOne\RevisionTracking\Tests\Models\customizedPrimaryKey;
-use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
+use Tests\TestCase;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\RevisionTracking;
-use Tests\TestCase;
-use Faker\Generator as Faker;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 class RevisionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $testModelName = [
-            'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey',
-            'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey',
-            'LuminateOne\RevisionTracking\Tests\Models\TableNoPrimaryKey',
-        ][0];
-
-        $this->testModel = new $testModelName();
-
-        // Create a Model for testing
-        // $faker = \Faker\Factory::create();
-        // foreach (($this->testModel->getFillable()) as $key) {
-        //     $this->testModel[$key] = $faker->name;
-        // }
-        // $this->testModel->save();
-
-        if ($this->testModel->revisionMode() === 'single') {
-            Schema::create(config('revision_tracking.table_prefix', 'revisions_') . $testModel->getTable(),
-                function (Blueprint $table) {
-                    $table->bigIncrements('id');
-                    $table->text('revision_identifier');
-                    $table->text('original_values');
-                    $table->timestamps();
-                });
-        }
-    }
-
     /**
-     * Test if the updated event can be catched be Revisionable.
+     * Test if the updated event can be caught by Revisionable.
+     * It will check if a new revision is created after update the Model
+     * It will check if the original_values stored in the revision table are equals to the old Model
      *
-     * @return $insertedRecord  Clone the created the model.
+     * @throws \ErrorException If the Model does not have primary key
      */
     public function testUpdate()
     {
         $faker = \Faker\Factory::create();
 
-        // Create a Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey';
-        $record = $this->initialiseModel($modelName);
-
-        foreach (($record->getFillable()) as $key) {
-            $record[$key] = $faker->name;
-        }
-        $record->save();
-
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+        $record = $this->setupModel($modelName);
         $oldRecord = clone $record;
 
         foreach (($record->getFillable()) as $key) {
             $record[$key] = $faker->name;
         }
         $record->save();
-
-        $originalValuesChanged = RevisionTracking::eloquentDiff($record);
 
         $aRevision = $record->allRevisions()->latest('id')->first();
 
@@ -96,23 +55,19 @@ class RevisionTest extends TestCase
 
     /**
      * Test get all revisions
-     * This will create and updated two different Model,
+     * This will create and updated two different Models,
      * So it can test if the "allRevision" method only return
-     * the revisions that belongs to the current Model
+     * the revisions that belongs to the test Model
      *
-     * @throws ErrorException
+     * @throws \ErrorException  If the Model does not have primary key
+     *                          If the Model does not have any revision
      */
     public function testGetAllRevision()
     {
         $faker = \Faker\Factory::create();
 
-        // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
-        $record = new $modelName();
-        foreach (($record->getFillable()) as $key) {
-            $record[$key] = $faker->name;
-        }
-        $record->save();
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
+        $record = $this->setupModel($modelName);
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
             foreach (($record->getFillable()) as $key) {
@@ -122,12 +77,8 @@ class RevisionTest extends TestCase
         }
 
         // Create and updated a different Model
-        $modelName2 = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
-        $record2 = new $modelName2();
-        foreach (($record2->getFillable()) as $key) {
-            $record2[$key] = $faker->name;
-        }
-        $record2->save();
+        $modelName2 = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+        $record2 = $this->setupModel($modelName2);
         for ($i = 0; $i < $updateCount; $i++) {
             foreach (($record2->getFillable()) as $key) {
                 $record2[$key] = $faker->name;
@@ -135,7 +86,6 @@ class RevisionTest extends TestCase
             $record->save();
         }
 
-        // Restore the revision
         $revisionCount = $record->allRevisions()->get()->count();
 
         if ($record->getKeyName() === "id" || $record->incrementing === true) {
@@ -147,22 +97,18 @@ class RevisionTest extends TestCase
 
     /**
      * Test get a single revisions by revision ID
-     * This will create and updated Model,
-     * Then get the latest revision, and check if the
+     * This will clone the current test model and update the model,
+     * Then get the latest revision, and check if the identifiers are same
      *
-     * @throws \ErrorException
+     * @throws \ErrorException  If the Model does not have primary key
+     *                          If the Model does not have any revision
      */
     public function testGetRevision()
     {
         $faker = \Faker\Factory::create();
 
-        // Create and update Model for testing
         $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
-        $record = new $modelName();
-        foreach ($record->getFillable() as $key) {
-            $record[$key] = $faker->name;
-        }
-        $record->save();
+        $record = $this->setupModel($modelName);
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
             foreach (($record->getFillable()) as $key) {
@@ -182,20 +128,15 @@ class RevisionTest extends TestCase
      * Test rollback, it will insert a new recored, and then update the record, then restore the revision.
      * Then check if the restored record is equal to the old record
      *
-     * @throws \ErrorException
+     * @throws \ErrorException  If the Model does not have primary key
+     *                          If the Model does not have any revision
      */
     public function testRollback()
     {
         $faker = \Faker\Factory::create();
 
-        // Create and update Model for testing
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
-        $record = new $modelName();
-        foreach ($record->getFillable() as $key) {
-            $record[$key] = $faker->name;
-        }
-        $record->save();
-
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
+        $record = $this->setupModel($modelName);
         $oldRecord = clone $record;
 
         $updateCount = 3;
@@ -207,8 +148,8 @@ class RevisionTest extends TestCase
         }
 
         $saveAsRevision = true;
-
-        $latestRevision = $record->getRevision(1);
+        $revisionId = 3;
+        $latestRevision = $record->getRevision($revisionId);
 
         $record->rollback(1, $saveAsRevision);
 
@@ -222,7 +163,6 @@ class RevisionTest extends TestCase
             }
         }
         $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
-
 
         if (!$saveAsRevision) {
             $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
@@ -241,7 +181,7 @@ class RevisionTest extends TestCase
     {
         // Create and update Model for testing
         $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
-        $record = new $modelName();
+        $record = $this->setupModel($modelName);
         foreach ($record->getFillable() as $key) {
             $record[$key] = $faker->name;
         }
@@ -266,10 +206,40 @@ class RevisionTest extends TestCase
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
     }
 
-
-    private function initialiseModel($modelName){
+    /**
+     * It will create a new Model
+     * Since we are using RefreshDatabase Trait, so it will also create the table for the model
+     *
+     * @param  string $modelName A model name with namespace
+     * @return Model    Return the created model
+     */
+    private function setupModel($modelName)
+    {
+        $faker = \Faker\Factory::create();
         $model = new $modelName();
         $model->createTable();
+
+        foreach (($model->getFillable()) as $key) {
+            $model[$key] = $faker->name;
+        }
+        $model->save();
         return $model;
+    }
+
+
+    private function createRevisionTable($model)
+    {
+        if ($model->revisionMode() === 'all') {
+            return;
+        }
+
+        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+        Schema::create($revisionTableName, function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->text('revision_identifier');
+            $table->text('original_values');
+            $table->timestamps();
+        });
+
     }
 }
