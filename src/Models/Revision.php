@@ -5,7 +5,9 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * The Model use the dynamic table to retrieve the revision for different revision Mode and different Eloquent Model
+ *
  * Class Revision
+ *
  * @package LuminateOne\RevisionTracking\Model
  */
 class Revision extends Model

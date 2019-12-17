@@ -1,17 +1,19 @@
 <?php
 namespace LuminateOne\RevisionTracking;
 
+use Illuminate\Database\Eloquent\Model;
+
 use ErrorException;
 
 class RevisionTracking
 {
     /**
-     * Get the original values and changed values
      * Loop through the changed values
-     * Use the key in changed values to get the original values
+     * Use the field name in changed values to get the original values
      *
-     * @param $model    An Eloquent Model, the Model will be tracked
-     * @return array    A key => value pair array, which stores the fields and the original values
+     * @param   Model $model            The Model will be tracked
+     *
+     * @return  array $originalFields   A key => value pair array, which stores the fields and the original values
      */
     public static function eloquentDiff($model)
     {
@@ -37,8 +39,8 @@ class RevisionTracking
      * Store the primary key name and value as serialized format
      * Store the original value of changed value as as serialized format
      *
-     * @param $model            Eloquent Model, the changes will be stored for
-     * @param $originalFields   array, key => value pair, which stores the fields and the original values
+     * @param Model $model            The changes will be stored for
+     * @param array $originalFields   A key => value pair array, which stores the field names and the original values
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
