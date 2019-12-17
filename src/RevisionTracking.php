@@ -35,8 +35,8 @@ class RevisionTracking
 
     /**
      * Get the primary key of the record,
-     * Store the primary key name and value as serialized format
-     * Store the original value of changed value as as serialized format
+     * Then store the original values as a serialized format
+     * And store the primary field name and value in the revision table as a serialized format
      *
      * @param Model $model            The changes will be stored for
      * @param array $originalFields   A key => value pair array, which stores the field names and the original values
@@ -57,9 +57,9 @@ class RevisionTracking
 
     /**
      * Delete the revision or not when a Model is deleted
-     * Depends on the "remove_on_delete" value in the config file
+     * It depends on the "remove_on_delete" value in the config file
      *
-     * @param Model $model The Eloquent Model
+     * @param Model $model A Eloquent Model
      *
      * @throws ErrorException If the Model cannot be found
      */
