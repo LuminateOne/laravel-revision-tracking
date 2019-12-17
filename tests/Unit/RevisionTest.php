@@ -34,8 +34,7 @@ class RevisionTest extends TestCase
             });
         }
     }
-
-
+    
     /**
      * Insert a new Model
      *
