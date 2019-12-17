@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
 class RevisionServiceProvider extends ServiceProvider
 {
