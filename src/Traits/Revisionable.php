@@ -81,7 +81,7 @@ trait Revisionable
      * @param integer  $revisionId      Revision ID for the Model
      * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
      *                                  false => rollback to a specific revision and delete all the revisions that came after that revision
-     * 
+     *
      * @throws ErrorException  If the revision or the original record cannot be found
      */
     public function rollback($revisionId, $saveAsRevision = true)
