@@ -97,8 +97,7 @@ trait Revisionable
 
         if (!$targetRecord) {
             throw new ErrorException('The target record for the Model: ' . get_class($this) .
-                ' could not be found. There are five possible reasons: ' .
-                '1. Table name changed. ' . '2. Model name changed. ' . '3. The record has been deleted. ' . '4. Not restoring revision from the latest one.' . '5. The primary key has been changed'
+                ' could not be found. There are five possible reasons: 1. Table name changed. 2. Model name changed. 3. The record has been deleted. 4. Not restoring revision from the latest one. 5. The primary key has been changed'
             );
         }
 
