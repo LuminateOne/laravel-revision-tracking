@@ -86,7 +86,7 @@ If set to true, when a Model is deleted the revisions of that Model will be dele
 - [Models](#markdown-header-models)
 - [Controllers](#markdown-header-controllers)
 
-### Models
+#### Models
 
 Use the ```Revisionable``` [Trait](https://www.php.net/manual/en/language.oop5.traits.php) to monitor the Model changes.
 Include the ```LuminateOne\RevisionTracking\Traits``` namespace and use ```Revisionable```
@@ -104,7 +104,7 @@ class ExampleModel extends Model
 }
 ```
 
-### Controllers
+#### Controllers
 
 ```php
 <?php
