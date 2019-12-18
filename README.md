@@ -122,6 +122,9 @@ class ExampleModelController extends Controller
      * @param  integer Model primary key
      * 
      * @return \Illuminate\Http\JsonResponse
+     * 
+     * @throws ErrorException  If the revision cannot be found
+     *                         Or revision table cannot be found
      */
    public function getAllRevision($id){
        $exmapleMode = ExampleModel::find($id);
@@ -138,6 +141,9 @@ class ExampleModelController extends Controller
      * @param  integer Model primary key
      * 
      * @return \Illuminate\Http\JsonResponse
+     * 
+     * @throws ErrorException  If the revision cannot be found
+     *                         Or revision table cannot be found
      */
    public function getRevision(Request $request, $id){
        $revisionId = $request->revisionId;
@@ -156,6 +162,10 @@ class ExampleModelController extends Controller
       * @param  integer Model primary key
       *  
       * @return \Illuminate\Http\JsonResponse
+      *
+      * @throws ErrorException  If the revision cannot be found 
+      *                         Or the original record cannot be found
+      *                         Or revision table cannot be found 
       */
     public function rollback(Request $request, $id){
         $revisionId = $request->revisionId;
@@ -177,6 +187,10 @@ class ExampleModelController extends Controller
       * @param  integer Model primary key
       * 
       * @return \Illuminate\Http\JsonResponse
+      *
+      * @throws ErrorException  If the revision cannot be found 
+      *                         Or the original record cannot be found
+      *                         Or revision table cannot be found 
       */
     public function rollbackAndDeleteRevision(Request $request, $id){
         $revisionId = $request->revisionId;
