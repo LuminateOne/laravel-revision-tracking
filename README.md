@@ -54,7 +54,7 @@ php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\Re
 ```
 
 ### 4. Run migrations
-Run the following command to create the ```revisions``` table
+Run the following command to create the ```revisions``` table, this table will be used when the revision mode is set to ```all```.
 ```
 php artisan migrate
 ```
