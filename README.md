@@ -1,15 +1,15 @@
 # Welcome to the LuminateOne Laraval Revision Tracking Repository
-Laraval Revision Tracking is a Laravel package that tracks the Eloquent Model changes, it can store, restore, retrieve the Model changes.
+Laraval Revision Tracking is a Laravel package that tracks the [Eloquent Model](https://laravel.com/docs/6.x/eloquent) changes, it can store, restore, retrieve the Model changes.
 
 ## Requirements
 1. The Laraval Revision Tracking package can only work in [Laravel](https://laravel.com/) project.
 2. The Laraval Revision Tracking package can only work with a Model which has a primary key.
 
 ## Before start
-The Laraval Revision Tracking package does work with a Model which does not have the ```int``` and ```auto_increment``` primary key, for example, a ```string``` as the primary key, but rollback the revisions will be very tricky after the Model primary key changed. So **we suggest you to avoid changing the primary key or use the ```int``` and ```auto_increment``` as the primary key type**.
+The Laraval Revision Tracking package does work with a Model which does not have the ```int``` and ```auto_increment``` primary key, for example, a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) ```string``` as the primary key, but rollback the revisions will be very tricky after the Model primary key changed. So **we suggest you to avoid changing the primary key or use the ```int``` and ```auto_increment``` as the primary key type**.
 
 ## Setup
-### 1. Install via composer
+### 1. Install via [composer](https://getcomposer.org/doc/00-intro.md)
 
 Add ```require``` and ```repositories``` to ```composer.json```.
 ```
@@ -78,11 +78,17 @@ It defines the table prefix when the revision mode is set the ```single```
 ##### 3. ```remove_on_delete```: default is ```false```
 If set to true, when a Model is deleted the revisions of that Model will be deleted too.
 
-
-## Code example
-
 ### Notice: If you set the revision mode to ```single```, do not forget to run ```php artisan table:revision {modelName}```
-#### 1. Models
+
+## Docs
+
+- [Models](####models)
+- [Controllers](####controllers)
+
+#### Models
+Use the Revisionable [Trait](https://www.php.net/manual/en/language.oop5.traits.php) to monitor the Model changes.
+Include the ```LuminateOne\RevisionTracking\Traits``` namespace and use ```Revisionable```
+
 ```php
 <?php
 namespace App;
@@ -96,7 +102,7 @@ class ExampleModel extends Model
 }
 ```
 
-#### 2. Controllers
+#### Controllers
 
 ```php
 <?php
