@@ -162,7 +162,7 @@ class ExampleModelController extends Controller
     
     /**
       * Rollback to a specific revision for a specific Model 
-      * and delete the revisions that came after the restored revision.
+      * and delete the revisions that came after that revision.
       *
       * @param  Request $request
       * @param  integer Model primary key
