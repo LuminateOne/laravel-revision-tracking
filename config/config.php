@@ -25,7 +25,7 @@ return [
     | If set to false the revision will not be deleted, after the Model is deleted
     */
 
-    'remove_on_delete' => env('REVISION_REMOVE_ON_DELETE', true),
+    'remove_on_delete' => env('REVISION_REMOVE_ON_DELETE', false),
 
     /*
     |--------------------------------------------------------------------------
