@@ -4,7 +4,7 @@
 ### 1. Install via composer
 
 Add ```require``` and ```repositories``` to ```composer.json```.
-```json
+```
 "require": {
     
     ...
@@ -30,7 +30,7 @@ composer require luminateone/revision-tracking
 
 ### 2. Add service provider
 Add the service provider to the ```providers``` array in the ```config/app.php``` config file as follows:
-```json
+```
 'providers' => [
 
     ...
