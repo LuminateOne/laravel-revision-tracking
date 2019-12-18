@@ -2,7 +2,8 @@
 Laraval Revision Tracking is a Laravel package that tracks the Eloquent Model changes, it can store, restore, retrieve the Model changes.
 
 ## Requirements
-The Laraval Revision Tracking package will only work in [Laravel](https://laravel.com/) project.
+1. The Laraval Revision Tracking package will only work in [Laravel](https://laravel.com/) project.
+2. The Laraval Revision Tracking package can only works with the Model which has a primary key.
 
 ## Setup
 ### 1. Install via composer
@@ -73,3 +74,104 @@ It defines the table prefix when the revision mode is set the ```single```
 
 ##### 3. ```remove_on_delete```: default is ```false```
 If set to true, when a Model is deleted the revisions of that Model will be deleted too.
+
+
+## Code example
+
+### Notice: If you set the revision mode to ```single```, do not forget to run ```php artisan table:revision {modelName}```
+#### 1. Models
+```php
+<?php
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use LuminateOne\RevisionTracking\Traits\Revisionable;
+
+class ExampleModel extends Model
+{
+    use Revisionable;
+}
+```
+
+#### 2. Controllers
+
+```php
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+
+class ExampleModelController extends Controller
+{
+
+   /**
+     * Get all revisions for a specific Model.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+   public function getAllRevision($id){
+       $exmapleMode = ExampleModel::find($id);
+        
+       $allRevisions = $exmapleMode->allRevisions()->get();
+        
+       return response()->json(['allRevisions' => $allRevisions]);
+   }
+    
+   /**
+     * Get a single revision for a specific Model.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+   public function getRevision(Request $request, $id){
+       $revisionId = $request->revisionId;
+        
+       $exmapleMode = ExampleModel::find($id);
+        
+       $revision = $exmapleMode->getRevision($revisionId);
+       
+       return response()->json(['revision' => $revision]);
+   }
+   
+    /**
+      * Rollback to a specific revision for a specific Model.
+      *
+      * @return \Illuminate\Http\JsonResponse
+      */
+    public function rollback(Request $request, $id){
+        $revisionId = $request->revisionId;
+        
+        $exmapleMode = ExampleModel::find($id);
+        
+        $exmapleMode->rollback($revisionId);
+            
+        $restoredModel = ExampleModel::find($id);
+        
+        return response()->json(['oldModel' => $exmapleMode, 'restoredModel' => $restoredModel]);
+    }
+    
+    /**
+      * Rollback to a specific revision for a specific Model 
+      * and delete the revisions that came after the restored revision.
+      *
+      * @return \Illuminate\Http\JsonResponse
+      */
+    public function rollbackAndDeleteRevision(Request $request, $id){
+        $revisionId = $request->revisionId;
+        
+        $exmapleMode = ExampleModel::find($id);
+        
+        $exmapleMode->rollback($revisionId, false);
+            
+        $restoredModel = ExampleModel::find($id);
+        
+        $revisionCount = $exmapleMode->allRevisions()->count();
+        
+        return response()->json([
+          'oldModel' => $exmapleMode, 
+          'restoredModel' => $restoredModel,
+          'revisionCount' => $revisionCount
+        ]);
+    }
+}
+```
+
