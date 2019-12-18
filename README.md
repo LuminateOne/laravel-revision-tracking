@@ -110,6 +110,8 @@ class ExampleModelController extends Controller
    /**
      * Get all revisions for a specific Model.
      *
+     * @param  integer Model primary key
+     * 
      * @return \Illuminate\Http\JsonResponse
      */
    public function getAllRevision($id){
@@ -122,7 +124,10 @@ class ExampleModelController extends Controller
     
    /**
      * Get a single revision for a specific Model.
-     *
+     * 
+     * @param  Request $request
+     * @param  integer Model primary key
+     * 
      * @return \Illuminate\Http\JsonResponse
      */
    public function getRevision(Request $request, $id){
@@ -138,6 +143,9 @@ class ExampleModelController extends Controller
     /**
       * Rollback to a specific revision for a specific Model.
       *
+      * @param  Request $request
+      * @param  integer Model primary key
+      *  
       * @return \Illuminate\Http\JsonResponse
       */
     public function rollback(Request $request, $id){
@@ -156,6 +164,9 @@ class ExampleModelController extends Controller
       * Rollback to a specific revision for a specific Model 
       * and delete the revisions that came after the restored revision.
       *
+      * @param  Request $request
+      * @param  integer Model primary key
+      * 
       * @return \Illuminate\Http\JsonResponse
       */
     public function rollbackAndDeleteRevision(Request $request, $id){
@@ -167,6 +178,7 @@ class ExampleModelController extends Controller
             
         $restoredModel = ExampleModel::find($id);
         
+        // Now the revision cound shoule be 0
         $revisionCount = $exmapleMode->allRevisions()->count();
         
         return response()->json([
