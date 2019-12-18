@@ -1,4 +1,8 @@
-# Laraval Revision Tracking
+# Welcome to the LuminateOne Laraval Revision Tracking Repository
+Laraval Revision Tracking is a Laravel package that tracks the Eloquent Model changes, it has the ability to store, restore, retrieve the Model changes.
+
+## Requirements
+The Laraval Revision Tracking package will only work in [Laravel](https://laravel.com/) project.
 
 ## Setup
 ### 1. Install via composer
