@@ -174,6 +174,11 @@ class ExampleModelController extends Controller
         
         $exmapleMode = ExampleModel::find($id);
         
+        // The rollback function tabke two parameter
+        // integer $revisionId      Revision ID for the Model
+        // boolean $saveAsRevision, default is true
+        //  true =>  save the “rollback” as a new revision of the model
+        //  false => rollback to a specific revision and delete all the revisions that came after that revision
         $exmapleMode->rollback($revisionId, false);
             
         $restoredModel = ExampleModel::find($id);
