@@ -183,7 +183,7 @@ class ExampleModelController extends Controller
             
         $restoredModel = ExampleModel::find($id);
         
-        // Now the revision cound shoule be 0
+        // Now the number of revisions shoule be 0
         $revisionCount = $exmapleMode->allRevisions()->count();
         
         return response()->json([
