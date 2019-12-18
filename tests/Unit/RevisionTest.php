@@ -171,11 +171,12 @@ class RevisionTest extends TestCase
         }
     }
 
+
     /**
-     * Test if the revision will be deleted after delete a Model
+     * Test if the revision will be deleted after deleting a Model
      *
-     * @throws \ErrorException  If the Model does not have a primary key
-     *                          If the Model does not have any revision
+     * @throws \Exception If the Model does not have a primary key
+     *                    If the Model does not have any revision
      */
     public function testDelete()
     {
@@ -190,11 +191,6 @@ class RevisionTest extends TestCase
                 $record[$key] = $faker->name;
             }
             $record->save();
-        }
-
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            $record = $this->testUpdate($record);
         }
 
         $record->delete();
