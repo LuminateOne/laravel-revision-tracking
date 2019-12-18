@@ -156,14 +156,16 @@ class RevisionTest extends TestCase
 
         $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
 
-        $hasDifferent = true;
-        foreach ($record->getFillable() as $key) {
-            if ($oldRecord[$key] !== $restoredRecord[$key]) {
-                $hasDifferent = false;
-                break;
+        if ($record->getKeyName() === "id" || $record->incrementing === true) {
+            $hasDifferent = true;
+            foreach ($record->getFillable() as $key) {
+                if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                    $hasDifferent = false;
+                    break;
+                }
             }
+            $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
         }
-        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
 
         if (!$saveAsRevision) {
             $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
