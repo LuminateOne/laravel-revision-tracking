@@ -30,7 +30,7 @@ trait Revisionable
     public function trackChanges()
     {
         if (!$this->getKeyName()) {
-            throw new ErrorException("the revisionable trait can only be used on models which has a primary key. The " .
+            throw new ErrorException("The Revisionable trait can only be used on models which has a primary key. The " .
                 self::class . " model does not have a primary key.");
         }
 

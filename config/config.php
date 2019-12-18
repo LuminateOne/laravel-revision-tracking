@@ -32,8 +32,8 @@ return [
     | Defines the Revision Mode
     |--------------------------------------------------------------------------
     |
-    | all => revision will be stored in one table
-    | single => revision will be sotred in a separeate table
+    | all => Revisions will be stored in one table
+    | single => Revisions will be sotred in a separeate tables based on model
     */
 
     'mode' => env('REVISION_MODE', 'all'),
