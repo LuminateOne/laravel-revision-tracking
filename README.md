@@ -3,7 +3,7 @@ Laraval Revision Tracking is a Laravel package that tracks the Eloquent Model ch
 
 ## Requirements
 1. The Laraval Revision Tracking package will only work in [Laravel](https://laravel.com/) project.
-2. The Laraval Revision Tracking package can only works with the Model which has a primary key.
+2. The Laraval Revision Tracking package can only work with the Model which has a primary key.
 
 ## Setup
 ### 1. Install via composer
