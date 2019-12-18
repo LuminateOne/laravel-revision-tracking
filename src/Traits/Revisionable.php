@@ -62,14 +62,15 @@ trait Revisionable
     {
         $targetRevision = null;
 
-        $whereClause = [['revision_identifier', '=', serialize([$this->getKeyName() => $this->getKey()])]];
-
-        //Check the revision mode to see if we need to add "model_name" in the where clause
+        // Check the revision mode to see if we need to filter "model_name"
         if ($this->revisionMode() === 'all') {
-            array_push($whereClause, ['model_name', '=', get_class($this)]);
+            $modelName = get_class($this);
+            $targetRevision = $this->getRevisionModel()->where('model_name', $modelName);
+        } else {
+            $targetRevision = $this->getRevisionModel()->where('id', '>', '-1');
         }
 
-        $targetRevision = $this->getRevisionModel()->where($whereClause);
+        $targetRevision = $targetRevision->where('revision_identifier', '=', serialize([$this->getKeyName() => $this->getKey()]));
 
         return $targetRevision;
     }

@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use Tests\TestCase;
@@ -17,7 +18,7 @@ class RevisionTest extends TestCase
      * It will check if a new revision is created after update the Model
      * It will check if the original_values stored in the revision table are equals to the old Model
      *
-     * @throws \ErrorException If the Model does not have primary key
+     * @throws \ErrorException If the Model does not have a primary key
      */
     public function testUpdate()
     {
@@ -56,17 +57,17 @@ class RevisionTest extends TestCase
     /**
      * Test get all revisions
      * This will create and updated two different Models,
-     * So it can test if the "allRevision" method only return
-     * the revisions that belongs to the test Model
+     * So it can test if the "allRevision" method only returns
+     * the revisions that belong to the current Model
      *
-     * @throws \ErrorException  If the Model does not have primary key
+     * @throws \ErrorException  If the Model does not have a primary key
      *                          If the Model does not have any revision
      */
     public function testGetAllRevision()
     {
         $faker = \Faker\Factory::create();
 
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = $this->setupModel($modelName);
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
@@ -96,11 +97,11 @@ class RevisionTest extends TestCase
     }
 
     /**
-     * Test get a single revisions by revision ID
-     * This will clone the current test model and update the model,
-     * Then get the latest revision, and check if the identifiers are same
+     * Test get a single revision by revision ID
+     * This will create and update a model,
+     * Then get the latest revision, and check if the identifiers are the same
      *
-     * @throws \ErrorException  If the Model does not have primary key
+     * @throws \ErrorException  If the Model does not have a primary key
      *                          If the Model does not have any revision
      */
     public function testGetRevision()
@@ -125,17 +126,17 @@ class RevisionTest extends TestCase
     }
 
     /**
-     * Test rollback, it will insert a new recored, and then update the record, then restore the revision.
+     * Test rollback, it will insert a new record, and then update the record, then restore the revision.
      * Then check if the restored record is equal to the old record
      *
-     * @throws \ErrorException  If the Model does not have primary key
+     * @throws \ErrorException  If the Model does not have a primary key
      *                          If the Model does not have any revision
      */
     public function testRollback()
     {
         $faker = \Faker\Factory::create();
 
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey';
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = $this->setupModel($modelName);
         $oldRecord = clone $record;
 
@@ -148,10 +149,10 @@ class RevisionTest extends TestCase
         }
 
         $saveAsRevision = true;
-        $revisionId = 3;
+        $revisionId = 1;
         $latestRevision = $record->getRevision($revisionId);
 
-        $record->rollback(1, $saveAsRevision);
+        $record->rollback($revisionId, $saveAsRevision);
 
         $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
 
@@ -170,22 +171,19 @@ class RevisionTest extends TestCase
         }
     }
 
-
     /**
-     * Test delete
-     * Test will the revision be deleted after delete a Model
+     * Test if the revision will be deleted after delete a Model
      *
-     * @throws \ErrorException
+     * @throws \ErrorException  If the Model does not have a primary key
+     *                          If the Model does not have any revision
      */
     public function testDelete()
     {
-        // Create and update Model for testing
+        $faker = \Faker\Factory::create();
+
         $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
         $record = $this->setupModel($modelName);
-        foreach ($record->getFillable() as $key) {
-            $record[$key] = $faker->name;
-        }
-        $record->save();
+
         $updateCount = 3;
         for ($i = 0; $i < $updateCount; $i++) {
             foreach (($record->getFillable()) as $key) {
@@ -209,6 +207,7 @@ class RevisionTest extends TestCase
     /**
      * It will create a new Model
      * Since we are using RefreshDatabase Trait, so it will also create the table for the model
+     * and the revision table will be created if the revision mode is set to single
      *
      * @param  string $modelName A model name with namespace
      * @return Model    Return the created model
@@ -223,23 +222,18 @@ class RevisionTest extends TestCase
             $model[$key] = $faker->name;
         }
         $model->save();
-        return $model;
-    }
 
+        if ($model->revisionMode() === 'single') {
+            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
 
-    private function createRevisionTable($model)
-    {
-        if ($model->revisionMode() === 'all') {
-            return;
+            Schema::create($revisionTableName, function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->text('revision_identifier');
+                $table->text('original_values');
+                $table->timestamps();
+            });
         }
 
-        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
-        Schema::create($revisionTableName, function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->text('revision_identifier');
-            $table->text('original_values');
-            $table->timestamps();
-        });
-
+        return $model;
     }
 }

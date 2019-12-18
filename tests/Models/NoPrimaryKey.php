@@ -17,6 +17,10 @@ class NoPrimaryKey extends Model
     public $incrementing = false;
 
     public function createTable(){
+        if(Schema::hasTable($this->getTable())){
+            return;
+        }
+
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->text('name');
             $table->text('name1');
