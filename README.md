@@ -82,8 +82,8 @@ If set to true, when a Model is deleted the revisions of that Model will be dele
 
 ## Docs
 
-- [Models](#models)
-- [Controllers](#controllers)
+- [Models](#markdown-header-models)
+- [Controllers](#markdown-header-controllers)
 
 ### Models
 
