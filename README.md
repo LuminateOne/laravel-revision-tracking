@@ -4,7 +4,7 @@
 ### 1. Install via composer
 
 Add ```require``` and ```repositories``` to ```composer.json```.
-```$json
+```json
 "require": {
     
     ...
@@ -30,7 +30,7 @@ composer require luminateone/revision-tracking
 
 ### 2. Add service provider
 Add the service provider to the ```providers``` array in the ```config/app.php``` config file as follows:
-```$json
+```json
 'providers' => [
 
     ...
@@ -60,12 +60,12 @@ php artisan table:revision {modelName}
 
 ## Config file ```revision_tracking.php```
 There are three options:
-##### ```mode```: default is ```all```
+##### 1. ```mode```: default is ```all```
     all => Revisions will be stored in one table
     single => Revisions will be sotred in a separeate tables based on model
     
-##### ```table_prefix ```: default is ```revisions_```
-It defines the table prefix when the revision mode set the ```single```
+##### 2. ```table_prefix ```: default is ```revisions_```
+It defines the table prefix when the revision mode is set the ```single```
 
-##### ```remove_on_delete```: default is ```false```
-If set to true, when a Model is deleted the revisions of that Model will be deleted as well.
+##### 3. ```remove_on_delete```: default is ```false```
+If set to true, when a Model is deleted the revisions of that Model will be deleted too.
