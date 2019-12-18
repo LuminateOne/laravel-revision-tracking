@@ -18,7 +18,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Defines the action of revisionable after delete a Model
+    | Defines the action of Revisionable after delete a Model
     |--------------------------------------------------------------------------
     |
     | If set to true the revisions will be deleted, after the Model is deleted,
@@ -29,7 +29,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Defines the Revision Mode
+    | Defines the revision mode
     |--------------------------------------------------------------------------
     |
     | all => Revisions will be stored in one table
