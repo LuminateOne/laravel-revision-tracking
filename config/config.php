@@ -33,7 +33,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | all => Revisions will be stored in one table
-    | single => Revisions will be sotred in a separeate tables based on model
+    | single => Revisions will be stored in a separate table based on the model
     */
 
     'mode' => env('REVISION_MODE', 'all'),
