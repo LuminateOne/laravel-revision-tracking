@@ -66,8 +66,9 @@ Run the following command to create the revisions table for a single Model.
 php artisan table:revision {modelName}
 ```
 
-## Config file ```revision_tracking.php```
-There are three options:
+## Config file 
+
+The config file ```config/revision_tracking.php``` has three options:
 ##### 1. ```mode```: default is ```all```
     all => Revisions will be stored in one table
     single => Revisions will be stored in a separate table based on the model
