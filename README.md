@@ -2,36 +2,15 @@
 Laraval Revision Tracking is a Laravel package that tracks the [Eloquent Model](https://laravel.com/docs/6.x/eloquent) changes, it can store, restore, retrieve the Model changes.
 
 ## Requirements
-1. The Laraval Revision Tracking package can only work in [Laravel](https://laravel.com/) project.
-2. The Laraval Revision Tracking package can only work with a Model which has a primary key.
+1. The package can only work in [Laravel](https://laravel.com/) project.
+2. The package can only work with a Model which has a primary key.
 
 ## Before start
 The Laraval Revision Tracking package does work with a Model which does not have the ```int``` and ```auto_increment``` primary key, for example, a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) ```string``` as the primary key, but rollback the revisions will be very tricky after the Model primary key changed. So **we suggest you to use the ```int``` and ```auto_increment``` as the primary key type and avoid changing the primary key**.
 
-## Setup
+## Installation
 ### 1. Install via [composer](https://getcomposer.org/doc/00-intro.md)
 
-Add ```require``` and ```repositories``` to ```composer.json```.
-```
-"require": {
-    
-    ...
-    
-    "luminateone/revision-tracking": "dev-staging"
-}
-
-"repositories": [
-
-    ...
-    
-    {
-        "type": "vcs",
-        "url":  "https://luminateone@bitbucket.org/luminateone/laravel-revision-tracking.git"
-    }
-]
-```
-
-Run the following command to pull the ```staging``` branch, it may ask you to enter your ```bitbucket``` user name and password
 ```
 composer require luminateone/revision-tracking
 ```
@@ -54,13 +33,13 @@ php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\Re
 ```
 
 ### 4. Run migrations
-Run the following command to create the ```revisions``` table, this table will be used when the revision mode is set to ```all```.
+
+##### If you are running mode ```all```, run this command:
 ```
 php artisan migrate
 ```
 
-### 5. Command to create the revision table when the revision mode is set to ```single```
-Run the following command to create the revisions table for a single Model.
+##### If you are running mode ```single```, run the following command for each model you want to track:
 ```Please include the namespace```
 ```
 php artisan table:revision {modelName}
@@ -68,7 +47,7 @@ php artisan table:revision {modelName}
 
 ## Config file 
 
-The config file ```config/revision_tracking.php``` has three options:
+```config/revision_tracking.php``` has three options:
 ##### 1. ```mode```: default is ```all```
     all => Revisions will be stored in one table
     single => Revisions will be stored in a separate table based on the model
@@ -79,14 +58,13 @@ It defines the table prefix when the revision mode is set the ```single```
 ##### 3. ```remove_on_delete```: default is ```false```
 If set to true, when a Model is deleted the revisions of that Model will be deleted too.
 
-### Notice: If you set the revision mode to ```single```, do not forget to run ```php artisan table:revision {modelName}```
 
 ## Docs
 
-- [Models](#markdown-header-models)
+- [Basic Usage](#markdown-header-basic-usage)
 - [Controllers](#markdown-header-controllers)
 
-#### Models
+#### Basic Usage
 
 Use the ```Revisionable``` [Trait](https://www.php.net/manual/en/language.oop5.traits.php) to monitor the Model changes.
 Include the ```LuminateOne\RevisionTracking\Traits``` namespace and use ```Revisionable```
