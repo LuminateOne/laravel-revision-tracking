@@ -93,19 +93,11 @@ trait Revisionable
             throw new ErrorException("No revisions found for Model: " . get_class($this));
         }
 
-        $targetRecord = $this->where($targetRevision->revision_identifiers)->first();
-
-        if (!$targetRecord) {
-            throw new ErrorException('The target record for the Model: ' . get_class($this) .
-                ' could not be found. There are five possible reasons: 1. Table name changed. 2. Model name changed. 3. The record has been deleted. 4. Not restoring revision from the latest one. 5. The primary key has been changed'
-            );
-        }
-
         foreach ($targetRevision->original_values as $key => $value) {
-            $targetRecord[$value['column']] = $value['value'];
+            $this[$value['column']] = $value['value'];
         }
 
-        $targetRecord->save();
+        $this->save();
 
         if(!$saveAsRevision){
             $this->allRevisions()->where([['id', '>=', $revisionId]])->delete();
