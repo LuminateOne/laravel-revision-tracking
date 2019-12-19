@@ -9,9 +9,19 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\RevisionTracking;
 
-class RevisionTest extends TestCase
+class RevisionTestAll extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Change the revision mode to single
+     */
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        config(['revision_tracking.mode' => 'single']);
+    }
 
     /**
      * Test if the updated event can be caught by Revisionable.
@@ -118,7 +128,9 @@ class RevisionTest extends TestCase
             $record->save();
         }
 
-        $singleRevision = $record->getRevision($updateCount);
+        $latestRevisionId = $record->allRevisions()->latest('id')->first()->id;
+
+        $singleRevision = $record->getRevision($latestRevisionId);
 
         $modelIdentifiers = [$record->getKeyName() => $record->getKey()];
 
@@ -148,29 +160,64 @@ class RevisionTest extends TestCase
             $record->save();
         }
 
-        $saveAsRevision = true;
-        $revisionId = 1;
-        $latestRevision = $record->getRevision($revisionId);
+        $latestRevision = $record->allRevisions()->orderBy('id', 'asc')->first();
 
-        $record->rollback($revisionId, $saveAsRevision);
+        $record->rollback($latestRevision->id, true);
 
         $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
 
-        if ($record->getKeyName() === "id" || $record->incrementing === true) {
-            $hasDifferent = true;
-            foreach ($record->getFillable() as $key) {
-                if ($oldRecord[$key] !== $restoredRecord[$key]) {
-                    $hasDifferent = false;
-                    break;
-                }
+        $hasDifferent = true;
+        foreach ($record->getFillable() as $key) {
+            if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                $hasDifferent = false;
+                break;
             }
-            $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+        }
+        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+    }
+
+    /**
+     * Test rollback, it will insert a new record, and then update the record, then restore the revision.
+     * Then check if the restored record is equal to the old record
+     *
+     * @throws \ErrorException  If the Model does not have a primary key
+     *                          If the Model does not have any revision
+     */
+    public function testRollbackAndNotSaveAsRevision()
+    {
+        $faker = \Faker\Factory::create();
+
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+        $record = $this->setupModel($modelName);
+        $oldRecord = clone $record;
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
         }
 
-        if (!$saveAsRevision) {
-            $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
-            $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+        $revisionId = $record->allRevisions()->orderBy('id', 'asc')->first()->id;
+
+        $latestRevision = $record->getRevision($revisionId);
+
+        $record->rollback($revisionId, false);
+
+        $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
+
+        $hasDifferent = true;
+        foreach ($record->getFillable() as $key) {
+            if ($oldRecord[$key] !== $restoredRecord[$key]) {
+                $hasDifferent = false;
+                break;
+            }
         }
+        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+
+        $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
+        $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
     }
 
 
@@ -200,6 +247,22 @@ class RevisionTest extends TestCase
         $revisionCount = $record->allRevisions()->count();
 
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+    }
+
+    /**
+     *  Test the php artisan table:revision {modelName} command
+     *  It will run the command and then check if the table exists in the database
+     */
+    public function testPHPCommand()
+    {
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+
+        exec('php artisan table:revision ' . $modelName, $output, $return_var);
+
+        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+
+        $this->assertTrue(Schema::hasTable($revisionTableName),
+            'The revision table should be created for the ' . $modelName);
     }
 
     /**
