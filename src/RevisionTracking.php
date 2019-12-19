@@ -77,7 +77,7 @@ class RevisionTracking
 
             $whereClause = [];
 
-            if ($model->revisionMode() === 0) {
+            if ($model->revisionMode() === 'all') {
                 $whereClause['model_name'] = get_class($model);
             }
 
