@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use Tests\TestCase;
@@ -7,9 +6,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use LuminateOne\RevisionTracking\RevisionTracking;
 
-class RevisionTestAll extends TestCase
+class RevisionTestSingle extends TestCase
 {
     use RefreshDatabase;
 
@@ -160,15 +158,13 @@ class RevisionTestAll extends TestCase
             $record->save();
         }
 
-        $latestRevision = $record->allRevisions()->orderBy('id', 'asc')->first();
+        $aRevision = $record->allRevisions()->orderBy('id', 'asc')->first();
 
-        $record->rollback($latestRevision->id, true);
-
-        $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
+        $record->rollback($aRevision->id, true);
 
         $hasDifferent = true;
         foreach ($record->getFillable() as $key) {
-            if ($oldRecord[$key] !== $restoredRecord[$key]) {
+            if ($oldRecord[$key] !== $record[$key]) {
                 $hasDifferent = false;
                 break;
             }
@@ -199,27 +195,22 @@ class RevisionTestAll extends TestCase
             $record->save();
         }
 
-        $revisionId = $record->allRevisions()->orderBy('id', 'asc')->first()->id;
+        $aRevision = $record->allRevisions()->orderBy('id', 'asc')->first();
 
-        $latestRevision = $record->getRevision($revisionId);
-
-        $record->rollback($revisionId, false);
-
-        $restoredRecord = (new $modelName())->find($latestRevision->revision_identifier)->first();
+        $record->rollback($aRevision->id, false);
 
         $hasDifferent = true;
         foreach ($record->getFillable() as $key) {
-            if ($oldRecord[$key] !== $restoredRecord[$key]) {
+            if ($oldRecord[$key] !== $record[$key]) {
                 $hasDifferent = false;
                 break;
             }
         }
         $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
 
-        $revisionCount = $record->allRevisions()->where([['id', '>=', $revisionId]])->count();
+        $revisionCount = $record->allRevisions()->where([['id', '>=', $aRevision->id]])->count();
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
     }
-
 
     /**
      * Test if the revision will be deleted after deleting a Model
@@ -250,19 +241,80 @@ class RevisionTestAll extends TestCase
     }
 
     /**
-     *  Test the php artisan table:revision {modelName} command
-     *  It will run the command and then check if the table exists in the database
+     * Test if an ErrorException will be thrown if a Model want to rollback to a revision which does not exist
+     *
+     * @throws \Exception If the Model does not have a primary key
+     *                    If the Model does not have any revision
      */
-    public function testPHPCommand()
+    public function testNoPrimaryKeyException()
     {
-        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+        try {
+            $faker = \Faker\Factory::create();
 
-        exec('php artisan table:revision ' . $modelName, $output, $return_var);
+            $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+            $record = $this->setupModel($modelName);
 
-        $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
 
-        $this->assertTrue(Schema::hasTable($revisionTableName),
-            'The revision table should be created for the ' . $modelName);
+            $record->rollback(10);
+
+        } catch (\Throwable $exception) {
+            $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
+            return;
+        }
+    }
+
+    /**
+     * Test if an ErrorException will be thrown if the revision table does not exist
+     *
+     * @throws \Exception If the Model does not have a primary key
+     *                    If the Model does not have any revision
+     */
+    public function testNoRevisionTableException()
+    {
+        try {
+            $faker = \Faker\Factory::create();
+
+            $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+            $record = $this->setupModel($modelName);
+
+            Schema::drop($record->getRevisionModel()->getTable());
+
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
+        } catch (\Throwable $exception) {
+            $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
+            return;
+        }
+    }
+
+    /**
+     * Test if an ErrorException will be thrown if a Model uses the Revisionable Trait without a primary key
+     *
+     * @throws \Exception If the Model does not have a primary key
+     *                    If the Model does not have any revision
+     */
+    public function testNoRevisionException()
+    {
+        try {
+            $faker = \Faker\Factory::create();
+
+            $modelName = 'LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey';
+            $record = $this->setupModel($modelName);
+
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
+        } catch (\Throwable $exception) {
+            $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
+            return;
+        }
     }
 
     /**
@@ -286,6 +338,10 @@ class RevisionTestAll extends TestCase
 
         if ($model->revisionMode() === 'single') {
             $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+
+            if(Schema::hasTable($revisionTableName)){
+                return $model;
+            }
 
             Schema::create($revisionTableName, function (Blueprint $table) {
                 $table->bigIncrements('id');
