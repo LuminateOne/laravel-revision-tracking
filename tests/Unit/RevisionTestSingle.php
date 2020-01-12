@@ -1,10 +1,8 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use Tests\TestCase;
+use LuminateOne\RevisionTracking\Tests\TestCase;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class RevisionTestSingle extends TestCase
@@ -218,7 +216,7 @@ class RevisionTestSingle extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function testDelete()
+    public function testRemoveOnDelete()
     {
         $faker = \Faker\Factory::create();
 
@@ -233,11 +231,43 @@ class RevisionTestSingle extends TestCase
             $record->save();
         }
 
+        config(['revision_tracking.remove_on_delete' => true]);
+
         $record->delete();
 
         $revisionCount = $record->allRevisions()->count();
 
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
+    }
+
+    /**
+     * Test if the revision will be deleted after deleting a Model
+     *
+     * @throws \Exception If the Model does not have a primary key
+     *                    If the Model does not have any revision
+     */
+    public function testNotRemoveOnDelete()
+    {
+        $faker = \Faker\Factory::create();
+
+        $modelName = 'LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey';
+        $record = $this->setupModel($modelName);
+
+        $updateCount = 3;
+        for ($i = 0; $i < $updateCount; $i++) {
+            foreach (($record->getFillable()) as $key) {
+                $record[$key] = $faker->name;
+            }
+            $record->save();
+        }
+
+        config(['revision_tracking.remove_on_delete' => false]);
+
+        $record->delete();
+
+        $revisionCount = $record->allRevisions()->count();
+
+        $this->assertEquals($updateCount, $revisionCount, 'The revisions are not deleted');
     }
 
     /**
@@ -315,42 +345,5 @@ class RevisionTestSingle extends TestCase
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;
         }
-    }
-
-    /**
-     * It will create a new Model
-     * Since we are using RefreshDatabase Trait, so it will also create the table for the model
-     * and the revision table will be created if the revision mode is set to single
-     *
-     * @param  string $modelName A model name with namespace
-     * @return Model    Return the created model
-     */
-    private function setupModel($modelName)
-    {
-        $faker = \Faker\Factory::create();
-        $model = new $modelName();
-        $model->createTable();
-
-        foreach (($model->getFillable()) as $key) {
-            $model[$key] = $faker->name;
-        }
-        $model->save();
-
-        if ($model->revisionMode() === 'single') {
-            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
-
-            if(Schema::hasTable($revisionTableName)){
-                return $model;
-            }
-
-            Schema::create($revisionTableName, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->text('revision_identifier');
-                $table->text('original_values');
-                $table->timestamps();
-            });
-        }
-
-        return $model;
     }
 }
