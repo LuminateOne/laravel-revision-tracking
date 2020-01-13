@@ -4,8 +4,18 @@ namespace LuminateOne\RevisionTracking\Providers;
 use Illuminate\Support\ServiceProvider;
 use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
+/**
+ * RevisionServiceProvider registers and bootstraps the revision tracking service
+ *
+ * @package LuminateOne\RevisionTracking\Providers
+ */
 class RevisionServiceProvider extends ServiceProvider
 {
+    /**
+     * Bootstrap revision tracking services.
+     *
+     * @return void
+     */
     public function boot()
     {
         $configPath = realpath(__DIR__ . '/../../config/config.php');
