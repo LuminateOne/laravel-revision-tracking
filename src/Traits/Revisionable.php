@@ -42,9 +42,9 @@ trait Revisionable
     /**
      * Get a specific revision by the revision ID.
      *
-     * @param $revisionId       Revision ID for the Model
+     * @param $revisionId       Revision ID for the model
      *
-     * @return mixed            A single revision Model
+     * @return mixed            A single revision model
      * @throws ErrorException   If the revision table cannot be found
      */
     public function getRevision($revisionId)
@@ -53,9 +53,9 @@ trait Revisionable
     }
 
     /**
-     * Get all revisions for this Model.
+     * Get all revisions for this model.
      *
-     * @return mixed            A collection of revision Model
+     * @return mixed            A collection of revision model
      * @throws ErrorException   If the revision table cannot be found
      */
     public function allRevisions()
@@ -70,16 +70,16 @@ trait Revisionable
             $targetRevision = $this->getRevisionModel()->where('id', '>', '-1');
         }
 
-        $targetRevision = $targetRevision->where('revision_identifier', '=', serialize([$this->getKeyName() => $this->getKey()]));
+        $targetRevision = $targetRevision->where('revision_identifier', '=', $this->getRevisionIdentifier());
 
         return $targetRevision;
     }
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provided to retrieve the revision for the Model
+     * Using the model name and the revision ID provided to retrieve the revision for the model
      *
-     * @param integer  $revisionId      Revision ID for the Model
+     * @param integer  $revisionId      Revision ID for the model
      * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
      *                                  false => rollback to a specific revision and delete all the revisions that came after that revision
      *
@@ -90,7 +90,7 @@ trait Revisionable
         $targetRevision = $this->allRevisions()->where(['id' => $revisionId])->first();
 
         if (!$targetRevision) {
-            throw new ErrorException("No revisions found for Model: " . get_class($this));
+            throw new ErrorException("No revisions found for " . get_class($this) . " model");
         }
 
         foreach ($targetRevision->original_values as $key => $value) {
@@ -140,5 +140,14 @@ trait Revisionable
     public function revisionMode()
     {
         return config('revision_tracking.mode', 'all');
+    }
+
+    /**
+     * A function to create the revision identifier
+     *
+     * @return mixed
+     */
+    public function getRevisionIdentifier(){
+        return serialize([$this->getKeyName() => $this->getKey()]);
     }
 }

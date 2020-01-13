@@ -84,7 +84,7 @@ class RevisionTracking
                 $whereClause['model_name'] = get_class($model);
             }
 
-            $whereClause['revision_identifier'] = serialize([$model->getKeyName() => $model->getKey()]);
+            $whereClause['revision_identifier'] = $model->getRevisionIdentifier();
 
             $revisionModel->where($whereClause)->delete();
         }
