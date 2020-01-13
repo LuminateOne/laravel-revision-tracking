@@ -41,19 +41,20 @@ php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\Re
 ```
 
 ### Run migrations
-    all => Revisions will be stored in one table
-    single => Revisions will be stored in a separate table based on the model
+
 #### If you are running mode ```all```, run this command:
+Mode ```all```, revisions will be stored in one table
 ```bash
 php artisan migrate
 ```
 
 #### If you are running mode ```single```, run the following command for each model you want to track:
-```Please include the namespace```
+Mode ```single```, revisions will be stored in a separate table based on the model
 ```bash
+// Please include the namespace
 php artisan table:revision {modelName}
 ```
-
+See the [revision_tracking.php](config/config.php) config file for full detail.
 ## Docs
 
 #### Basic Usage
