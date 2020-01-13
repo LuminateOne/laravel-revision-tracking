@@ -18,11 +18,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Defines the action of revisionable after delete a Model
+    | Defines the action of revisionable after delete a model
     |--------------------------------------------------------------------------
     |
-    | If set to true the revisions will be deleted, after the Model is deleted,
-    | If set to false the revision will not be deleted, after the Model is deleted
+    | If set to true the revisions will be deleted, after the model is deleted,
+    | If set to false the revision will not be deleted, after the model is deleted
     */
 
     'remove_on_delete' => env('REVISION_REMOVE_ON_DELETE', false),
