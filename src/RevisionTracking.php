@@ -3,6 +3,11 @@ namespace LuminateOne\RevisionTracking;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * This class can find and store the diff of a model
+ *
+ * @package     LuminateOne\RevisionTracking\Providers
+ */
 class RevisionTracking
 {
     /**
