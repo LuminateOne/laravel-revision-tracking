@@ -80,8 +80,6 @@ class RevisionTracking
 
             $targetRevisions = $revisionModel->where('revision_identifier', $model->getRevisionIdentifier());
 
-            if(!$targetRevisions) return;
-
             if ($model->revisionMode() === 'all') {
                 $targetRevisions = $targetRevisions->where('model_name', get_class($model));
             }
