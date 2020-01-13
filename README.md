@@ -44,7 +44,7 @@ Mode ```single```, revisions will be stored in a separate table based on the mod
 // Please include the namespace
 php artisan table:revision {modelName}
 ```
-See the [revision_tracking.php](config/config.php) config file for full detail.
+See the [revision_tracking.php](config/config.php) config file for more detail.
 ## Docs
 
 #### Basic Usage
