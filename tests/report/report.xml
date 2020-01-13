@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1578867610">
-  <project timestamp="1578867610">
+<coverage generated="1578873832">
+  <project timestamp="1578873832">
     <package name="LuminateOne\RevisionTracking\Models">
-      <file name="D:\wamp_drupal\www\yiming\laraRevTraTest\src\Models\Revision.php">
+      <file name="D:\wamp_drupal\www\yiming\laravel-revision-tracking\src\Models\Revision.php">
         <class name="LuminateOne\RevisionTracking\Models\Revision" namespace="LuminateOne\RevisionTracking\Models" fullPackage="LuminateOne" package="LuminateOne">
           <metrics complexity="4" methods="4" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="8" coveredelements="8"/>
         </class>
@@ -18,7 +18,7 @@
       </file>
     </package>
     <package name="LuminateOne\RevisionTracking\Providers">
-      <file name="D:\wamp_drupal\www\yiming\laraRevTraTest\src\Providers\RevisionServiceProvider.php">
+      <file name="D:\wamp_drupal\www\yiming\laravel-revision-tracking\src\Providers\RevisionServiceProvider.php">
         <class name="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider" namespace="LuminateOne\RevisionTracking\Providers">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
         </class>
@@ -31,13 +31,13 @@
         <line num="20" type="stmt" count="21"/>
         <line num="21" type="stmt" count="21"/>
         <line num="22" type="stmt" count="21"/>
-        <line num="27" type="stmt" count="21"/>
-        <line num="28" type="stmt" count="21"/>
-        <metrics loc="31" ncloc="27" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
+        <line num="24" type="stmt" count="21"/>
+        <line num="25" type="stmt" count="21"/>
+        <metrics loc="28" ncloc="28" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="9" coveredstatements="9" elements="11" coveredelements="11"/>
       </file>
     </package>
     <package name="LuminateOne\RevisionTracking">
-      <file name="D:\wamp_drupal\www\yiming\laraRevTraTest\src\RevisionTracking.php">
+      <file name="D:\wamp_drupal\www\yiming\laravel-revision-tracking\src\RevisionTracking.php">
         <class name="LuminateOne\RevisionTracking\RevisionTracking" namespace="LuminateOne\RevisionTracking">
           <metrics complexity="8" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="24" coveredstatements="22" elements="27" coveredelements="24"/>
         </class>
@@ -72,7 +72,7 @@
       </file>
     </package>
     <package name="LuminateOne\RevisionTracking\Traits">
-      <file name="D:\wamp_drupal\www\yiming\laraRevTraTest\src\Traits\Revisionable.php">
+      <file name="D:\wamp_drupal\www\yiming\laravel-revision-tracking\src\Traits\Revisionable.php">
         <class name="Revisionable" namespace="LuminateOne\RevisionTracking\Traits">
           <metrics complexity="14" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="36" coveredstatements="36" elements="43" coveredelements="43"/>
         </class>
@@ -122,6 +122,6 @@
         <metrics loc="143" ncloc="97" classes="1" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="36" coveredstatements="36" elements="43" coveredelements="43"/>
       </file>
     </package>
-    <metrics files="4" loc="319" ncloc="214" classes="4" methods="16" coveredmethods="15" conditionals="0" coveredconditionals="0" statements="73" coveredstatements="71" elements="89" coveredelements="86"/>
+    <metrics files="4" loc="316" ncloc="215" classes="4" methods="16" coveredmethods="15" conditionals="0" coveredconditionals="0" statements="73" coveredstatements="71" elements="89" coveredelements="86"/>
   </project>
 </coverage>
