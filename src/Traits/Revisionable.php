@@ -49,7 +49,7 @@ trait Revisionable
      */
     public function getRevision($revisionId)
     {
-        return $this->allRevisions()->where(['id' => $revisionId])->first();
+        return $this->allRevisions()->where('id', $revisionId)->first();
     }
 
     /**
@@ -60,17 +60,12 @@ trait Revisionable
      */
     public function allRevisions()
     {
-        $targetRevision = null;
+        $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->getRevisionIdentifier());
 
-        // Check the revision mode to see if we need to filter "model_name"
         if ($this->revisionMode() === 'all') {
             $modelName = get_class($this);
-            $targetRevision = $this->getRevisionModel()->where('model_name', $modelName);
-        } else {
-            $targetRevision = $this->getRevisionModel()->where('id', '>', '-1');
+            $targetRevision = $targetRevision->where('model_name', $modelName);
         }
-
-        $targetRevision = $targetRevision->where('revision_identifier', '=', $this->getRevisionIdentifier());
 
         return $targetRevision;
     }
