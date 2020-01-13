@@ -1,5 +1,6 @@
 # Laraval Revision Tracking
-Laraval Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) changes. It can store, restore, retrieve all the Model changes. It stores only the diff of fields.
+Laraval Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) 
+changes. It can store, restore, retrieve all the Model changes. It stores only the diff of fields.
 
 ## Requirements
 1. [Laravel 5.8 and above](https://laravel.com/docs/5.8/releases)
