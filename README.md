@@ -7,9 +7,9 @@ Laraval Revision Tracking is a Laravel package that tracks the [Eloquent Model](
 3. The package can only work with models which has a primary key.
 
 ## Before you start
-The Laraval Revision Tracking package does work with a Model which does not have the `int` primary key, for example,__
-a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) `string` as the primary key,__
-but rollback the revisions will be very tricky after the Model primary key changed.__
+The Laraval Revision Tracking package does work with a Model which does not have the `int` primary key, for example, 
+a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) `string` as the primary key, 
+but rollback the revisions will be very tricky after the Model primary key changed. 
 So **we suggest you to use the `int` as the primary key type and avoid changing the primary key**.
 
 ## Installation
