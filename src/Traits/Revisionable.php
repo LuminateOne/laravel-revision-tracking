@@ -63,8 +63,7 @@ trait Revisionable
         $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->getRevisionIdentifier());
 
         if ($this->revisionMode() === 'all') {
-            $modelName = get_class($this);
-            $targetRevision = $targetRevision->where('model_name', $modelName);
+            $targetRevision = $targetRevision->where('model_name', get_class($this));
         }
 
         return $targetRevision;
