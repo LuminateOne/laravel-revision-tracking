@@ -53,7 +53,7 @@ class CreateModelRevisionTable extends Command
         $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
 
         if(Schema::hasTable($revisionTableName)){
-            $this->error("The revision table '" . $revisionTableName . "' for model '" . $modelName . "' already exists. Please check the model name.");
+            $this->error("The revision table '" . $revisionTableName . "' for '" . $modelName . "' model already exists. Please check the model name.");
             return;
         }
 
