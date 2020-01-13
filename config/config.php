@@ -29,7 +29,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Defines the Revision Mode
+    | Defines the revision mode
     |--------------------------------------------------------------------------
     |
     | all => Revisions will be stored in one table
