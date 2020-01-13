@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class RevisionTestAll extends TestCase
 {
     /**
-     * Change the revision mode to single
+     * Change the revision mode to all
      */
     public function setUp(): void
     {
