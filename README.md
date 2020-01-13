@@ -17,17 +17,6 @@ The Laraval Revision Tracking package does work with a Model which does not have
 composer require luminateone/revision-tracking
 ```
 
-### Add service provider (for Laravel 5.5 and below)
-Add the service provider to the ```providers``` array in the ```config/app.php``` config file as follows:
-```
-'providers' => [
-
-    ...
-
-    LuminateOne\RevisionTracking\Providers\RevisionServiceProvider::class,
-]
-```
-
 ### Publish the config and migrations
 Run the following command to publish the package config file and migration file:
 ```bash
