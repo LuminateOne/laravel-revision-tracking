@@ -23,9 +23,9 @@ trait Revisionable
     }
 
     /**
-     * Find and store the changes as a revision for the current Model.
+     * Find and store the changes as a revision for the current model.
      *
-     * @throws ErrorException If the current Model does not have a primary.
+     * @throws ErrorException If the current model does not have a primary.
      */
     public function trackChanges()
     {
@@ -40,7 +40,7 @@ trait Revisionable
     }
 
     /**
-     * Get the Model for the revision with the correct table by checking the revision mode
+     * Get the model for the revision with the correct table by checking the revision mode
      *
      * @return Revision
      */
