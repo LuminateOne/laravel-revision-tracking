@@ -343,24 +343,4 @@ class RevisionTestAll extends TestCase
             return;
         }
     }
-
-    /**
-     * Test if an Exception will be thrown when deleting a Model which uses the Revisionable
-     * and this model does not have a primary key
-     *
-     * @throws \Exception If the Model does not have a primary key
-     *                    If the Model does not have any revision
-     */
-    public function testNoPrimaryKeyExceptionWhenDeleteModel()
-    {
-        try {
-            $modelName = 'LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey';
-            $record = $this->setupModel($modelName);
-
-            $record->delete();
-        } catch (\Throwable $exception) {
-            $this->assertInstanceOf(\Exception::class, $exception, 'An ErrorException should be thrown');
-            return;
-        }
-    }
 }
