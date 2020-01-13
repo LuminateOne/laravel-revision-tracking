@@ -44,7 +44,7 @@ trait Revisionable
      *
      * @throws ErrorException   If the revision table cannot be found
      *
-     * @return Revision         An Eloquent Model for the revision
+     * @return Revision         An Eloquent model for the revision
      */
     public function getRevisionModel()
     {
