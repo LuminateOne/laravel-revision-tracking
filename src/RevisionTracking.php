@@ -4,13 +4,18 @@ namespace LuminateOne\RevisionTracking;
 use Illuminate\Database\Eloquent\Model;
 use ErrorException;
 
+/**
+ * This class can find and store the diff of a model
+ *
+ * @package     LuminateOne\RevisionTracking\Providers
+ */
 class RevisionTracking
 {
     /**
      * Loop through the changed values
      * Use the field name in changed values to get the original values
      *
-     * @param  Model $model             The Model will be tracked
+     * @param  Model $model             The model will be tracked
      *
      * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
@@ -58,12 +63,12 @@ class RevisionTracking
     }
 
     /**
-     * Delete the revision or not when a Model is deleted
+     * Delete the revision or not when a model is deleted
      * It depends on the "remove_on_delete" value in the config file
      *
-     * @param Model $model A Eloquent Model
+     * @param Model $model A Eloquent model
      *
-     * @throws ErrorException If the Model cannot be found
+     * @throws ErrorException If the model cannot be found
      */
     public static function eloquentDelete($model)
     {
@@ -89,17 +94,17 @@ class RevisionTracking
 
     /**
      * Restoring the revision.
-     * Use the Model name and the revision ID provided to retrieve the revision for the Model
+     * Use the model name and the revision ID provided to retrieve the revision for the model
      *
-     * @param string   $modelName   A Model name that the revision will be restored for
-     * @param integer  $revisionID  Revision ID for the Model
+     * @param string   $modelName   A model name that the revision will be restored for
+     * @param integer  $revisionID  Revision ID for the model
      *
-     * @throws ErrorException  If the Model or the revision cannot be found
+     * @throws ErrorException  If the model or the revision cannot be found
      */
     public static function eloquentRestore($modelName, $revisionID = null)
     {
         if (!class_exists($modelName)) {
-            throw new ErrorException("The Model: " . $modelName . ' does not exists, look like you changed the Model name.');
+            throw new ErrorException("The model: " . $modelName . ' does not exists, look like you changed the model name.');
         }
 
         $targetModel = new $modelName();
@@ -112,7 +117,7 @@ class RevisionTracking
         if ($targetModel->revisionMode() === 0) {
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
         } else {
-            // When set table dynamically, the Model::all() is not working properly, so where id > -1 do the trick.
+            // When set table dynamically, the Model::all() does not work, so using "where id > -1" as a work around.
             $targetRevision = $revisionModel->where('id', '>', '-1');
         }
 
@@ -130,7 +135,7 @@ class RevisionTracking
         $targetRecord = $targetModel->where($targetRevision->revision_identifiers)->first();
 
         if (!$targetRecord) {
-            throw new ErrorException('The target record for the Model: ' . get_class($targetModel) .
+            throw new ErrorException('The target record for the model: ' . get_class($targetModel) .
                 ' could not be found. There are five possible reasons: 1. Table name changed. 2. Model name changed. 3. The record has been deleted. 4. Not restoring revision from the latest one. 5. The primary key has been changed'
             );
         }

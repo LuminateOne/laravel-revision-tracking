@@ -23,9 +23,9 @@ trait Revisionable
     }
 
     /**
-     * Find and store the changes as a revision for the current Model.
+     * Find and store the changes as a revision for the current model.
      *
-     * @throws ErrorException If the current Model does not have a primary.
+     * @throws ErrorException If the current model does not have a primary.
      */
     public function trackChanges()
     {
@@ -40,11 +40,11 @@ trait Revisionable
     }
 
     /**
-     * Get the Model for the revision with the correct table by checking the revision mode
+     * Get the model for the revision with the correct table by checking the revision mode
      *
      * @throws ErrorException   If the revision table cannot be found
      *
-     * @return Revision         An Eloquent Model for the revision
+     * @return Revision         An Eloquent model for the revision
      */
     public function getRevisionModel()
     {
@@ -56,7 +56,7 @@ trait Revisionable
         }
 
         if (!Schema::hasTable($revisionTableName)) {
-            throw new ErrorException('The revision table for the Model: ' . get_class($this) .
+            throw new ErrorException('The revision table for the model: ' . get_class($this) .
                 ' could not be found. There are three possible reasons: 1. Table name changed. 2. Model name changed. 3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
             );
         }
