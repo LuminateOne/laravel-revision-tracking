@@ -3,11 +3,9 @@ namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class RevisionTestSingle extends TestCase
 {
-    use RefreshDatabase;
 
     /**
      * Change the revision mode to single
