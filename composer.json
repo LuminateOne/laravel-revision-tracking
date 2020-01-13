@@ -1,0 +1,19 @@
+{
+    "name": "luminateone/revision-tracking",
+    "description": "Tracking the changes of models and restoring the changes for a model",
+    "type": "project",
+    "authors": [
+        {
+            "name": "LuminateOne Limited",
+            "email": "dev@luminate.one"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LuminateOne\\RevisionTracking\\": "src/"
+        }
+    },
+
+    "minimum-stability": "dev",
+    "require": {}
+}
