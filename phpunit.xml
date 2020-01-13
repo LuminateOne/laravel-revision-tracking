@@ -24,8 +24,8 @@
         </whitelist>
     </filter>
     <logging>
-        <log type="coverage-html" target="tests/report/html"/>
-        <log type="coverage-clover" target="tests/report/report.xml"/>
+        <log type="coverage-html" target="tests/Report/html"/>
+        <log type="coverage-clover" target="tests/Report/report.xml"/>
     </logging>
     <php>
         <env name="DB_CONNECTION" value="mysql"/>
