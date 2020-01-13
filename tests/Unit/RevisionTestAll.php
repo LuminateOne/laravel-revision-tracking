@@ -87,7 +87,7 @@ class RevisionTestAll extends TestCase
             foreach (($record2->getFillable()) as $key) {
                 $record2[$key] = $faker->name;
             }
-            $record->save();
+            $record2->save();
         }
 
         $revisionCount = $record->allRevisions()->get()->count();
