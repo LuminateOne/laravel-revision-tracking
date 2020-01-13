@@ -1,17 +1,17 @@
 # Laraval Revision Tracking
-Laraval Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) changes. It can store, restore, retrieve all the Model changes. It stores only the diff of the fields.
+Laraval Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) changes. It can store, restore, retrieve all the Model changes. It stores only the diff of fields.
 
 ## Requirements
 1. [Laravel 5.8 and above](https://laravel.com/docs/5.8/releases)
 2. [PHP 7.1.0 and above](https://www.php.net/releases/7_1_0.php)
-3. The package can only work with models which has a primary key.
+3. The package can only work with models that have a primary key.
 
 ## Before you start
-The Laraval Revision Tracking package does work with a model which does not have the `int` primary key, for example, 
+The Laraval Revision Tracking package does work with a model that does not have the `int` primary key, for example, 
 a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) `string` as the primary key, 
 but rollback the revisions will be very tricky after the model primary key changed. 
 
-**So we suggest you to use the `int` as the primary key type and avoid changing the primary key**.
+**So we suggest you use the `int` as the primary key type and avoid changing the primary key**.
 
 ## Installation
 ### Install via [composer](https://getcomposer.org/doc/00-intro.md)
