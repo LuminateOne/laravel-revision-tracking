@@ -143,7 +143,7 @@ trait Revisionable
     }
 
     /**
-     * A function to create the revision identifier
+     * A function to create the revision identifier as a serialized object
      *
      * @return mixed
      */
