@@ -28,7 +28,7 @@ Add the service provider to the ```providers``` array in the ```config/app.php``
 ```
 
 ### Publish the config and migrations
-Run the following command to publish the package config file, named as ```revision_tracking.php```:
+Run the following command to publish the package config file, named as ```revision_tracking.php```, and the migration file for the ```revision``` table:
 ```bash
 php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider"
 ```
