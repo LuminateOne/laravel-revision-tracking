@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1578883829">
-  <project timestamp="1578883829">
+<coverage generated="1578884764">
+  <project timestamp="1578884764">
     <package name="LuminateOne\RevisionTracking\Models">
       <file name="D:\wamp_drupal\www\yiming\laravel-revision-tracking\src\Models\Revision.php">
         <class name="LuminateOne\RevisionTracking\Models\Revision" namespace="LuminateOne\RevisionTracking\Models" fullPackage="LuminateOne" package="LuminateOne">
