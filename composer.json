@@ -1,6 +1,6 @@
 {
     "name": "luminateone/revision-tracking",
-    "description": "Tracking the changes of Models and restoring the changes for a Model",
+    "description": "Tracking the changes of models and restoring the changes for a model",
     "type": "project",
     "authors": [
         {

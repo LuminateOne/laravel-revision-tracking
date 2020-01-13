@@ -4,6 +4,11 @@ namespace LuminateOne\RevisionTracking\Providers;
 use Illuminate\Support\ServiceProvider;
 use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
+/**
+ * RevisionServiceProvider registers and bootstraps the revision tracking service
+ *
+ * @package LuminateOne\RevisionTracking\Providers
+ */
 class RevisionServiceProvider extends ServiceProvider
 {
     public function register()
@@ -11,6 +16,11 @@ class RevisionServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/config.php', 'revision_tracking');
     }
 
+    /**
+     * Bootstrap revision tracking services.
+     *
+     * @return void
+     */
     public function boot()
     {
         if ($this->app->runningInConsole()) {
