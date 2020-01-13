@@ -78,15 +78,15 @@ class RevisionTracking
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
-            $whereClause = [];
+            $targetRevisions = $revisionModel->where('revision_identifier', $model->getRevisionIdentifier());
+
+            if(!$targetRevisions) return;
 
             if ($model->revisionMode() === 'all') {
-                $whereClause['model_name'] = get_class($model);
+                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
             }
 
-            $whereClause['revision_identifier'] = $model->getRevisionIdentifier();
-
-            $revisionModel->where($whereClause)->delete();
+            $targetRevisions->delete();
         }
     }
 }
