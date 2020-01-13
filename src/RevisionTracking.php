@@ -4,13 +4,18 @@ namespace LuminateOne\RevisionTracking;
 use Illuminate\Database\Eloquent\Model;
 use ErrorException;
 
+/**
+ * This class can find and store the diff of a model
+ *
+ * @package     LuminateOne\RevisionTracking\Providers
+ */
 class RevisionTracking
 {
     /**
      * Loop through the changed values
      * Use the field name in changed values to get the original values
      *
-     * @param  Model $model             The Model will be tracked
+     * @param  Model $model             The model will be tracked
      *
      * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
@@ -56,12 +61,12 @@ class RevisionTracking
     }
 
     /**
-     * Delete the revision or not when a Model is deleted
+     * Delete the revision or not when a model is deleted
      * It depends on the "remove_on_delete" value in the config file
      *
-     * @param Model $model A Eloquent Model
+     * @param Model $model A Eloquent model
      *
-     * @throws ErrorException If the Model cannot be found
+     * @throws ErrorException If the model cannot be found
      */
     public static function eloquentDelete($model)
     {
@@ -73,15 +78,13 @@ class RevisionTracking
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
-            $whereClause = [];
+            $targetRevisions = $revisionModel->where('revision_identifier', $model->getRevisionIdentifier());
 
             if ($model->revisionMode() === 'all') {
-                $whereClause['model_name'] = get_class($model);
+                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
             }
 
-            $whereClause['revision_identifier'] = serialize([$model->getKeyName() => $model->getKey()]);
-
-            $revisionModel->where($whereClause)->delete();
+            $targetRevisions->delete();
         }
     }
 }

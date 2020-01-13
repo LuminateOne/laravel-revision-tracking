@@ -23,9 +23,9 @@ trait Revisionable
     }
 
     /**
-     * Find and store the changes as a revision for the current Model.
+     * Find and store the changes as a revision for the current model.
      *
-     * @throws ErrorException If the current Model does not have a primary.
+     * @throws ErrorException If the current model does not have a primary.
      */
     public function trackChanges()
     {
@@ -42,44 +42,38 @@ trait Revisionable
     /**
      * Get a specific revision by the revision ID.
      *
-     * @param $revisionId       Revision ID for the Model
+     * @param $revisionId       Revision ID for the model
      *
-     * @return mixed            A single revision Model
+     * @return mixed            A single revision model
      * @throws ErrorException   If the revision table cannot be found
      */
     public function getRevision($revisionId)
     {
-        return $this->allRevisions()->where(['id' => $revisionId])->first();
+        return $this->allRevisions()->where('id', $revisionId)->first();
     }
 
     /**
-     * Get all revisions for this Model.
+     * Get all revisions for this model.
      *
-     * @return mixed            A collection of revision Model
+     * @return mixed            A collection of revision model
      * @throws ErrorException   If the revision table cannot be found
      */
     public function allRevisions()
     {
-        $targetRevision = null;
+        $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->getRevisionIdentifier());
 
-        // Check the revision mode to see if we need to filter "model_name"
         if ($this->revisionMode() === 'all') {
-            $modelName = get_class($this);
-            $targetRevision = $this->getRevisionModel()->where('model_name', $modelName);
-        } else {
-            $targetRevision = $this->getRevisionModel()->where('id', '>', '-1');
+            $targetRevision = $targetRevision->where('model_name', get_class($this));
         }
-
-        $targetRevision = $targetRevision->where('revision_identifier', '=', serialize([$this->getKeyName() => $this->getKey()]));
 
         return $targetRevision;
     }
 
     /**
      * Restoring the revision.
-     * Using the Model name and the revision ID provided to retrieve the revision for the Model
+     * Using the model name and the revision ID provided to retrieve the revision for the model
      *
-     * @param integer  $revisionId      Revision ID for the Model
+     * @param integer  $revisionId      Revision ID for the model
      * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
      *                                  false => rollback to a specific revision and delete all the revisions that came after that revision
      *
@@ -90,7 +84,7 @@ trait Revisionable
         $targetRevision = $this->allRevisions()->where(['id' => $revisionId])->first();
 
         if (!$targetRevision) {
-            throw new ErrorException("No revisions found for Model: " . get_class($this));
+            throw new ErrorException("No revisions found for " . get_class($this) . " model");
         }
 
         foreach ($targetRevision->original_values as $key => $value) {
@@ -109,7 +103,7 @@ trait Revisionable
      *
      * @throws ErrorException   If the revision table cannot be found
      *
-     * @return Revision         An Eloquent Model for the revision
+     * @return Revision         An Eloquent model for the revision
      */
     public function getRevisionModel()
     {
@@ -121,7 +115,7 @@ trait Revisionable
         }
 
         if (!Schema::hasTable($revisionTableName)) {
-            throw new ErrorException('The revision table for the Model: ' . get_class($this) .
+            throw new ErrorException('The revision table for the model: ' . get_class($this) .
                 ' could not be found. There are three possible reasons: 1. Table name changed. 2. Model name changed. 3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
             );
         }
@@ -140,5 +134,14 @@ trait Revisionable
     public function revisionMode()
     {
         return config('revision_tracking.mode', 'all');
+    }
+
+    /**
+     * A function to create the revision identifier as a serialized object
+     *
+     * @return mixed
+     */
+    public function getRevisionIdentifier(){
+        return serialize([$this->getKeyName() => $this->getKey()]);
     }
 }

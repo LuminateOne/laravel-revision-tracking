@@ -19,7 +19,7 @@ class CreateModelRevisionTable extends Command
      *
      * @var string
      */
-    protected $description = 'Create a revision table for a specific Model';
+    protected $description = 'Create a revision table for a specific model';
 
     /**
      * Create a new command instance.
@@ -44,7 +44,7 @@ class CreateModelRevisionTable extends Command
 
         $modelName = $this->argument('model');
         if (!class_exists($modelName)) {
-            $this->error("The Model: " . $modelName . ' does not exists, please include the name spaces.');
+            $this->error("The " . $modelName . ' model does not exist, please include the namespaces.');
             return;
         }
 
@@ -53,7 +53,7 @@ class CreateModelRevisionTable extends Command
         $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
 
         if(Schema::hasTable($revisionTableName)){
-            $this->error("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' already exists. Please check the Model name.");
+            $this->error("The revision table '" . $revisionTableName . "' for '" . $modelName . "' model already exists. Please check the model name.");
             return;
         }
 
@@ -64,6 +64,6 @@ class CreateModelRevisionTable extends Command
             $table->timestamps();
         });
 
-        $this->info("The revision table '" . $revisionTableName . "' for Model '" . $modelName . "' has been created.");
+        $this->info("The revision table '" . $revisionTableName . "' for '" . $modelName . "' model has been created.");
     }
 }
