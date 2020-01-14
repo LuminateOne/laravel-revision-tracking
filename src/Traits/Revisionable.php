@@ -14,6 +14,9 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::updated(function ($model) {
+            $model->appendParentRevisionIdAttribute();
+            \Log::info(get_class($model));
+            \Log::info(print_r($model, true));
             $model->trackChanges();
         });
 
@@ -150,5 +153,10 @@ trait Revisionable
         }
 
         return $revisionIdentifier;
+    }
+
+    public function appendParentRevisionIdAttribute(){
+        $newAppends = array_merge($this->getArrayableAppends(), ['parent_revision_id']);
+        $this->setAppends($newAppends);
     }
 }
