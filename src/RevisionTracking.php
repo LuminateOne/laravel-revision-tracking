@@ -54,7 +54,7 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = [$model->getKeyName() => $model->getKey()];
+        $revisionModel->revision_identifier = $model->revisionIdentifier();
         $revisionModel->original_values = $originalFields;
 
         $revisionModel->save();
@@ -70,11 +70,6 @@ class RevisionTracking
      */
     public static function eloquentDelete($model)
     {
-        if (!$model->getKeyName()) {
-            throw new ErrorException("The Revisionable trait can only be used on models which has a primary key. The " .
-                self::class . " model does not have a primary key.");
-        }
-
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
