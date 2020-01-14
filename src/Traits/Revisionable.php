@@ -39,7 +39,9 @@ trait Revisionable
 
         $originalFields = RevisionTracking::eloquentDiff($this);
 
-        RevisionTracking::eloquentStoreDiff($this, $originalFields);
+        $revision = RevisionTracking::eloquentStoreDiff($this, $originalFields);
+
+
     }
 
     /**

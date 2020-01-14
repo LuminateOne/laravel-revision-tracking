@@ -3,7 +3,6 @@ namespace LuminateOne\RevisionTracking;
 
 use Illuminate\Database\Eloquent\Model;
 use ErrorException;
-use PharIo\Manifest\Exception;
 
 /**
  * This class can find and store the diff of a model
@@ -46,6 +45,8 @@ class RevisionTracking
      *
      * @param Model $model The changes will be stored for
      * @param array $originalFields A key => value pair array, which stores the field names and the original values
+     *
+     * @return Revision The newly created revision model
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
@@ -57,8 +58,9 @@ class RevisionTracking
 
         $revisionModel->revision_identifier = [$model->getKeyName() => $model->getKey()];
         $revisionModel->original_values = $originalFields;
-
         $revisionModel->save();
+
+        return $revisionModel;
     }
 
     /**
