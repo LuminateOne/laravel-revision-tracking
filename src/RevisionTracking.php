@@ -48,15 +48,13 @@ class RevisionTracking
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
-        $revisionIdentifier = [$model->getKeyName() => $model->getKey()];
-
         $revisionModel = $model->getRevisionModel();
 
         if($model->revisionMode() === 'all'){
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = serialize($revisionIdentifier);
+        $revisionModel->revision_identifier = $model->revisionIdentifier();
         $revisionModel->original_values = serialize($originalFields);
 
         $revisionModel->save();
@@ -72,23 +70,16 @@ class RevisionTracking
      */
     public static function eloquentDelete($model)
     {
-        if (!$model->getKeyName()) {
-            throw new ErrorException("The Revisionable trait can only be used on models which has a primary key. The " .
-                self::class . " model does not have a primary key.");
-        }
-
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
-            $whereClause = [];
+            $targetRevisions = $revisionModel->where('revision_identifier', $model->revisionIdentifier(true));
 
             if ($model->revisionMode() === 'all') {
-                $whereClause['model_name'] = get_class($model);
+                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
             }
 
-            $whereClause['revision_identifier'] = serialize([$model->getKeyName() => $model->getKey()]);
-
-            $revisionModel->where($whereClause)->delete();
+            $targetRevisions->delete();
         }
     }
 
