@@ -56,7 +56,7 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = [$model->getKeyName() => $model->getKey()];
+        $revisionModel->revision_identifier = $model->revisionIdentifier();
         $revisionModel->original_values = $originalFields;
         $revisionModel->save();
 
