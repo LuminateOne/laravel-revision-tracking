@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Revision extends Model
 {
-    protected $fillable = ['revision_identifier', 'original_values', 'model_name'];
+    protected $fillable = ['related_revision', 'revision_identifier', 'original_values', 'model_name'];
 
     /**
      * An accessor to retrieve the unserialized revision_identifier
@@ -35,6 +35,17 @@ class Revision extends Model
     }
 
     /**
+     * An accessor to retrieve the unserialized related_revision
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function getRelatedRevisionAttribute($value)
+    {
+        return unserialize($value);
+    }
+
+    /**
      * A mutator to serialize revision_identifier
      *
      * @param $value
@@ -54,5 +65,16 @@ class Revision extends Model
     public function setOriginalValuesAttribute($value)
     {
         $this->attributes['original_values'] = serialize($value);
+    }
+
+    /**
+     * A mutator to serialize related_revision
+     *
+     * @param $value
+     * @return void
+     */
+    public function setRelatedRevisionAttribute($value)
+    {
+        $this->attributes['related_revision'] = serialize($value);
     }
 }

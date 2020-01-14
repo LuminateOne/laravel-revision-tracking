@@ -56,6 +56,10 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
+        if($model->relatedRevision){
+            $revisionModel->related_revision = $model->relatedRevision;
+        }
+
         $revisionModel->revision_identifier = $model->revisionIdentifier();
         $revisionModel->original_values = $originalFields;
         $revisionModel->save();

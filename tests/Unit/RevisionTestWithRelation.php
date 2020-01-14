@@ -43,7 +43,7 @@ class RevisionTestWithRelation extends TestCase
         $address = Address::find(1)->with('user')->first();
 
         // dd($address);
-        \Log::info(print_r($address, true));
+        // \Log::info(print_r($address, true));
         $address->suburb = $faker->name;
         $address->user->first_name = $faker->name;
 

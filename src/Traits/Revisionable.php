@@ -9,14 +9,23 @@ use LuminateOne\RevisionTracking\Models\Revision;
 trait Revisionable
 {
     /**
+     * Holds the related revision information
+     * @var array
+     */
+    public $relatedRevision = null;
+
+    /**
+     * Indicates that this model is using the Revisionable Trait
+     * @var bool
+     */
+    public $usingRevisionableTrait = true;
+
+    /**
      *  Catch the updated, deleted event
      */
     public static function bootRevisionable()
     {
         static::updated(function ($model) {
-            $model->appendParentRevisionIdAttribute();
-            \Log::info(get_class($model));
-            \Log::info(print_r($model, true));
             $model->trackChanges();
         });
 
@@ -41,7 +50,8 @@ trait Revisionable
 
         $revision = RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-
+        $this->addRelatedRevisionToRelations($revision->id);
+        \Log::info(print_r($this, true));
     }
 
     /**
@@ -157,8 +167,16 @@ trait Revisionable
         return $revisionIdentifier;
     }
 
-    public function appendParentRevisionIdAttribute(){
-        $newAppends = array_merge($this->getArrayableAppends(), ['parent_revision_id']);
-        $this->setAppends($newAppends);
+    /**
+     * Add the related revision to each of its relations
+     *
+     * @param $id
+     */
+    public function addRelatedRevisionToRelations($id){
+        foreach ($this->getRelations() as $aRelation){
+            if($aRelation->usingRevisionableTrait){
+                $aRelation->relatedRevision = ['id' => $id, 'model' => get_class($this)];
+            }
+        }
     }
 }
