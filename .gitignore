@@ -1,6 +1,8 @@
 
-vendor/
-
 .idea/
 
+vendor/
+
 .phpunit.result.cache
+
+tests/Report/
