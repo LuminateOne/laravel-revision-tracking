@@ -81,7 +81,7 @@ trait Revisionable
      */
     public function rollback($revisionId, $saveAsRevision = true)
     {
-        $targetRevision = $this->allRevisions()->where(['id' => $revisionId])->first();
+        $targetRevision = $this->allRevisions()->where('id', $revisionId)->first();
 
         if (!$targetRevision) {
             throw new ErrorException("No revisions found for " . get_class($this) . " model");
@@ -94,7 +94,7 @@ trait Revisionable
         $this->save();
 
         if(!$saveAsRevision){
-            $this->allRevisions()->where([['id', '>=', $revisionId]])->delete();
+            $this->allRevisions()->where('id', '>=', $revisionId)->delete();
         }
     }
 
