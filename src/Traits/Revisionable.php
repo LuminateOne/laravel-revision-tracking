@@ -76,4 +76,20 @@ trait Revisionable
     {
         return config('revision_tracking.mode', 'all');
     }
+
+    /**
+     * A function to create the revision identifier
+     *
+     * @param boolean $serialize Serialize the revision identifier or not
+     * @return mixed
+     */
+    public function revisionIdentifier($serialize = false){
+        $revisionIdentifier = [$this->getKeyName() => $this->getKey()];
+
+        if($serialize){
+            return serialize($revisionIdentifier);
+        }
+
+        return $revisionIdentifier;
+    }
 }
