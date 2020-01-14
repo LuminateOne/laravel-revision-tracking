@@ -60,7 +60,7 @@ trait Revisionable
      */
     public function allRevisions()
     {
-        $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->getRevisionIdentifier());
+        $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->revisionIdentifier(true));
 
         if ($this->revisionMode() === 'all') {
             $targetRevision = $targetRevision->where('model_name', get_class($this));
@@ -137,11 +137,18 @@ trait Revisionable
     }
 
     /**
-     * A function to create the revision identifier as a serialized object
+     * A function to create the revision identifier
      *
+     * @param boolean $serialize Serialize the revision identifier or not
      * @return mixed
      */
-    public function getRevisionIdentifier(){
-        return serialize([$this->getKeyName() => $this->getKey()]);
+    public function revisionIdentifier($serialize = false){
+        $revisionIdentifier = [$this->getKeyName() => $this->getKey()];
+
+        if($serialize){
+            return serialize($revisionIdentifier);
+        }
+
+        return $revisionIdentifier;
     }
 }
