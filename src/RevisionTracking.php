@@ -70,23 +70,16 @@ class RevisionTracking
      */
     public static function eloquentDelete($model)
     {
-        if (!$model->getKeyName()) {
-            throw new ErrorException("The Revisionable trait can only be used on models which has a primary key. The " .
-                self::class . " model does not have a primary key.");
-        }
-
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
-            $whereClause = [];
+            $targetRevisions = $revisionModel->where('revision_identifier', $model->revisionIdentifier(true));
 
             if ($model->revisionMode() === 'all') {
-                $whereClause['model_name'] = get_class($model);
+                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
             }
 
-            $whereClause['revision_identifier'] = $model->revisionIdentifier(true);
-
-            $revisionModel->where($whereClause)->delete();
+            $targetRevisions->delete();
         }
     }
 
