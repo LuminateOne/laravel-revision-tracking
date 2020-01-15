@@ -10,15 +10,31 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Revision extends Model
 {
-    protected $fillable = ['related_revision', 'revision_identifier', 'original_values', 'model_name'];
+    protected $fillable = ['parent_revision', 'child_revision', 'model_identifier', 'original_values', 'model_name'];
 
     /**
-     * An accessor to retrieve the unserialized revision_identifier
+     * A function to create the revision identifier
+     *
+     * @param boolean $serialize Serialize the model identifier or not
+     * @return mixed
+     */
+    public function revisionIdentifier($serialize = false){
+        $revisionIdentifier = [$this->getKeyName() => $this->getKey(), 'model_name' => $this->attributes['model_name']];
+
+        if($serialize){
+            return serialize($revisionIdentifier);
+        }
+
+        return $revisionIdentifier;
+    }
+
+    /**
+     * An accessor to retrieve the unserialized model_identifier
      *
      * @param $value
      * @return mixed
      */
-    public function getRevisionIdentifierAttribute($value)
+    public function getModelIdentifierAttribute($value)
     {
         return unserialize($value);
     }
@@ -35,25 +51,36 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized related_revision
+     * An accessor to retrieve the unserialized parent_revision
      *
      * @param $value
      * @return mixed
      */
-    public function getRelatedRevisionAttribute($value)
+    public function getParentRevisionAttribute($value)
     {
         return unserialize($value);
     }
 
     /**
-     * A mutator to serialize revision_identifier
+     * An accessor to retrieve the unserialized child_revision
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function getChildRevisionAttribute($value)
+    {
+        return unserialize($value);
+    }
+
+    /**
+     * A mutator to serialize model_identifier
      *
      * @param $value
      * @return void
      */
-    public function setRevisionIdentifierAttribute($value)
+    public function setModelIdentifierAttribute($value)
     {
-        $this->attributes['revision_identifier'] = serialize($value);
+        $this->attributes['model_identifier'] = serialize($value);
     }
 
     /**
@@ -68,13 +95,24 @@ class Revision extends Model
     }
 
     /**
-     * A mutator to serialize related_revision
+     * A mutator to serialize parent_revision
      *
      * @param $value
      * @return void
      */
-    public function setRelatedRevisionAttribute($value)
+    public function setParentRevisionAttribute($value)
     {
-        $this->attributes['related_revision'] = serialize($value);
+        $this->attributes['parent_revision'] = serialize($value);
+    }
+
+    /**
+     * A mutator to serialize child_revision
+     *
+     * @param $value
+     * @return void
+     */
+    public function setChildRevisionAttribute($value)
+    {
+        $this->attributes['child_revision'] = serialize($value);
     }
 }

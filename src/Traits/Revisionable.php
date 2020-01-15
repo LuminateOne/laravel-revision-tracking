@@ -9,10 +9,16 @@ use LuminateOne\RevisionTracking\Models\Revision;
 trait Revisionable
 {
     /**
-     * Holds the related revision information
+     * Holds the parent revision information
      * @var array
      */
-    public $relatedRevision = null;
+    public $parentRevision = null;
+
+    /**
+     * Holds the child revision information
+     * @var array
+     */
+    public $childRevision = null;
 
     /**
      * Indicates that this model is using the Revisionable Trait
@@ -50,8 +56,10 @@ trait Revisionable
 
         $revision = RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-        $this->addRelatedRevisionToRelations($revision->id);
-        \Log::info(print_r($this, true));
+        $this->addThisRevisionToChildRevision($revision);
+        $this->addThisRevisionToParentRevision($revision);
+
+        // \Log::info(print_r($this, true));
     }
 
     /**
@@ -75,11 +83,11 @@ trait Revisionable
      */
     public function allRevisions()
     {
-        $targetRevision = $this->getRevisionModel()->where('revision_identifier', $this->revisionIdentifier(true));
-
+        $targetRevision = $this->getRevisionModel()->where('model_identifier', $this->modelIdentifier(true));
         if ($this->revisionMode() === 'all') {
             $targetRevision = $targetRevision->where('model_name', get_class($this));
         }
+        \Log::info(print_r($this->modelIdentifier(), true));
 
         return $targetRevision;
     }
@@ -152,31 +160,51 @@ trait Revisionable
     }
 
     /**
-     * A function to create the revision identifier
+     * A function to create the model identifier
      *
-     * @param boolean $serialize Serialize the revision identifier or not
+     * @param boolean $serialize Serialize the model identifier or not
      * @return mixed
      */
-    public function revisionIdentifier($serialize = false){
-        $revisionIdentifier = [$this->getKeyName() => $this->getKey()];
+    public function modelIdentifier($serialize = false){
+        $modelIdentifier = [$this->getKeyName() => $this->getKey()];
 
         if($serialize){
-            return serialize($revisionIdentifier);
+            return serialize($modelIdentifier);
         }
 
-        return $revisionIdentifier;
+        return $modelIdentifier;
     }
 
     /**
-     * Add the related revision to each of its relations
+     * Add this revision to each of its child models
      *
-     * @param $id
+     * @param Revision $revision The newly created revision of the model
      */
-    public function addRelatedRevisionToRelations($id){
+    public function addThisRevisionToChildRevision($revision){
         foreach ($this->getRelations() as $aRelation){
             if($aRelation->usingRevisionableTrait){
-                $aRelation->relatedRevision = ['id' => $id, 'model' => get_class($this)];
+                $aRelation->parentRevision = $revision;
             }
         }
+    }
+
+    /**
+     * Add the this revision to its parent revision
+     *
+     * @param Revision $revision The newly created revision id of the model
+     */
+    public function addThisRevisionToParentRevision($revision){
+        if(!$this->parentRevision){
+            return;
+        }
+
+        $childRevision = $this->parentRevision->child_revision;
+        if(!$childRevision){
+            $childRevision = [];
+        }
+        array_push($childRevision, ['id' => $revision->id, 'model_name' => get_class($this)]);
+
+        $this->parentRevision->child_revision = $childRevision;
+        $this->parentRevision->save();
     }
 }

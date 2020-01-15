@@ -56,11 +56,11 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        if($model->relatedRevision){
-            $revisionModel->related_revision = $model->relatedRevision;
+        if($model->parentRevision){
+            $revisionModel->parent_revision = $model->parentRevision->revisionIdentifier();
         }
 
-        $revisionModel->revision_identifier = $model->revisionIdentifier();
+        $revisionModel->model_identifier = $model->modelIdentifier();
         $revisionModel->original_values = $originalFields;
         $revisionModel->save();
 
@@ -80,7 +80,7 @@ class RevisionTracking
         if (config('revision_tracking.remove_on_delete', true)) {
             $revisionModel = $model->getRevisionModel();
 
-            $targetRevisions = $revisionModel->where('revision_identifier', $model->revisionIdentifier(true));
+            $targetRevisions = $revisionModel->where('model_identifier', $model->modelIdentifier(true));
 
             if ($model->revisionMode() === 'all') {
                 $targetRevisions = $targetRevisions->where('model_name', get_class($model));

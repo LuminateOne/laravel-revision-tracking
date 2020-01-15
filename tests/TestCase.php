@@ -57,7 +57,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
             Schema::create($revisionTableName, function (Blueprint $table) {
                 $table->bigIncrements('id');
-                $table->text('revision_identifier');
+                $table->text('model_identifier');
                 $table->text('original_values');
                 $table->timestamps();
             });

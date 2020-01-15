@@ -38,10 +38,10 @@ class RevisionTestAll extends TestCase
 
         $aRevision = $record->allRevisions()->latest('id')->first();
 
-        $modelIdentifiers = [$record->getKeyName() => $record->getKey()];
+        $modelIdentifiers = $record->modelIdentifier();
 
-        // Check if the revision identifier are equal
-        $this->assertEquals($modelIdentifiers, $aRevision->revision_identifier,
+        // Check if the model identifier are equal
+        $this->assertEquals($modelIdentifiers, $aRevision->model_identifier,
             'The identifiers of revision and the primary key of the Model should match');
 
         // Check if the values stored in the revision table equals to the old record
@@ -125,9 +125,9 @@ class RevisionTestAll extends TestCase
 
         $singleRevision = $record->getRevision($latestRevisionId);
 
-        $modelIdentifiers = [$record->getKeyName() => $record->getKey()];
+        $modelIdentifiers = $record->modelIdentifier();
 
-        $this->assertEquals($modelIdentifiers, $singleRevision->revision_identifier, "Identifiers do not match");
+        $this->assertEquals($modelIdentifiers, $singleRevision->model_identifier, "Identifiers do not match");
     }
 
     /**
