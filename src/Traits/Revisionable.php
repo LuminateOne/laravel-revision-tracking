@@ -193,16 +193,44 @@ trait Revisionable
             $relations = $relations instanceof Collection ? $relations->all() : [$relations];
 
             foreach (array_filter($relations) as $aRelation) {
+
                 if($aRelation->rootRevision){
                     return;
                 }
+                // $aRevisionableChild = $this->getNextRevisionableChild($aRelation);
+                //
+                // if($aRevisionableChild){
+                //     $aRevisionableChild->rootRevision = $revision;
+                // }
 
-                if($aRelation->usingRevisionableTrait){
-                    $aRelation->rootRevision = $revision;
-                    $aRelation->addThisRevisionToChildRelation($revision);
+                $aRevisionableChild = $this->getNextRevisionableChild($aRelation);
+
+                if($aRevisionableChild){
+                    $aRevisionableChild->rootRevision = $revision;
+                    $aRevisionableChild->addThisRevisionToChildRelation($revision);
                 }
+
+
+                // if($aRelation->usingRevisionableTrait){
+                //     $aRelation->rootRevision = $revision;
+                //     $aRelation->addThisRevisionToChildRelation($revision);
+                // }
             }
         }
+    }
+
+    private function getNextRevisionableChild($model){
+        foreach ($model->relations as $relations) {
+            $relations = $relations instanceof Collection ? $relations->all() : [$relations];
+
+            foreach (array_filter($relations) as $aRelation) {
+                if($aRelation->usingRevisionableTrait){
+                    return $aRelation;
+                }
+                return $this->getNextRevisionableChild($aRelation);
+            }
+        }
+        return null;
     }
 
     /**

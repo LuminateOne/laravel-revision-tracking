@@ -22,13 +22,12 @@ class RevisionTestWithRelation extends TestCase
     }
 
     /**
-     * Test if the updated event can be caught by Revisionable.
-     * It will check if a new revision is created after update the Model
-     * It will check if the original_values stored in the revision table are equals to the old Model
-     *
-     * @throws \ErrorException If the Model does not have a primary key
+     * Test update is a relation is loaded
+     * It will check the number of revision created
+     * It will check if the root_revision of the Child revision equals to the Root revision identifiers
+     * It will check if the child_revision of the Root revision equals to the Child revision identifiers
      */
-    public function testRelation()
+    public function testRelationUpdate()
     {
         $faker = \Faker\Factory::create();
 
@@ -36,6 +35,8 @@ class RevisionTestWithRelation extends TestCase
 
         (new CParent())->createTable();
         (new Child())->createTable();
+
+        $insertCount = 3;
         for($i = 0; $i < 3; $i ++){
             $modelCParent = new CParent();
             foreach (($modelCParent->getFillable()) as $key) {
@@ -63,9 +64,9 @@ class RevisionTestWithRelation extends TestCase
         }
 
         foreach ($modelGrandParent->cParents as $aCParent) {
-            // foreach (($aCParent->getFillable()) as $key) {
-            //     $aCParent[$key] = $faker->name;
-            // }
+            foreach (($aCParent->getFillable()) as $key) {
+                $aCParent[$key] = $faker->name;
+            }
 
             foreach ($aCParent->children as $aChild) {
                 foreach (($aChild->getFillable()) as $key) {
@@ -75,5 +76,17 @@ class RevisionTestWithRelation extends TestCase
         }
 
         $modelGrandParent->push();
+
+        $relationRevision = $modelGrandParent->allRevisions()->where('child_revisions', '!=', '')->first();
+
+        $cParentRevision = $modelGrandParent->cParents[0]->allRevisions()->latest('id')->first();
+        $this->assertEquals($relationRevision->child_revisions[0], $cParentRevision->revisionIdentifier(),
+            "The child_revision of Root revision identifiers should equal to the Child revision identifiers");
+
+        $this->assertEquals($relationRevision->revisionIdentifier(), $cParentRevision->root_revision,
+            "The root_revision of Child revision identifiers should equal to the Root revision identifiers");
+
+        $expected = (($insertCount + 1) * $insertCount);
+        $this->assertEquals($expected, count($relationRevision->child_revisions), "Relation revision count should be " . $expected);
     }
 }
