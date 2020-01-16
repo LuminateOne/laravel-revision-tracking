@@ -6,14 +6,14 @@ use LuminateOne\RevisionTracking\Traits\Revisionable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Address extends Model
+class ChildParent extends Model
 {
     use Revisionable;
 
-    protected $fillable = ['suburb', 'city', 'country', 'user_id'];
+    protected $fillable = ['first_name', 'last_name'];
 
     public function user(){
-        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\User');
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 
     public function createTable(){
@@ -21,15 +21,14 @@ class Address extends Model
             return;
         }
 
-        Schema::create('addresses', function (Blueprint $table) {
+        Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('user_id');
-            $table->string('suburb');
-            $table->string('city');
-            $table->string('country');
+            $table->bigInteger('grand_parent_id');
+            $table->string('first_name');
+            $table->string('last_name');
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('grand_parent_id')->references('id')->on('grand_parents')->onDelete('cascade');
         });
     }
 }

@@ -1,10 +1,11 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use LuminateOne\RevisionTracking\Tests\TestCase;
-use LuminateOne\RevisionTracking\Tests\Models\User;
-use LuminateOne\RevisionTracking\Tests\Models\Address;
 use Illuminate\Support\Facades\Schema;
+use LuminateOne\RevisionTracking\Tests\TestCase;
+use LuminateOne\RevisionTracking\Tests\Models\Child;
+use LuminateOne\RevisionTracking\Tests\Models\CParent;
+use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
 
 class RevisionTestWithRelation extends TestCase
 {
@@ -16,6 +17,8 @@ class RevisionTestWithRelation extends TestCase
         parent::setUp();
 
         config(['revision_tracking.mode' => 'all']);
+
+
     }
 
     /**
@@ -29,49 +32,48 @@ class RevisionTestWithRelation extends TestCase
     {
         $faker = \Faker\Factory::create();
 
-        $modelUserName = 'LuminateOne\RevisionTracking\Tests\Models\User';
-        $recordUser = $this->setupModel($modelUserName);
+        $modelGrandParent = $this->setupModel(GrandParent::class);
 
-        $modelAddress = new Address();
-        $modelAddress->createTable();
-        $modelAddress->user_id = $recordUser->id;
-        $modelAddress->suburb = $faker->name;
-        $modelAddress->city = $faker->name;
-        $modelAddress->country = $faker->name;
-        $modelAddress->save();
+        (new CParent())->createTable();
+        (new Child())->createTable();
+        for($i = 0; $i < 3; $i ++){
+            $modelCParent = new CParent();
+            foreach (($modelCParent->getFillable()) as $key) {
+                $modelCParent[$key] = $faker->name;
+            }
+            $modelCParent->grand_parent_id = $modelGrandParent->id;
+            $modelCParent->save();
 
-        $address = Address::find(1)->with('user')->first();
+            for($o = 0; $o < 3; $o ++){
+                $child = new Child();
+                foreach (($child->getFillable()) as $key) {
+                    $child[$key] = $faker->name;
+                }
+                $child->c_parent_id = $modelCParent->id;
+                $child->save();
+            }
+        }
 
-        // dd($address);
-        // \Log::info(print_r($address, true));
-        $address->suburb = $faker->name;
-        $address->user->first_name = $faker->name;
+        $modelGrandParent = GrandParent::find(1)->with(['cParents' => function ($cParent) {
+            $cParent->with('children');
+        }])->first();
 
-        $address->push();
-        // \Log::info(print_r($address->getRelations(), true));
-        // foreach (($record->getFillable()) as $key) {
-        //     $record[$key] = $faker->name;
-        // }
-        // $record->save();
-        //
-        // $aRevision = $record->allRevisions()->latest('id')->first();
-        //
-        // $modelIdentifiers = [$record->getKeyName() => $record->getKey()];
-        //
-        // // Check if the model identifier are equal
-        // $this->assertEquals($modelIdentifiers, $aRevision->model_identifier,
-        //     'The identifiers of revision and the primary key of the Model should match');
-        //
-        // // Check if the values stored in the revision table equals to the old record
-        // $hasDifferent = true;
-        // foreach ($aRevision->original_values as $value) {
-        //     if ($oldRecord[$value['column']] !== $value['value']) {
-        //         $hasDifferent = false;
-        //         break;
-        //     }
-        // }
-        // $this->assertTrue($hasDifferent, "Attribute values of revisiopn and the old Model should match");
-        //
-        // return $record;
+        foreach (($modelGrandParent->getFillable()) as $key) {
+            $modelGrandParent[$key] = $faker->name;
+        }
+
+        foreach ($modelGrandParent->cParents as $aCParent) {
+            // foreach (($aCParent->getFillable()) as $key) {
+            //     $aCParent[$key] = $faker->name;
+            // }
+
+            foreach ($aCParent->children as $aChild) {
+                foreach (($aChild->getFillable()) as $key) {
+                    $aChild[$key] = $faker->name;
+                }
+            }
+        }
+
+        $modelGrandParent->push();
     }
 }

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Revision extends Model
 {
-    protected $fillable = ['parent_revision', 'child_revision', 'model_identifier', 'original_values', 'model_name'];
+    protected $fillable = ['root_revision', 'child_revisions', 'model_identifier', 'original_values', 'model_name'];
 
     /**
      * A function to create the revision identifier
@@ -51,23 +51,23 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized parent_revision
+     * An accessor to retrieve the unserialized root_revision
      *
      * @param $value
      * @return mixed
      */
-    public function getParentRevisionAttribute($value)
+    public function getRootRevisionAttribute($value)
     {
         return unserialize($value);
     }
 
     /**
-     * An accessor to retrieve the unserialized child_revision
+     * An accessor to retrieve the unserialized child_revisions
      *
      * @param $value
      * @return mixed
      */
-    public function getChildRevisionAttribute($value)
+    public function getChildRevisionsAttribute($value)
     {
         return unserialize($value);
     }
@@ -95,24 +95,24 @@ class Revision extends Model
     }
 
     /**
-     * A mutator to serialize parent_revision
+     * A mutator to serialize root_revision
      *
      * @param $value
      * @return void
      */
-    public function setParentRevisionAttribute($value)
+    public function setRootRevisionAttribute($value)
     {
-        $this->attributes['parent_revision'] = serialize($value);
+        $this->attributes['root_revision'] = serialize($value);
     }
 
     /**
-     * A mutator to serialize child_revision
+     * A mutator to serialize child_revisions
      *
      * @param $value
      * @return void
      */
-    public function setChildRevisionAttribute($value)
+    public function setChildRevisionsAttribute($value)
     {
-        $this->attributes['child_revision'] = serialize($value);
+        $this->attributes['child_revisions'] = serialize($value);
     }
 }

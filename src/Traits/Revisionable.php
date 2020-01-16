@@ -3,6 +3,7 @@ namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Collection;
 use LuminateOne\RevisionTracking\RevisionTracking;
 use LuminateOne\RevisionTracking\Models\Revision;
 
@@ -12,13 +13,7 @@ trait Revisionable
      * Holds the parent revision information
      * @var array
      */
-    public $parentRevision = null;
-
-    /**
-     * Holds the child revision information
-     * @var array
-     */
-    public $childRevision = null;
+    public $rootRevision = null;
 
     /**
      * Indicates that this model is using the Revisionable Trait
@@ -31,11 +26,22 @@ trait Revisionable
      */
     public static function bootRevisionable()
     {
-        static::updated(function ($model) {
+        static::created(function ($model) {
+            // \Log::info(print_r("created", true));
+            // \Log::info(print_r($model, true));
             $model->trackChanges();
         });
 
+        static::updated(function ($model) {
+            $model->trackChanges();
+
+            \Log::info(print_r($model, true));
+        });
+
         static::deleted(function ($model) {
+            // \Log::info(print_r("deleted", true));
+            // \Log::info(print_r($model, true));
+            $model->trackChanges();
             RevisionTracking::eloquentDelete($model);
         });
     }
@@ -56,10 +62,8 @@ trait Revisionable
 
         $revision = RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-        $this->addThisRevisionToChildRevision($revision);
-        $this->addThisRevisionToParentRevision($revision);
-
-        // \Log::info(print_r($this, true));
+        $this->addThisRevisionToChildRelation($revision);
+        $this->addThisRevisionToParentRelation($revision);
     }
 
     /**
@@ -87,7 +91,6 @@ trait Revisionable
         if ($this->revisionMode() === 'all') {
             $targetRevision = $targetRevision->where('model_name', get_class($this));
         }
-        \Log::info(print_r($this->modelIdentifier(), true));
 
         return $targetRevision;
     }
@@ -110,11 +113,14 @@ trait Revisionable
             throw new ErrorException("No revisions found for " . get_class($this) . " model");
         }
 
-        foreach ($targetRevision->original_values as $key => $value) {
-            $this[$value['column']] = $value['value'];
+        if(empty($targetRevision->original_values)){
+            $this->delete();
+        } else {
+            foreach ($targetRevision->original_values as $key => $value) {
+                $this[$key] = $value;
+            }
+            $this->save();
         }
-
-        $this->save();
 
         if(!$saveAsRevision){
             $this->allRevisions()->where('id', '>=', $revisionId)->delete();
@@ -176,35 +182,46 @@ trait Revisionable
     }
 
     /**
-     * Add this revision to each of its child models
+     * Add this revision to each of its child models as parent revision
      *
      * @param Revision $revision The newly created revision of the model
+     *
+     * @return mixed
      */
-    public function addThisRevisionToChildRevision($revision){
-        foreach ($this->getRelations() as $aRelation){
-            if($aRelation->usingRevisionableTrait){
-                $aRelation->parentRevision = $revision;
+    public function addThisRevisionToChildRelation($revision){
+        foreach ($this->relations as $relations) {
+            $relations = $relations instanceof Collection ? $relations->all() : [$relations];
+
+            foreach (array_filter($relations) as $aRelation) {
+                if($aRelation->rootRevision){
+                    return;
+                }
+
+                if($aRelation->usingRevisionableTrait){
+                    $aRelation->rootRevision = $revision;
+                    $aRelation->addThisRevisionToChildRelation($revision);
+                }
             }
         }
     }
 
     /**
-     * Add the this revision to its parent revision
+     * Add the this revision to its parent revision as child revision
      *
      * @param Revision $revision The newly created revision id of the model
      */
-    public function addThisRevisionToParentRevision($revision){
-        if(!$this->parentRevision){
+    public function addThisRevisionToParentRelation($revision){
+        if(!$this->rootRevision){
             return;
         }
 
-        $childRevision = $this->parentRevision->child_revision;
+        $childRevision = $this->rootRevision->child_revisions;
         if(!$childRevision){
             $childRevision = [];
         }
         array_push($childRevision, ['id' => $revision->id, 'model_name' => get_class($this)]);
+        $this->rootRevision->child_revisions = $childRevision;
 
-        $this->parentRevision->child_revision = $childRevision;
-        $this->parentRevision->save();
+        $this->rootRevision->save();
     }
 }

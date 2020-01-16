@@ -2,9 +2,9 @@
 namespace LuminateOne\RevisionTracking\Tests;
 
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -37,31 +37,29 @@ class TestCase extends \Orchestra\Testbench\TestCase
      * @param  string $modelName A model name with namespace
      * @return Model    Return the created model
      */
-    public function setupModel($modelName)
+    public function setupModel($modelClass)
     {
         $faker = \Faker\Factory::create();
-        $model = new $modelName();
+        $model = new $modelClass();
         $model->createTable();
+
+        if ($model->revisionMode() === 'single') {
+            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
+
+            if(!Schema::hasTable($revisionTableName)) {
+                Schema::create($revisionTableName, function (Blueprint $table) {
+                    $table->bigIncrements('id');
+                    $table->text('model_identifier');
+                    $table->text('original_values');
+                    $table->timestamps();
+                });
+            }
+        }
 
         foreach (($model->getFillable()) as $key) {
             $model[$key] = $faker->name;
         }
         $model->save();
-
-        if ($model->revisionMode() === 'single') {
-            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
-
-            if(Schema::hasTable($revisionTableName)){
-                return $model;
-            }
-
-            Schema::create($revisionTableName, function (Blueprint $table) {
-                $table->bigIncrements('id');
-                $table->text('model_identifier');
-                $table->text('original_values');
-                $table->timestamps();
-            });
-        }
 
         return $model;
     }

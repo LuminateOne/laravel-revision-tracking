@@ -1,8 +1,8 @@
 <?php
 namespace LuminateOne\RevisionTracking;
 
-use Illuminate\Database\Eloquent\Model;
 use ErrorException;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * This class can find and store the diff of a model
@@ -21,21 +21,23 @@ class RevisionTracking
      */
     public static function eloquentDiff($model)
     {
-        $originalFields = [];
+        $aOriginalValue = [];
 
         $changes = $model->getChanges();
         $original = $model->getOriginal();
 
-        foreach ($changes as $key => $value) {
-            $aOriginalValue = [
-                "value" => $original[$key],
-                "column" => $key
-            ];
-
-            array_push($originalFields, $aOriginalValue);
+        // If changes is empty, then the action could be deletion or creation
+        // then we return the original value, this will be used to
+        // check what rollback action will be performed
+        if (empty($changes)) {
+            return $original;
         }
 
-        return $originalFields;
+        foreach ($changes as $key => $value) {
+            $aOriginalValue[$key] = $original[$key];
+        }
+
+        return $aOriginalValue;
     }
 
     /**
@@ -56,8 +58,8 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        if($model->parentRevision){
-            $revisionModel->parent_revision = $model->parentRevision->revisionIdentifier();
+        if($model->rootRevision){
+            $revisionModel->root_revision = $model->rootRevision->revisionIdentifier();
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();

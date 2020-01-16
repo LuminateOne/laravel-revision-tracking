@@ -2,8 +2,8 @@
 namespace LuminateOne\RevisionTracking\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class CreateModelRevisionTable extends Command
 {
@@ -59,8 +59,8 @@ class CreateModelRevisionTable extends Command
 
         Schema::create($revisionTableName, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->text('parent_revision')->nullable();
-            $table->text('child_revision')->nullable();
+            $table->text('root_revision')->nullable();
+            $table->text('child_revisions')->nullable();
             $table->text('model_identifier');
             $table->text('original_values');
             $table->timestamps();
