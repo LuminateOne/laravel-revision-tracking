@@ -1,19 +1,19 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use LuminateOne\RevisionTracking\Traits\Revisionable;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use LuminateOne\RevisionTracking\Traits\Revisionable;
 
-class ChildParent extends Model
+class Child extends Model
 {
     use Revisionable;
 
     protected $fillable = ['first_name', 'last_name'];
 
-    public function user(){
-        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
+    public function childParent(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\CParent');
     }
 
     public function createTable(){
@@ -23,12 +23,12 @@ class ChildParent extends Model
 
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('grand_parent_id');
+            $table->bigInteger('c_parent_id');
             $table->string('first_name');
             $table->string('last_name');
             $table->timestamps();
 
-            $table->foreign('grand_parent_id')->references('id')->on('grand_parents')->onDelete('cascade');
+            $table->foreign('c_parent_id')->references('id')->on('c_parents')->onDelete('cascade');
         });
     }
 }
