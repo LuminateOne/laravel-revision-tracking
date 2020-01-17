@@ -12,14 +12,27 @@ class Child extends Model
 
     protected $fillable = ['first_name', 'last_name'];
 
+    /**
+     * A child belongs to parent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function childParent(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
     }
 
+    /**
+     * A child belongs to parent2
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function childParent2(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
     }
 
+    /**
+     * Create the table for the model
+     */
     public function createTable(){
         if(Schema::hasTable($this->getTable())){
             return;

@@ -120,7 +120,7 @@ trait Revisionable
      */
     public function rollback($revisionId, $saveAsRevision = true)
     {
-        $targetRevision = $this->allRevisions()->where('id', $revisionId)->first();
+        $targetRevision = $this->getRevision($revisionId);
 
         if (!$targetRevision) {
             throw new ErrorException("No revisions found for " . get_class($this) . " model");
@@ -141,11 +141,54 @@ trait Revisionable
     }
 
     /**
+     * Restoring the revision.
+     * Using the model name and the revision ID provided to retrieve the revision for the model
+     *
+     * @param integer $revisionId Revision ID for the model
+     * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
+     *                                  false => rollback to a specific revision and delete all the revisions that came
+     *                                           after that revision
+     *
+     * @throws ErrorException  If the revision or the original record cannot be found
+     */
+    public function rollbackWithRelation($revisionId, $saveAsRevision = true)
+    {
+        $parentRvision = $this->getRevision($revisionId);
+
+        if (!$parentRvision) {
+            throw new ErrorException("No revisions found for " . get_class($this) . " model");
+        }
+
+        if(!$parentRvision->parent_revision && !$parentRvision->child_revision){
+            throw new ErrorException("No relational revisions found for " . get_class($this) . " model");
+        }
+
+        // $parentRvision = $targetRevision->parent_revision;
+        while($parentRvision->parent_revision){
+            $parentRvisionInfo = $parentRvision->parent_revision;
+            $parentRevisionModel = (new $parentRvisionInfo['model_name'])();
+            $parentRvision = $parentRevisionModel->getRevision($parentRvisionInfo['id']);
+        }
+        // if (empty($targetRevision->original_values)) {
+        //     $this->delete();
+        // } else {
+        //     foreach ($targetRevision->original_values as $key => $value) {
+        //         $this[$key] = $value;
+        //     }
+        //     $this->save();
+        // }
+        //
+        // if (!$saveAsRevision) {
+        //     $this->allRevisions()->where('id', '>=', $revisionId)->delete();
+        // }
+    }
+
+    /**
      * Get a specific revision by the revision ID.
      *
      * @param $revisionId       Revision ID for the model
      *
-     * @return mixed            A single revision model
+     * @return Revision            A single revision model
      * @throws ErrorException   If the revision table cannot be found
      */
     public function getRevision($revisionId)
@@ -156,7 +199,7 @@ trait Revisionable
     /**
      * Get all revisions for this model.
      *
-     * @return mixed            A collection of revision model
+     * @return \Illuminate\Database\Eloquent\Builder
      * @throws ErrorException   If the revision table cannot be found
      */
     public function allRevisions()

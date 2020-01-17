@@ -177,6 +177,9 @@ class RevisionTest extends TestCase
      * Test if the revision will be deleted after deleting a Model
      *
      * @param boolean $deleteRevision
+     *
+     * @throws \Exception  If the Model does not have a primary key
+     *                          If the Model does not have any revision
      */
     private function removeOnDelete($deleteRevision)
     {

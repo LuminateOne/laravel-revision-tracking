@@ -12,10 +12,20 @@ class ParentNoRevision extends Model
 
     protected $fillable = ['first_name', 'last_name'];
 
+    /**
+     * A parent belongs to grand parent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function grandParent(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 
+    /**
+     * A parent has amny children
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function children(){
         return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\Child');
     }

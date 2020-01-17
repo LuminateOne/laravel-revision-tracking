@@ -12,10 +12,20 @@ class GrandParent extends Model
 
     protected $fillable = ['first_name', 'last_name'];
 
+    /**
+     * A grand parent has many to parent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function parentWithRevision(){
         return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
     }
 
+    /**
+     * A grand parent has many parent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function parentNoRevision(){
         return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
     }

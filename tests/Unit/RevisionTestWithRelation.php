@@ -36,21 +36,10 @@ class RevisionTestWithRelation extends TestCase
         (new Child())->createTable();
 
         $insertCount = 3;
-        for($i = 0; $i < 3; $i ++){
-            $modelCParent = new ParentWithRevision();
-            foreach (($modelCParent->getFillable()) as $key) {
-                $modelCParent[$key] = $faker->name;
-            }
-            $modelCParent->grand_parent_id = $modelGrandParent->id;
-            $modelCParent->save();
-
-            for($o = 0; $o < 3; $o ++){
-                $child = new Child();
-                foreach (($child->getFillable()) as $key) {
-                    $child[$key] = $faker->name;
-                }
-                $child->parent_with_revision_id = $modelCParent->id;
-                $child->save();
+        for ($i = 0; $i < $insertCount; $i++) {
+            $modelParent = $this->setupModel(ParentWithRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(Child::class, ['parent_with_revision_id' => $modelParent->id]);
             }
         }
 
@@ -60,19 +49,12 @@ class RevisionTestWithRelation extends TestCase
             }
         ])->first();
 
-        foreach (($modelGrandParent->getFillable()) as $key) {
-            $modelGrandParent[$key] = $faker->name;
-        }
+        $this->fillModelWithNewValue($modelGrandParent);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
-            foreach (($aParentWithRevision->getFillable()) as $key) {
-                $aParentWithRevision[$key] = $faker->name;
-            }
-
+            $this->fillModelWithNewValue($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
-                foreach (($aChild->getFillable()) as $key) {
-                    $aChild[$key] = $faker->name;
-                }
+                $this->fillModelWithNewValue($aChild);
             }
         }
 
@@ -126,37 +108,14 @@ class RevisionTestWithRelation extends TestCase
         (new Child())->createTable();
 
         $insertCount = 3;
-        for($i = 0; $i < 3; $i ++){
-            $modelCParent = new ParentWithRevision();
-            foreach (($modelCParent->getFillable()) as $key) {
-                $modelCParent[$key] = $faker->name;
+        for ($i = 0; $i < $insertCount; $i++) {
+            $modelParent = $this->setupModel(ParentWithRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(Child::class, ['parent_with_revision_id' => $modelParent->id]);
             }
-            $modelCParent->grand_parent_id = $modelGrandParent->id;
-            $modelCParent->save();
-
-            for($o = 0; $o < 3; $o ++){
-                $child = new Child();
-                foreach (($child->getFillable()) as $key) {
-                    $child[$key] = $faker->name;
-                }
-                $child->parent_with_revision_id = $modelCParent->id;
-                $child->save();
-            }
-
-            $modelCParent2 = new ParentNoRevision();
-            foreach (($modelCParent2->getFillable()) as $key) {
-                $modelCParent2[$key] = $faker->name;
-            }
-            $modelCParent2->grand_parent_id = $modelGrandParent->id;
-            $modelCParent2->save();
-
-            for($o = 0; $o < 3; $o ++){
-                $child = new Child();
-                foreach (($child->getFillable()) as $key) {
-                    $child[$key] = $faker->name;
-                }
-                $child->parent_no_revision_id = $modelCParent2->id;
-                $child->save();
+            $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
             }
         }
 
@@ -169,37 +128,26 @@ class RevisionTestWithRelation extends TestCase
             }
         ]);
 
-        foreach (($modelGrandParent->getFillable()) as $key) {
-            $modelGrandParent[$key] = $faker->name;
-        }
+        $this->fillModelWithNewValue($modelGrandParent);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
-            foreach (($aParentWithRevision->getFillable()) as $key) {
-                $aParentWithRevision[$key] = $faker->name;
-            }
-
+            $this->fillModelWithNewValue($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
-                foreach (($aChild->getFillable()) as $key) {
-                    $aChild[$key] = $faker->name;
-                }
+                $this->fillModelWithNewValue($aChild);
             }
         }
 
         foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
-            foreach (($aParentNoRevision->getFillable()) as $key) {
-                $aParentNoRevision[$key] = $faker->name;
-            }
-
+            $this->fillModelWithNewValue($aParentNoRevision);
             foreach ($aParentNoRevision->children as $aChild) {
-                foreach (($aChild->getFillable()) as $key) {
-                    $aChild[$key] = $faker->name;
-                }
+                $this->fillModelWithNewValue($aChild);
             }
         }
 
         $modelGrandParent->push();
 
-        $grandParentRevision = $modelGrandParent->allRevisions()->where('child_revisions', '!=', '')->latest('id')->first();
+        $grandParentRevision = $modelGrandParent->allRevisions()->where('child_revisions', '!=',
+            '')->latest('id')->first();
         $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
             "The child revision count of GrandParent should be " . $insertCount);
 
