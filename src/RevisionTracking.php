@@ -105,11 +105,10 @@ class RevisionTracking
         $targetRevision = null;
 
         // There are two revision modes, so we need to check the mode to see if we need to set the "model_name" in the query.
-        if ($targetModel->revisionMode() === 0) {
+        if ($targetModel->revisionMode() === 'all') {
             $targetRevision = $revisionModel->where(['model_name' => get_class($targetModel)]);
         } else {
-            // When set table dynamically, the Model::all() does not work, so using "where id > -1" as a work around.
-            $targetRevision = $revisionModel->where('id', '>', '-1');
+            $targetRevision = $revisionModel::all();
         }
 
         // We keep filter the revision data, if there is a revision ID provided,
@@ -126,9 +125,7 @@ class RevisionTracking
         $targetRecord = $targetModel->where($targetRevision->revision_identifiers)->first();
 
         if (!$targetRecord) {
-            throw new ErrorException('The target record for the model: ' . get_class($targetModel) .
-                ' could not be found. There are five possible reasons: 1. Table name changed. 2. Model name changed. 3. The record has been deleted. 4. Not restoring revision from the latest one. 5. The primary key has been changed'
-            );
+            throw new ErrorException("Revision " . $revisionID . " was not found for model " . get_class($targetModel));
         }
 
         foreach ($targetRevision->original_values as $key => $value) {

@@ -56,9 +56,11 @@ trait Revisionable
         }
 
         if (!Schema::hasTable($revisionTableName)) {
-            throw new ErrorException('The revision table for the model: ' . get_class($this) .
-                ' could not be found. There are three possible reasons: 1. Table name changed. 2. Model name changed. 3. Did not run "php artisan table:revision ' . get_class($this) . '" command.'
-            );
+            if ($this->revisionMode() === 'all') {
+                throw new ErrorException("Revision table " . $revisionTableName . " not found. Please run `php artisan migrate to create the revision table");
+            } else {
+                throw new ErrorException("Revision table " . $revisionTableName . " not found. Please run php artisan table:revision to create revision tables");
+            }
         }
 
         $revisionModel = new Revision();
