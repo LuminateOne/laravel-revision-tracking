@@ -64,15 +64,16 @@ trait Revisionable
     /**
      * Add this revision to each of its child models as parentRevision,
      *
-     * @param Revision  $revision The newly created revision of the model
-     * @param Model     $model The model`s relations that the revision will be assigned to
+     * @param Revision $revision The newly created revision of the model
+     * @param Model $model The model`s relations that the revision will be assigned to
      */
-    public function addThisRevisionToChildRelation($revision, $model){
+    public function addThisRevisionToChildRelation($revision, $model)
+    {
         foreach ($model->relations as $relations) {
             $relations = $relations instanceof Collection ? $relations->all() : [$relations];
 
             foreach (array_filter($relations) as $aRelation) {
-                if($aRelation->usingRevisionableTrait){
+                if ($aRelation->usingRevisionableTrait) {
                     $aRelation->parentRevision = $revision;
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
@@ -90,13 +91,14 @@ trait Revisionable
      *
      * @param Revision $revision The newly created revision id of the model
      */
-    public function addThisRevisionToParentRelation($revision){
-        if(!$this->parentRevision){
+    public function addThisRevisionToParentRelation($revision)
+    {
+        if (!$this->parentRevision) {
             return;
         }
 
         $childRevision = $this->parentRevision->child_revisions;
-        if(!$childRevision){
+        if (!$childRevision) {
             $childRevision = [];
         }
         array_push($childRevision, $revision->revisionIdentifier());
@@ -109,8 +111,8 @@ trait Revisionable
      * Restoring the revision.
      * Using the model name and the revision ID provided to retrieve the revision for the model
      *
-     * @param integer  $revisionId      Revision ID for the model
-     * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
+     * @param integer $revisionId Revision ID for the model
+     * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
      *                                  false => rollback to a specific revision and delete all the revisions that came
      *                                           after that revision
      *
@@ -124,7 +126,7 @@ trait Revisionable
             throw new ErrorException("No revisions found for " . get_class($this) . " model");
         }
 
-        if(empty($targetRevision->original_values)){
+        if (empty($targetRevision->original_values)) {
             $this->delete();
         } else {
             foreach ($targetRevision->original_values as $key => $value) {
@@ -133,7 +135,7 @@ trait Revisionable
             $this->save();
         }
 
-        if(!$saveAsRevision){
+        if (!$saveAsRevision) {
             $this->allRevisions()->where('id', '>=', $revisionId)->delete();
         }
     }
@@ -201,10 +203,11 @@ trait Revisionable
      * @param boolean $serialize Serialize the model identifier or not
      * @return mixed
      */
-    public function modelIdentifier($serialize = false){
+    public function modelIdentifier($serialize = false)
+    {
         $modelIdentifier = [$this->getKeyName() => $this->getKey()];
 
-        if($serialize){
+        if ($serialize) {
             return serialize($modelIdentifier);
         }
 

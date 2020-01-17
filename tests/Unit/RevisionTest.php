@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use Illuminate\Support\Facades\Schema;
