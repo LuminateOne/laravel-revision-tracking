@@ -3,6 +3,7 @@ namespace LuminateOne\RevisionTracking;
 
 use ErrorException;
 use Illuminate\Database\Eloquent\Model;
+use LuminateOne\RevisionTracking\Models\Revision;
 
 /**
  * This class can find and store the diff of a model

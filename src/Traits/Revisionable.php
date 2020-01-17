@@ -3,9 +3,10 @@ namespace LuminateOne\RevisionTracking\Traits;
 
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
-use LuminateOne\RevisionTracking\RevisionTracking;
 use LuminateOne\RevisionTracking\Models\Revision;
+use LuminateOne\RevisionTracking\RevisionTracking;
 
 trait Revisionable
 {
@@ -27,20 +28,14 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::created(function ($model) {
-            // \Log::info(print_r("created", true));
-            // \Log::info(print_r($model, true));
             $model->trackChanges();
         });
 
         static::updated(function ($model) {
             $model->trackChanges();
-
-            // \Log::info(print_r($model, true));
         });
 
         static::deleted(function ($model) {
-            // \Log::info(print_r("deleted", true));
-            // \Log::info(print_r($model, true));
             $model->trackChanges();
             RevisionTracking::eloquentDelete($model);
         });
@@ -65,7 +60,6 @@ trait Revisionable
         $this->addThisRevisionToChildRelation($revision, $this);
         $this->addThisRevisionToParentRelation($revision);
     }
-
 
     /**
      * Add this revision to each of its child models as parentRevision,
@@ -105,7 +99,7 @@ trait Revisionable
         if(!$childRevision){
             $childRevision = [];
         }
-        array_push($childRevision, ['id' => $revision->id, 'model_name' => get_class($this)]);
+        array_push($childRevision, $revision->revisionIdentifier());
         $this->parentRevision->child_revisions = $childRevision;
 
         $this->parentRevision->save();
@@ -117,7 +111,8 @@ trait Revisionable
      *
      * @param integer  $revisionId      Revision ID for the model
      * @param boolean  $saveAsRevision  true =>  save the “rollback” as a new revision of the model
-     *                                  false => rollback to a specific revision and delete all the revisions that came after that revision
+     *                                  false => rollback to a specific revision and delete all the revisions that came
+     *                                           after that revision
      *
      * @throws ErrorException  If the revision or the original record cannot be found
      */
