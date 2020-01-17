@@ -84,7 +84,7 @@ trait Revisionable
         $targetRevision = $this->allRevisions()->where('id', $revisionId)->first();
 
         if (!$targetRevision) {
-            throw new ErrorException("No revisions found for " . get_class($this) . " model");
+            throw new ErrorException("Revision " . $revisionId . " was not found for model " . get_class($this))
         }
 
         foreach ($targetRevision->original_values as $key => $value) {
