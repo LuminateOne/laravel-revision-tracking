@@ -56,7 +56,11 @@ trait Revisionable
         }
 
         if (!Schema::hasTable($revisionTableName)) {
-            throw new ErrorException("Revision table " . $revisionTableName . " not found. Please run php artisan table:revision if you are running mode `single` or php artisan:migrate if you are running mode `all`");
+            if ($this->revisionMode() === 'all') {
+                throw new ErrorException("Revision table " . $revisionTableName . " not found. Please run `php artisan migrate to create the revision table");
+            } else {
+                throw new ErrorException("Revision table " . $revisionTableName . " not found. Please run php artisan table:revision to create revision tables");
+            }
         }
 
         $revisionModel = new Revision();
