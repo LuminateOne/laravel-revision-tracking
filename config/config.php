@@ -14,6 +14,7 @@ return [
     |--------------------------------------------------------------------------
     |
     */
+
     'table_prefix' => env('REVISION_TABLE_PREFIX', 'revisions_'),
 
     /*
@@ -21,8 +22,8 @@ return [
     | Defines the action of revisionable after delete a model
     |--------------------------------------------------------------------------
     |
-    | If set to true the revisions will be deleted, after the model is deleted,
-    | If set to false the revision will not be deleted, after the model is deleted
+    | true => Revisions will be deleted, after the model is deleted,
+    | false => Revision will not be deleted, after the model is deleted
     */
 
     'remove_on_delete' => env('REVISION_REMOVE_ON_DELETE', false),
