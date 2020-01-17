@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateRevisionsVersionsTable extends Migration
+class CreateRevisionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -16,7 +16,7 @@ class CreateRevisionsVersionsTable extends Migration
         Schema::create('revisions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('model_name');
-            $table->text('root_revision')->nullable();
+            $table->text('parent_revision')->nullable();
             $table->text('child_revisions')->nullable();
             $table->text('model_identifier');
             $table->text('original_values');

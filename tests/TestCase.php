@@ -10,23 +10,39 @@ class TestCase extends \Orchestra\Testbench\TestCase
 {
     use RefreshDatabase;
 
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        if(Schema::hasTable('revisions')){
-            return;
-        }
-        // import the CreateRevision class from the migration
-        include_once __DIR__ . '/../migrations/create_revisions_versions_table.php';
-
-        // run the up() method of that migration class
-        (new \CreateRevisionsVersionsTable)->up();
-    }
-
     protected function getPackageProviders($app)
     {
         return ['LuminateOne\RevisionTracking\Providers\RevisionServiceProvider'];
+    }
+
+    public function setupRevisionTable(){
+        if(Schema::hasTable('revisions')){
+            return;
+        }
+
+        include_once __DIR__ . '/../migrations/create_revisions_table.php';
+        (new \CreateRevisionsTable)->up();
+    }
+
+    /**
+     * Update a model
+     *
+     * @param  Model    $model
+     * @param  integer  $count
+     *
+     * @return Model Return the updated model
+     */
+    public function updateModel($model, $count = 1)
+    {
+        $faker = \Faker\Factory::create();
+
+        for($i = 0; $i < $count; $i ++){
+            foreach (($model->getFillable()) as $key) {
+                $model[$key] = $faker->name;
+            }
+            $model->save();
+        }
+        return $model;
     }
 
     /**
@@ -34,7 +50,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
      * Since we are using RefreshDatabase Trait, so it will also create the table for the model
      * and the revision table will be created if the revision mode is set to single
      *
-     * @param  string $modelName A model name with namespace
+     * @param  string $modelClass A model name with namespace
      * @return Model    Return the created model
      */
     public function setupModel($modelClass)

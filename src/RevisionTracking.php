@@ -58,8 +58,8 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        if($model->rootRevision){
-            $revisionModel->root_revision = $model->rootRevision->revisionIdentifier();
+        if($model->parentRevision){
+            $revisionModel->parent_revision = $model->parentRevision->revisionIdentifier();
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();

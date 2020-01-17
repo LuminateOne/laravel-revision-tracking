@@ -1,4 +1,5 @@
 <?php
+
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use Illuminate\Support\Facades\Schema;
@@ -6,16 +7,48 @@ use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
 use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
 
-class RevisionTestAll extends TestCase
+class RevisionTest extends TestCase
 {
     /**
-     * Change the revision mode to all
+     * Test revision mode all
+     *
+     * @throws \Exception
      */
-    public function setUp(): void
+    public function testModeAll()
     {
-        parent::setUp();
-
         config(['revision_tracking.mode' => 'all']);
+
+        $this->noRevisionTableException();
+        $this->setupRevisionTable();
+        $this->update();
+        $this->getAllRevision();
+        $this->getRevision();
+        $this->rollback();
+        $this->removeOnDelete(false);
+        $this->removeOnDelete(true);
+        $this->noRevisionException();
+        $this->noPrimaryKeyException();
+    }
+
+
+    /**
+     * Test revision mode single
+     *
+     * @throws \Exception
+     */
+    public function testModeSingle()
+    {
+        config(['revision_tracking.mode' => 'single']);
+
+        $this->noRevisionTableException();
+        $this->update();
+        $this->getAllRevision();
+        $this->getRevision();
+        $this->rollback();
+        $this->removeOnDelete(false);
+        $this->removeOnDelete(true);
+        $this->noRevisionException();
+        $this->noPrimaryKeyException();
     }
 
     /**
@@ -24,25 +57,14 @@ class RevisionTestAll extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function testNoRevisionTableException()
+    public function noRevisionTableException()
     {
         try {
-            $faker = \Faker\Factory::create();
-
-            $model = $this->setupModel(DefaultPrimaryKey::class);
-
-            Schema::drop($model->getRevisionModel()->getTable());
-
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
+            $this->setupModel(DefaultPrimaryKey::class);
         } catch (\Throwable $exception) {
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;
         }
-
-        parent::setUp();
     }
 
 
@@ -50,32 +72,23 @@ class RevisionTestAll extends TestCase
      * Test if the updated event can be caught by Revisionable.
      * It will check if a new revision is created after update the Model
      * It will check if the original_values stored in the revision table are equals to the old Model
-     *
-     * @throws \ErrorException If the Model does not have a primary key
      */
-    public function testUpdate()
+    public function update()
     {
-        $faker = \Faker\Factory::create();
-
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $oldModel = clone $model;
 
-        foreach (($model->getFillable()) as $key) {
-            $model[$key] = $faker->name;
-        }
-        $model->save();
+        $model = $this->updateModel($model);
 
         $aRevision = $model->allRevisions()->latest('id')->first();
 
         $modelIdentifiers = $model->modelIdentifier();
 
-        // Check if the model identifier are equal
         $this->assertEquals($modelIdentifiers, $aRevision->model_identifier,
             'The identifiers of revision and the primary key of the Model should match');
 
         $this->assertEquals(2, $model->allRevisions()->count(), 'The count of reviions should be 2');
 
-        // Check if the values stored in the revision table equals to the old record
         $hasDifferent = true;
         foreach ($aRevision->original_values as $key => $value) {
             if ($oldModel[$key] !== $value) {
@@ -93,31 +106,16 @@ class RevisionTestAll extends TestCase
      * This will create and updated two different Models,
      * So it can test if the "allRevision" method only returns
      * the revisions that belong to the current Model
-     *
-     * @throws \ErrorException  If the Model does not have a primary key
-     *                          If the Model does not have any revision
      */
-    public function testGetAllRevision()
+    public function getAllRevision()
     {
-        $faker = \Faker\Factory::create();
+        $updateCount = 3;
 
         $model = $this->setupModel(DefaultPrimaryKey::class);
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
+        $model = $this->updateModel($model, $updateCount);
 
-        // Create and updated a different Model
         $model2 = $this->setupModel(DefaultPrimaryKey::class);
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model2->getFillable()) as $key) {
-                $model2[$key] = $faker->name;
-            }
-            $model2->save();
-        }
+        $this->updateModel($model2, $updateCount);
 
         $revisionCount = $model->allRevisions()->get()->count();
 
@@ -132,22 +130,11 @@ class RevisionTestAll extends TestCase
      * Test get a single revision by revision ID
      * This will create and update a model,
      * Then get the latest revision, and check if the identifiers are the same
-     *
-     * @throws \ErrorException  If the Model does not have a primary key
-     *                          If the Model does not have any revision
      */
-    public function testGetRevision()
+    public function getRevision()
     {
-        $faker = \Faker\Factory::create();
-
         $model = $this->setupModel(DefaultPrimaryKey::class);
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
+        $model = $this->updateModel($model, 3);
 
         $latestRevisionId = $model->allRevisions()->latest('id')->first()->id;
 
@@ -161,24 +148,12 @@ class RevisionTestAll extends TestCase
     /**
      * Test rollback, it will insert a new record, and then update the record, then restore the revision.
      * Then check if the restored record is equal to the old record
-     *
-     * @throws \ErrorException  If the Model does not have a primary key
-     *                          If the Model does not have any revision
      */
-    public function testRollback()
+    public function rollback()
     {
-        $faker = \Faker\Factory::create();
-
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $oldModel = clone $model;
-
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
+        $model = $this->updateModel($model, 3);
 
         $aRevision = ($model->allRevisions()->orderBy('id', 'asc')->get())[1];
 
@@ -192,93 +167,33 @@ class RevisionTestAll extends TestCase
             }
         }
         $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
-    }
-
-    /**
-     * Test rollback, it will insert a new record, and then update the record, then restore the revision.
-     * Then check if the restored record is equal to the old record
-     *
-     * @throws \ErrorException  If the Model does not have a primary key
-     *                          If the Model does not have any revision
-     */
-    public function testRollbackAndNotSaveAsRevision()
-    {
-        $faker = \Faker\Factory::create();
-
-        $model = $this->setupModel(DefaultPrimaryKey::class);
-
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
 
         $aRevision = $model->allRevisions()->orderBy('id', 'asc')->first();
-
         $model->rollback($aRevision->id, false);
-
-        $revisionCount = $model->allRevisions()->where('id', '>=', $aRevision->id)->count();
+        $revisionCount = $model->allRevisions()->count();
         $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
     }
 
     /**
      * Test if the revision will be deleted after deleting a Model
      *
-     * @throws \Exception If the Model does not have a primary key
-     *                    If the Model does not have any revision
+     * @param boolean $deleteRevision
      */
-    public function testRemoveOnDelete()
+    public function removeOnDelete($deleteRevision)
     {
-        $faker = \Faker\Factory::create();
-
         $model = $this->setupModel(DefaultPrimaryKey::class);
 
         $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
+        $model = $this->updateModel($model, $updateCount);
 
-        config(['revision_tracking.remove_on_delete' => true]);
+        config(['revision_tracking.remove_on_delete' => $deleteRevision]);
 
         $model->delete();
 
         $revisionCount = $model->allRevisions()->count();
 
-        $this->assertEquals(0, $revisionCount, 'The revisions are not deleted');
-    }
-
-    /**
-     * Test if the revision will be deleted after deleting a Model
-     *
-     * @throws \Exception If the Model does not have a primary key
-     *                    If the Model does not have any revision
-     */
-    public function testNotRemoveOnDelete()
-    {
-        $faker = \Faker\Factory::create();
-
-        $model = $this->setupModel(DefaultPrimaryKey::class);
-
-        $updateCount = 3;
-        for ($i = 0; $i < $updateCount; $i++) {
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
-        }
-
-        config(['revision_tracking.remove_on_delete' => false]);
-
-        $model->delete();
-
-        $revisionCount = $model->allRevisions()->count();
-
-        $this->assertEquals($updateCount + 2, $revisionCount, 'The revisions are not deleted');
+        $expected = $deleteRevision ? 0 : ($updateCount + 2);
+        $this->assertEquals($expected, $revisionCount, 'The revisions are not deleted');
     }
 
     /**
@@ -287,19 +202,13 @@ class RevisionTestAll extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function testNoRevisionException()
+    public function noRevisionException()
     {
         try {
-            $faker = \Faker\Factory::create();
-
             $model = $this->setupModel(DefaultPrimaryKey::class);
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
+            $model = $this->updateModel($model);
 
             $model->rollback(10);
-
         } catch (\Throwable $exception) {
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;
@@ -312,16 +221,11 @@ class RevisionTestAll extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function testNoPrimaryKeyException()
+    public function noPrimaryKeyException()
     {
         try {
-            $faker = \Faker\Factory::create();
-
             $model = $this->setupModel(NoPrimaryKey::class);
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
+            $this->updateModel($model);
         } catch (\Throwable $exception) {
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;

@@ -13,7 +13,11 @@ class Child extends Model
     protected $fillable = ['first_name', 'last_name'];
 
     public function childParent(){
-        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\CParent');
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
+    }
+
+    public function childParent2(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
     }
 
     public function createTable(){
@@ -23,12 +27,14 @@ class Child extends Model
 
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('c_parent_id');
+            $table->bigInteger('parent_with_revision_id')->nullable();
+            $table->bigInteger('parent_no_revision_id')->nullable();
             $table->string('first_name');
             $table->string('last_name');
             $table->timestamps();
 
-            $table->foreign('c_parent_id')->references('id')->on('c_parents')->onDelete('cascade');
+            $table->foreign('parent_with_revision_id')->references('id')->on('parent_with_revisions')->onDelete('cascade');
+            $table->foreign('parent_no_revision_id')->references('id')->on('parent_no_revisions')->onDelete('cascade');
         });
     }
 }

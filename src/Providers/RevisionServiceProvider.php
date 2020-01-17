@@ -28,7 +28,7 @@ class RevisionServiceProvider extends ServiceProvider
             $this->publishes([$configPath => config_path('revision_tracking.php')], 'config');
 
             $this->publishes([
-                __DIR__ . '/../../migrations/create_revisions_versions_table.php' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_posts_table.php'),
+                __DIR__ . '/../../migrations/create_revisions_table.php' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_posts_table.php'),
             ], 'migrations');
 
             $this->commands([

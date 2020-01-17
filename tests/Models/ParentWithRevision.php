@@ -6,18 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use LuminateOne\RevisionTracking\Traits\Revisionable;
 
-class GrandParent extends Model
+class ParentWithRevision extends Model
 {
     use Revisionable;
 
     protected $fillable = ['first_name', 'last_name'];
 
-    public function parentWithRevision(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
+    public function grandParent(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 
-    public function parentNoRevision(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
+    public function children(){
+        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\Child');
     }
 
     public function createTable(){
@@ -27,10 +27,12 @@ class GrandParent extends Model
 
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->bigInteger('grand_parent_id');
             $table->string('first_name');
             $table->string('last_name');
-
             $table->timestamps();
+
+            $table->foreign('grand_parent_id')->references('id')->on('grand_parents')->onDelete('cascade');
         });
     }
 }

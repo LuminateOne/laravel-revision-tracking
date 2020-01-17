@@ -4,11 +4,11 @@ namespace LuminateOne\RevisionTracking\Tests\Models;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
-use LuminateOne\RevisionTracking\Traits\Revisionable;
+// use LuminateOne\RevisionTracking\Traits\Revisionable;
 
-class CParent extends Model
+class ParentNoRevision extends Model
 {
-    use Revisionable;
+    // use Revisionable;
 
     protected $fillable = ['first_name', 'last_name'];
 
