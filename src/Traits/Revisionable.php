@@ -78,8 +78,8 @@ trait Revisionable
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
                     // We need to always use `$this` to call the addThisRevisionToChildRelation recursively,
-                    // because when a model involved, it does not have the revision control turned on,
-                    // then it will break the recursive loop
+                    // because when a model without the revision control turned on involved,
+                    // it will break the recursive loop
                     $this->addThisRevisionToChildRelation($revision, $aRelation);
                 }
             }

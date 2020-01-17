@@ -56,7 +56,7 @@ class RevisionTest extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function noRevisionTableException()
+    private function noRevisionTableException()
     {
         try {
             $this->setupModel(DefaultPrimaryKey::class);
@@ -72,7 +72,7 @@ class RevisionTest extends TestCase
      * It will check if a new revision is created after update the Model
      * It will check if the original_values stored in the revision table are equals to the old Model
      */
-    public function update()
+    private function update()
     {
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $oldModel = clone $model;
@@ -106,7 +106,7 @@ class RevisionTest extends TestCase
      * So it can test if the "allRevision" method only returns
      * the revisions that belong to the current Model
      */
-    public function getAllRevision()
+    private function getAllRevision()
     {
         $updateCount = 3;
 
@@ -130,7 +130,7 @@ class RevisionTest extends TestCase
      * This will create and update a model,
      * Then get the latest revision, and check if the identifiers are the same
      */
-    public function getRevision()
+    private function getRevision()
     {
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $model = $this->updateModel($model, 3);
@@ -148,7 +148,7 @@ class RevisionTest extends TestCase
      * Test rollback, it will insert a new record, and then update the record, then restore the revision.
      * Then check if the restored record is equal to the old record
      */
-    public function rollback()
+    private function rollback()
     {
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $oldModel = clone $model;
@@ -178,7 +178,7 @@ class RevisionTest extends TestCase
      *
      * @param boolean $deleteRevision
      */
-    public function removeOnDelete($deleteRevision)
+    private function removeOnDelete($deleteRevision)
     {
         $model = $this->setupModel(DefaultPrimaryKey::class);
 
@@ -201,7 +201,7 @@ class RevisionTest extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function noRevisionException()
+    private function noRevisionException()
     {
         try {
             $model = $this->setupModel(DefaultPrimaryKey::class);
@@ -220,7 +220,7 @@ class RevisionTest extends TestCase
      * @throws \Exception If the Model does not have a primary key
      *                    If the Model does not have any revision
      */
-    public function noPrimaryKeyException()
+    private function noPrimaryKeyException()
     {
         try {
             $model = $this->setupModel(NoPrimaryKey::class);
