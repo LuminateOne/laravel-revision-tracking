@@ -86,7 +86,7 @@ class RevisionTest extends TestCase
         $this->assertEquals($modelIdentifiers, $aRevision->model_identifier,
             'The identifiers of revision and the primary key of the Model should match');
 
-        $this->assertEquals(2, $model->allRevisions()->count(), 'The count of reviions should be 2');
+        $this->assertEquals(1, $model->allRevisions()->count(), 'The count of reviions should be 2');
 
         $hasDifferent = true;
         foreach ($aRevision->original_values as $key => $value) {
@@ -119,9 +119,9 @@ class RevisionTest extends TestCase
         $revisionCount = $model->allRevisions()->get()->count();
 
         if ($model->getKeyName() === "id" || $model->incrementing === true) {
-            $this->assertEquals($updateCount + 1, $revisionCount, "Revision count should be " . $updateCount);
+            $this->assertEquals($updateCount, $revisionCount, "Revision count should be " . $updateCount);
         } else {
-            $this->assertEquals(2, $revisionCount, "Revision count should be 2");
+            $this->assertEquals(1, $revisionCount, "Revision count should be 2");
         }
     }
 
@@ -154,7 +154,7 @@ class RevisionTest extends TestCase
         $oldModel = clone $model;
         $model = $this->updateModel($model, 3);
 
-        $aRevision = ($model->allRevisions()->orderBy('id', 'asc')->get())[1];
+        $aRevision = ($model->allRevisions()->orderBy('id', 'asc')->get())[0];
 
         $model->rollback($aRevision->id, true);
 
@@ -194,7 +194,7 @@ class RevisionTest extends TestCase
 
         $revisionCount = $model->allRevisions()->count();
 
-        $expected = $deleteRevision ? 0 : ($updateCount + 2);
+        $expected = $deleteRevision ? 0 : ($updateCount);
         $this->assertEquals($expected, $revisionCount, 'The revisions are not deleted');
     }
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Tests;
 
 use Illuminate\Support\Facades\Schema;
@@ -18,11 +17,18 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $this->setupRevisionTable();
     }
 
+    /**
+     * @param \Illuminate\Foundation\Application $app
+     * @return array
+     */
     protected function getPackageProviders($app)
     {
         return ['LuminateOne\RevisionTracking\Providers\RevisionServiceProvider'];
     }
 
+    /**
+     * Create revision table
+     */
     public function setupRevisionTable()
     {
         if (Schema::hasTable('revisions')) {
@@ -50,6 +56,12 @@ class TestCase extends \Orchestra\Testbench\TestCase
         return $model;
     }
 
+
+    /**
+     * Assign the model with new values
+     *
+     * @param Model $model
+     */
     public function fillModelWithNewValue($model)
     {
         $faker = \Faker\Factory::create();
@@ -82,6 +94,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
             if (!Schema::hasTable($revisionTableName)) {
                 Schema::create($revisionTableName, function (Blueprint $table) {
                     $table->bigIncrements('id');
+                    $table->text('parent_revision')->nullable();
+                    $table->text('child_revisions')->nullable();
                     $table->text('model_identifier');
                     $table->text('original_values');
                     $table->timestamps();
@@ -89,7 +103,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
             }
         }
 
-        \Log::info(print_r($foreignKeys, true));
         foreach (($model->getFillable()) as $key) {
             $model[$key] = $faker->name;
         }
@@ -101,5 +114,24 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $model->save();
 
         return $model;
+    }
+
+    /**
+     * Compare the fillable value of two models
+     *
+     * @param Model $modelA
+     * @param Model $modelB
+     *
+     * @return boolean
+     */
+    public function compareTwoModel($modelA, $modelB){
+        $hasDifferent = false;
+        foreach ($modelA->getFillable() as $key) {
+            if ($modelB[$key] !== $modelA[$key]) {
+                $hasDifferent = true;
+                break;
+            }
+        }
+        return $hasDifferent;
     }
 }

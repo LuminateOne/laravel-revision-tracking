@@ -60,14 +60,14 @@ class RevisionTracking
         }
 
         if($model->parentRevision){
-            $revisionModel->parent_revision = $model->parentRevision->revisionIdentifier();
+            $revisionModel->parent_revision = $model->relationalRevisionIdentifier('parent');
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();
         $revisionModel->original_values = $originalFields;
         $revisionModel->save();
 
-        return $revisionModel;
+        $model->createdRevision = $revisionModel;
     }
 
     /**

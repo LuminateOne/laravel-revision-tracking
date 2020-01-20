@@ -1,6 +1,8 @@
 <?php
 namespace LuminateOne\RevisionTracking\Models;
 
+use ErrorException;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -15,11 +17,19 @@ class Revision extends Model
     /**
      * A function to create the revision identifier
      *
+     * @param boolean $serialize Serialize the revision identifier or not
+     *
      * @return mixed
      */
-    public function revisionIdentifier()
+    public function revisionIdentifier($serialize = false)
     {
-        return [$this->getKeyName() => $this->getKey(), 'model_name' => $this->attributes['model_name']];
+        $revisionIdentifier = [$this->getKeyName() => $this->getKey()];
+
+        if($serialize){
+            return serialize($revisionIdentifier);
+        }
+
+        return $revisionIdentifier;
     }
 
     /**
