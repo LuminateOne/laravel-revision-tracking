@@ -29,7 +29,6 @@ class RevisionTest extends TestCase
         $this->noPrimaryKeyException();
     }
 
-
     /**
      * Test revision mode single
      *
@@ -59,13 +58,19 @@ class RevisionTest extends TestCase
     private function noRevisionTableException()
     {
         try {
-            $this->setupModel(DefaultPrimaryKey::class);
+            $model = new DefaultPrimaryKey();
+            // $this->fillModelWithNewValue($model);
+            foreach (($model->getFillable()) as $key) {
+                $model[$key] = $faker->name;
+            }
+            $model->save();
+            $this->updateModel($model);
+            // $this->setupModel(DefaultPrimaryKey::class);
         } catch (\Throwable $exception) {
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;
         }
     }
-
 
     /**
      * Test if the updated event can be caught by Revisionable.
@@ -158,14 +163,9 @@ class RevisionTest extends TestCase
 
         $model->rollback($aRevision->id, true);
 
-        $hasDifferent = true;
-        foreach ($model->getFillable() as $key) {
-            if ($oldModel[$key] !== $model[$key]) {
-                $hasDifferent = false;
-                break;
-            }
-        }
-        $this->assertEquals(true, $hasDifferent, 'Fillable attribute values do not match');
+        $hasDifferent = $this->compareTwoModel($oldModel, $model);
+
+        $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
 
         $aRevision = $model->allRevisions()->orderBy('id', 'asc')->first();
         $model->rollback($aRevision->id, false);

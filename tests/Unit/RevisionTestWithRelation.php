@@ -56,7 +56,7 @@ class RevisionTestWithRelation extends TestCase
             }
         ]);
 
-        $this->fillModelWithNewValue($modelGrandParent);
+        // $this->fillModelWithNewValue($modelGrandParent);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $this->fillModelWithNewValue($aParentWithRevision);
@@ -120,7 +120,7 @@ class RevisionTestWithRelation extends TestCase
     }
 
     /**
-     * Test realtional rollback
+     * Test relational rollback
      * It will create GrandParent, PraentWithRevision, ParentNoRevision, Child
      * It will check if the parent_revision of the Child revision equals to the Parent revision identifiers
      * It will check if the child_revisions of the Parent revision contains to the Child revision identifiers
@@ -141,7 +141,7 @@ class RevisionTestWithRelation extends TestCase
             }
             $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
-                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
+                clone $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
             }
         }
 
@@ -155,12 +155,16 @@ class RevisionTestWithRelation extends TestCase
         ]);
 
         $modelGrandParentCopy = clone $modelGrandParent;
+        $parentsWithRevisionArray = [];
+        $childrenArray = [];
 
         $this->fillModelWithNewValue($modelGrandParent);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+            array_push($parentsWithRevisionArray, clone $aParentWithRevision);
             $this->fillModelWithNewValue($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
+                array_push($childrenArray, clone $aChild);
                 $this->fillModelWithNewValue($aChild);
             }
         }
@@ -173,7 +177,6 @@ class RevisionTestWithRelation extends TestCase
         }
 
         $modelGrandParent->push();
-
         $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
 
         $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
@@ -216,9 +219,9 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        // Get the latested revision id and rollback with relation
         $aChildMode = $modelGrandParent->parentWithRevision[0]->children[0];
         $relationalRevisions = $aChildMode->allRelationalRevisions()->first();
-
         $aChildMode->rollbackWithRelation($relationalRevisions->id);
 
         $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->latest('id')->first();
@@ -227,26 +230,16 @@ class RevisionTestWithRelation extends TestCase
         $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParentWithRevision);
         $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
 
-        foreach ($modelGrandParentCopy->parentWithRevision as $aParentWithRevision) {
+        foreach ($parentsWithRevisionArray as $aParentWithRevision) {
             $restoredParentWithRevision = ParentWithRevision::find($aParentWithRevision->id);
-            \Log::info(print_r($restoredParentWithRevision->getAttributes(), true));
-            \Log::info(print_r($aParentWithRevision->getAttributes(), true));
             $hasDifferent = $this->compareTwoModel($aParentWithRevision, $restoredParentWithRevision);
             $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
-
-            foreach ($aParentWithRevision->children as $aChild) {
-                $restoredChild = Child::find($aChild->id)->first();
-                $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
-                $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
-            }
         }
 
-        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
-            foreach ($aParentNoRevision->children as $aChild) {
-                $restoredChild = Child::find($aChild->id)->first();
-                $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
-                $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
-            }
+        foreach ($childrenArray as $aChild) {
+            $restoredChild = Child::find($aChild->id);
+            $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
+            $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
         }
     }
 }

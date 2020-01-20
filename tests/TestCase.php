@@ -72,6 +72,25 @@ class TestCase extends \Orchestra\Testbench\TestCase
     }
 
     /**
+     * Compare the fillable value of two models
+     *
+     * @param Model $modelA
+     * @param Model $modelB
+     *
+     * @return boolean
+     */
+    public function compareTwoModel($modelA, $modelB){
+        $hasDifferent = false;
+        foreach ($modelA->getFillable() as $key) {
+            if ($modelB[$key] !== $modelA[$key]) {
+                $hasDifferent = true;
+                break;
+            }
+        }
+        return $hasDifferent;
+    }
+
+    /**
      * It will create a new Model
      * Since we are using RefreshDatabase Trait, so it will also create the table for the model
      * and the revision table will be created if the revision mode is set to single
@@ -114,24 +133,5 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $model->save();
 
         return $model;
-    }
-
-    /**
-     * Compare the fillable value of two models
-     *
-     * @param Model $modelA
-     * @param Model $modelB
-     *
-     * @return boolean
-     */
-    public function compareTwoModel($modelA, $modelB){
-        $hasDifferent = false;
-        foreach ($modelA->getFillable() as $key) {
-            if ($modelB[$key] !== $modelA[$key]) {
-                $hasDifferent = true;
-                break;
-            }
-        }
-        return $hasDifferent;
     }
 }

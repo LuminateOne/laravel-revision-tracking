@@ -59,12 +59,13 @@ class RevisionTracking
             $revisionModel->model_name = get_class($model);
         }
 
-        if($model->parentRevision){
-            $revisionModel->parent_revision = $model->relationalRevisionIdentifier('parent');
-        }
-
         $revisionModel->model_identifier = $model->modelIdentifier();
         $revisionModel->original_values = $originalFields;
+
+        if($model->parentRevision){
+            $revisionModel->original_values['parent_revision'] = $model->relationalRevisionIdentifier('parent');
+        }
+
         $revisionModel->save();
 
         $model->createdRevision = $revisionModel;
