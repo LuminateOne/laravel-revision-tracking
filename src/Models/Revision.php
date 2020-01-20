@@ -12,24 +12,34 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Revision extends Model
 {
-    protected $fillable = ['model_identifier', 'original_values', 'model_name'];
+    protected $fillable = ['model_identifier', 'revisions', 'model_name'];
 
     /**
-     * A function to create the revision identifier
+     * A function to append the child revision to revisions attributes
      *
-     * @param boolean $serialize Serialize the revision identifier or not
-     *
-     * @return mixed
+     * @param array $value
      */
-    public function revisionIdentifier($serialize = false)
-    {
-        $revisionIdentifier = [$this->getKeyName() => $this->getKey()];
+    public function addChildRevision($value){
+        $revision = $this->revisions;
 
-        if($serialize){
-            return serialize($revisionIdentifier);
+        if(!array_key_exists('child', $revision)){
+            $revision['child'] = [];
         }
+        array_push($revision['child'], $value);
+        $this->revisions = $revision;
+        $this->save();
+    }
 
-        return $revisionIdentifier;
+    /**
+     * A function to add the parent revision to revisions attributes
+     *
+     * @param array $value
+     */
+    public function addParentRevision($value){
+        $revisions = $this->revisions;
+        $revisions['parent'] = $value;
+        $this->revisions = $revisions;
+        $this->save();
     }
 
     /**
@@ -49,9 +59,63 @@ class Revision extends Model
      * @param $value
      * @return mixed
      */
-    public function getOriginalValuesAttribute($value)
+    public function getRevisionsAttribute($value)
     {
-        return unserialize($value);
+        return $value ? unserialize($value) : [];
+    }
+
+    /**
+     * An accessor to retrieve the unserialized parent revision
+     *
+     * @return mixed
+     */
+    public function getOriginalValuesAttribute(){
+        $parent = null;
+        if(array_key_exists('original_values', $this->revisions)){
+            $parent = $this->revisions['original_values'];
+        }
+        return $parent;
+    }
+
+    /**
+     * An accessor to retrieve the unserialized parent revision
+     *
+     * @return mixed
+     */
+    public function getParentRevisionAttribute(){
+        $parent = null;
+        if(array_key_exists('parent', $this->revisions)){
+            $parent = $this->revisions['parent'];
+        }
+        return $parent;
+    }
+
+    /**
+     * An accessor to retrieve the unserialized child revision
+     *
+     * @return mixed
+     */
+    public function getChildRevisionsAttribute(){
+        $child = null;
+        if(array_key_exists('child', $this->revisions)){
+            $child = $this->revisions['child'];
+        }
+        return $child;
+    }
+
+    /**
+     * A mutator to serialize original_values
+     *
+     * @param $value
+     * @return void
+     */
+    public function setOriginalValuesAttribute($value)
+    {
+        $revisions = $this->revisions;
+
+        $revisions['original_values'] = $value;
+
+        $this->revisions = $revisions;
     }
 
     /**
@@ -71,8 +135,8 @@ class Revision extends Model
      * @param $value
      * @return void
      */
-    public function setOriginalValuesAttribute($value)
+    public function setRevisionsAttribute($value)
     {
-        $this->attributes['original_values'] = serialize($value);
+        $this->attributes['revisions'] = serialize($value);
     }
 }

@@ -11,16 +11,10 @@ use LuminateOne\RevisionTracking\RevisionTracking;
 trait Revisionable
 {
     /**
-     * Holds the parent revision information
-     * @var array
-     */
-    public $parentRevision = null;
-
-    /**
-     * Holds the parent model name
+     * Holds the parent model
      * @var string
      */
-    public $parentModelName = null;
+    public $parentModel = null;
 
     /**
      * Holds the created revision
@@ -54,6 +48,10 @@ trait Revisionable
         });
     }
 
+    public function setAsRelationalRevision(){
+        $this->addThisModelToItsChildModel($this, $this);
+    }
+
     /**
      * Find and store the changes as a revision for the current model.
      *
@@ -70,54 +68,51 @@ trait Revisionable
 
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-        $this->addThisRevisionToChildRelation($this->createdRevision, $this, $this);
-        $this->addThisRevisionToParentRelation();
+        $this->addThisModelToItsChildModel($this, $this);
+        $this->updateRelatedRevisions();
     }
 
     /**
-     * Add this revision to each of its child models as parentRevision,
+     * Add this model to each of its child models as parentModel,
      *
-     * @param Revision $revision The newly created revision of the model
      * @param Model $currentModel The model`s relations that the revision will be assigned to
      * @param Model $parentModel parentModel
      */
-    public function addThisRevisionToChildRelation($revision, $currentModel, $parentModel)
+    public function addThisModelToItsChildModel($currentModel, $parentModel)
     {
         foreach ($currentModel->relations as $relations) {
             $relations = $relations instanceof Collection ? $relations->all() : [$relations];
 
             foreach (array_filter($relations) as $aRelation) {
                 if ($aRelation->usingRevisionableTrait) {
-                    $aRelation->parentRevision = $revision;
-                    $aRelation->parentModelName = get_class($parentModel);
+                    $aRelation->parentModel = $parentModel;
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
                     // We need to always use `$this` to call the addThisRevisionToChildRelation recursively,
                     // because when a model without the revision control turned on involved,
                     // it will break the recursive loop
-                    $this->addThisRevisionToChildRelation($revision, $aRelation, $parentModel);
+                    $this->addThisModelToItsChildModel($aRelation, $parentModel);
                 }
             }
         }
     }
 
     /**
-     * Add the this revision to its parent revision as child revision
+     * Update parent revision and self revision
      */
-    public function addThisRevisionToParentRelation()
+    public function updateRelatedRevisions()
     {
-        if (!$this->parentRevision) {
+        if (!$this->parentModel) {
             return;
         }
 
-        $childRevision = $this->parentRevision->original_values['child_revisions'];
-        if (!$childRevision) {
-            $childRevision = [];
+        if(!$this->parentModel->createdRevision){
+            RevisionTracking::eloquentStoreDiff($this->parentModel, null);
         }
-        array_push($childRevision, $this->relationalRevisionIdentifier('self'));
-        $this->parentRevision->original_values['child_revisions'] = $childRevision;
 
-        $this->parentRevision->save();
+        $this->parentModel->createdRevision->addChildRevision($this->self_revision_identifier);
+
+        $this->createdRevision->addParentRevision($this->parent_revision_identifier);
     }
 
     /**
@@ -139,21 +134,26 @@ trait Revisionable
             throw new ErrorException("Revision " . $revisionId . " was not found for model " . get_class($this));
         }
 
-        if (empty($targetRevision->original_values)) {
-            $this->delete();
-        } else {
-            foreach ($targetRevision->original_values as $key => $value) {
-                $this[$key] = $value;
+        if (array_key_exists('original_values', $targetRevision->revisions)) {
+            if (empty($targetRevision->original_values)) {
+                $this->delete();
+            } else {
+                foreach ($targetRevision->original_values as $key => $value) {
+                    $this[$key] = $value;
+                }
+                $this->save();
             }
-            $this->save();
         }
 
-        if ($targetRevision->child_revisions) {
+        if (array_key_exists('child', $targetRevision->revisions)) {
+
             foreach ($targetRevision->child_revisions as $aChildRevision) {
-                $childModel = $this->getModelFromRelationalRevision($aChildRevision);
+                $modelName = $aChildRevision['model_name'];
+                $revision = $this->getTargetRevision($aChildRevision);
+                $childModel = (new $modelName())->where($revision->model_identifier)->first();
+
                 if ($childModel->usingRevisionableTrait) {
-                    $childModel->parentRevision = $this->allRevisions()->latest('id')->first();
-                    $childModel->parentModelName = get_class($this);
+                    $childModel->parentModel = $this;
                     $childModel->rollback($aChildRevision['revision_id'], $saveAsRevision);
                 }
             }
@@ -178,7 +178,7 @@ trait Revisionable
     public function rollbackWithRelation($revisionId, $saveAsRevision = true)
     {
         $relationalRevision = $this->getRelationalRevision($revisionId);
-        $relationalModel = $this;
+        $relationalModelName = get_class($this);
 
         if (!$relationalRevision) {
             throw new ErrorException("No relational revisions found for " . get_class($this) . " model");
@@ -188,40 +188,29 @@ trait Revisionable
             throw new ErrorException("No relational revisions found for " . get_class($this) . " model");
         }
 
-        while ($relationalRevision->original_values['parent_revision']) {
-            $parentRevision = $relationalRevision->original_values['parent_revision'];
-            $relationalModel = $this->getModelFromRelationalRevision($parentRevision);
-            $revisionId = $this->revisionMode() === 'all' ? $parentRevision : $parentRevision['revision_id']
-            $relationalRevision = $relationalModel->getRevision($revisionId);
+        while ($relationalRevision->parent_revision) {
+            $relationalModelName = $relationalRevision->parent_revision['model_name'];
+            $relationalRevision = $this->getTargetRevision($relationalRevision->parent_revision);
         }
 
         if (!$relationalRevision->child_revisions) {
             throw new ErrorException("Child revisions not found for " . get_class($relationalModel) . " model");
         }
 
+        $relationalModel = (new $relationalModelName())->where($relationalRevision->model_identifier)->first();
         $relationalModel->rollback($relationalRevision->id, $saveAsRevision);
     }
 
     /**
      * Get the target model from the revision
      *
-     * @param $revisionInfo
+     * @param array $revisionInfo
      * @return mixed
      */
-    public function getModelFromRelationalRevision($parentRevision)
+    public function getTargetRevision($revisionInfo)
     {
-        $revision = null;
-        $modelName = null;
-
-        if($this->revisionMode() === 'all'){
-            $revision = Revision::find($parentRevision);
-            $modelName = $revision->model_name;
-        } else {
-            $modelName = $parentRevision['model_name'];
-            $revision = (new $modelName())->getRevisionModel()->find($parentRevision['revision_id']);
-        }
-
-        return (new $modelName())->where($revision->model_identifier)->first();
+        $modelName = $revisionInfo['model_name'];
+        return (new $modelName())->getRevisionModel()->find($revisionInfo['revision_id']);
     }
 
     /**
@@ -274,10 +263,11 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions()->where(function ($query) {
-            $query->where('parent_revision', '!=', '')
-                ->orWhere('child_revisions', '!=', '');
-        });
+        return $this->allRevisions();
+        //     ->where(function ($query) {
+        //     $query->where('parent_revision', '!=', '')
+        //         ->orWhere('child_revisions', '!=', '');
+        // });
     }
 
     /**
@@ -326,32 +316,28 @@ trait Revisionable
     }
 
     /**
-     * A function to create the relational identifier as parent or child
-     * It indicates that which model and revision to use to create the
-     * relational revision identifier
-     *
-     * @param string $as
-     * @param boolean $serialize Serialize the model identifier or not
+     * An accessor to get the self revision identifier
      *
      * @return mixed
      */
-    public function relationalRevisionIdentifier($as = 'parent')
+    public function getSelfRevisionIdentifierAttribute()
     {
-        $revision = $this->createdRevision;
-        $modelName = get_class($this);
-
-        if ($as === 'parent') {
-            $revision = $this->parentRevision;
-            $modelName = $this->parentModelName;
-        }
-
-        if($this->revisionMode() === 'all'){
-            return $revision->id;
-        }
-
         return [
-            'revision_id' => $revision->id,
-            'model_name' => $modelName
+            'revision_id' => $this->createdRevision->id,
+            'model_name' => get_class($this)
+        ];
+    }
+
+    /**
+     * An accessor to get the parent revision identifier
+     *
+     * @return mixed
+     */
+    public function getParentRevisionIdentifierAttribute()
+    {
+        return [
+            'revision_id' => $this->parentModel->createdRevision->id,
+            'model_name' => get_class($this->parentModel)
         ];
     }
 

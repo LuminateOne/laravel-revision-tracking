@@ -16,7 +16,7 @@ class CreateRevisionsTable extends Migration
             $table->bigIncrements('id');
             $table->string('model_name');
             $table->text('model_identifier');
-            $table->text('original_values');
+            $table->text('revisions')->nullable();
             $table->timestamps();
         });
     }

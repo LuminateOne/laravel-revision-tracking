@@ -47,6 +47,16 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+
+        // $modelGrandParent = GrandParent::find($modelGrandParent->id)->with([
+        //     'parentWithRevision' => function ($parent) {
+        //         $parent->with('children');
+        //     },
+        //     'parentNoRevision' => function ($parent) {
+        //         $parent->with('children');
+        //     }
+        // ])->get();
+        // \Log::info(print_r($modelGrandParent, true));
         $modelGrandParent->load([
             'parentWithRevision' => function ($parent) {
                 $parent->with('children');
@@ -57,6 +67,7 @@ class RevisionTestWithRelation extends TestCase
         ]);
 
         // $this->fillModelWithNewValue($modelGrandParent);
+        $modelGrandParent->setAsRelationalRevision();
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $this->fillModelWithNewValue($aParentWithRevision);
@@ -71,6 +82,7 @@ class RevisionTestWithRelation extends TestCase
                 $this->fillModelWithNewValue($aChild);
             }
         }
+        // \Log::info(print_r('updated', true));
 
         $modelGrandParent->push();
 
@@ -81,10 +93,10 @@ class RevisionTestWithRelation extends TestCase
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
 
-            $this->assertContains($aParentWithRevision->relationalRevisionIdentifier('self'),
+            $this->assertContains($aParentWithRevision->self_revision_identifier,
                 $grandParentRevision->child_revisions,
                 "The child_revision of GrandParent model should contains the revision of Parent model");
-            $this->assertEquals($modelGrandParent->relationalRevisionIdentifier('self'),
+            $this->assertEquals($modelGrandParent->self_revision_identifier,
                 $aParentRevision->parent_revision,
                 "The parent_revision of Parent model should equal to the GrandParent revision identifiers");
             $this->assertEquals($insertCount, count($aParentRevision->child_revisions),
@@ -93,9 +105,9 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentWithRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->relationalRevisionIdentifier('self'), $aParentRevision->child_revisions,
+                $this->assertContains($aChild->self_revision_identifier, $aParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
-                $this->assertEquals($aParentWithRevision->relationalRevisionIdentifier('self'),
+                $this->assertEquals($aParentWithRevision->self_revision_identifier,
                     $aChildRevision->parent_revision,
                     "The parent_revision of Child model should equal to the Parent revision identifiers");
                 $this->assertEmpty($aChildRevision->child_revisions,
@@ -107,10 +119,10 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentNoRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->relationalRevisionIdentifier('self'),
+                $this->assertContains($aChild->self_revision_identifier,
                     $grandParentRevision->child_revisions,
                     "The child_revision of GrandParent revision should contain the revisions` identifiers of Child model");
-                $this->assertEquals($modelGrandParent->relationalRevisionIdentifier('self'),
+                $this->assertEquals($modelGrandParent->self_revision_identifier,
                     $aChildRevision->parent_revision,
                     "The parent_revision of the revision`s identifiers of Child model should equal to the GrandParent revision identifiers");
                 $this->assertEmpty($aChildRevision->child_revisions,
@@ -141,7 +153,7 @@ class RevisionTestWithRelation extends TestCase
             }
             $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
-                clone $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
+                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
             }
         }
 
@@ -158,7 +170,8 @@ class RevisionTestWithRelation extends TestCase
         $parentsWithRevisionArray = [];
         $childrenArray = [];
 
-        $this->fillModelWithNewValue($modelGrandParent);
+        // $this->fillModelWithNewValue($modelGrandParent);
+        $modelGrandParent->setAsRelationalRevision();
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             array_push($parentsWithRevisionArray, clone $aParentWithRevision);
@@ -185,9 +198,9 @@ class RevisionTestWithRelation extends TestCase
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
 
-            $this->assertContains($aParentWithRevision->relationalRevisionIdentifier('self'), $grandParentRevision->child_revisions,
+            $this->assertContains($aParentWithRevision->self_revision_identifier, $grandParentRevision->child_revisions,
                 "The child_revision of GrandParent model should contain the revision of Parent model");
-            $this->assertEquals($modelGrandParent->relationalRevisionIdentifier('self'), $aParentRevision->parent_revision,
+            $this->assertEquals($modelGrandParent->self_revision_identifier, $aParentRevision->parent_revision,
                 "The parent_revision of Parent model should equal to the GrandParent revision identifiers");
             $this->assertEquals($insertCount, count($aParentRevision->child_revisions),
                 "The child_revision count of Parent should be " . $insertCount);
@@ -195,9 +208,9 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentWithRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->relationalRevisionIdentifier('self'), $aParentRevision->child_revisions,
+                $this->assertContains($aChild->self_revision_identifier, $aParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
-                $this->assertEquals($aParentWithRevision->relationalRevisionIdentifier('self'), $aChildRevision->parent_revision,
+                $this->assertEquals($aParentWithRevision->self_revision_identifier, $aChildRevision->parent_revision,
                     "The parent_revision of Child model should equal to the Parent revision identifiers");
                 $this->assertEmpty($aChildRevision->child_revisions,
                     "The child_revision count of Parent should be empty");
@@ -208,10 +221,10 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentNoRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->relationalRevisionIdentifier('self'),
+                $this->assertContains($aChild->self_revision_identifier,
                     $grandParentRevision->child_revisions,
                     "The child_revision of GrandParent revision should contain the revisions of Child model");
-                $this->assertEquals($modelGrandParent->relationalRevisionIdentifier('self'),
+                $this->assertEquals($modelGrandParent->self_revision_identifier,
                     $aChildRevision->parent_revision,
                     "The parent_revision of the revision`s identifiers of Child model should equal to the GrandParent revision identifiers");
                 $this->assertEmpty($aChildRevision->child_revisions,

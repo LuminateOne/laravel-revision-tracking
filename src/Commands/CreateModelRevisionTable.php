@@ -60,7 +60,7 @@ class CreateModelRevisionTable extends Command
         Schema::create($revisionTableName, function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('model_identifier');
-            $table->text('original_values');
+            $table->text('revisions')->nullable();
             $table->timestamps();
         });
 

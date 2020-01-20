@@ -51,7 +51,7 @@ class RevisionTracking
      *
      * @return Revision The newly created revision model
      */
-    public static function eloquentStoreDiff($model, $originalFields)
+    public static function eloquentStoreDiff($model, $originalFields = null)
     {
         $revisionModel = $model->getRevisionModel();
 
@@ -60,12 +60,9 @@ class RevisionTracking
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();
-        $revisionModel->original_values = $originalFields;
-
-        if($model->parentRevision){
-            $revisionModel->original_values['parent_revision'] = $model->relationalRevisionIdentifier('parent');
+        if($originalFields){
+            $revisionModel->original_values = $originalFields;
         }
-
         $revisionModel->save();
 
         $model->createdRevision = $revisionModel;
