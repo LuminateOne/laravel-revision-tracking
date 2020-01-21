@@ -103,7 +103,7 @@ $model->rollback($revisionId, false);
 
 #### Relational revision
 
-The relational revision will only work with a Model which have the relations loaded.
+**The relational revision will only work with a Model which have the relations loaded.**
 
 There are three models, and they have relations like this:
 ```php
@@ -115,6 +115,10 @@ There are three models, and they have relations like this:
     Product:    belonges to Order
 ```
 ##### Relation definitions:
+
+The model and revision relations depend on the way how the model is loaded.
+See the following examples:
+ 
 ###### Relation 1:
 ```php
     // When Eager loading with relations like this
@@ -153,7 +157,7 @@ There are three models, and they have relations like this:
     ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
     OrderRevision:      is the child revision of the ProductRevision
     CustomerRevision:   is the child revision of the ProductRevision
- ```
+```
 
 ##### Create relational revision automatically
 
@@ -204,12 +208,12 @@ $customer->push();
 ```
 
 ##### Update models manually
-You can updated the model manually like this:
 
-When update the model manually, you have to update models from 
-most top model to the most bottom model, in the following case
-from `$customer` to `$product`.
+When update models manually, you have to update models from 
+most top model to the most bottom model, in the 
+following case from `$customer` to `$product`.
 
+You can update the model manually like this:
 ```php
 // Eager loading with relations
 $customer = Customer::where('id', 1)->with([
