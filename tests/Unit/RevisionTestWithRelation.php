@@ -27,6 +27,7 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'all']);
         $this->relationUpdate();
         $this->relationRollback();
+        $this->setUpRelationAndUpdateModelManually();
     }
 
     /**
@@ -38,6 +39,7 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'single']);
         $this->relationUpdate();
         $this->relationRollback();
+        $this->setUpRelationAndUpdateModelManually();
     }
 
     /**
@@ -205,7 +207,7 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-        // Set the the relational revision manually, bencause the GrandParent model will ot be updated
+        // Set the the relational revision manually, because the GrandParent model will not be updated
         $modelGrandParent->setAsRelationalRevision();
         $modelGrandParent->push();
 
@@ -254,9 +256,90 @@ class RevisionTestWithRelation extends TestCase
         $this->assertEquals($grandParentRevision, $aRelationRevision, "The two revisions should be equal");
 
         if($grandParentRevision->hasRelatedRevision()){
-            $modelGrandParentCopy->rollback($grandParentRevision->id);
+            $changedGrandParent = GrandParent::find($modelGrandParentCopy->id);
+            $changedGrandParent->rollback($grandParentRevision->id);
         }
 
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+
+        $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
+        $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
+        $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
+
+        foreach ($parentsWithRevisionArray as $aParentWithRevision) {
+            $restoredParentWithRevision = ParentWithRevision::find($aParentWithRevision->id);
+            $hasDifferent = $this->compareTwoModel($aParentWithRevision, $restoredParentWithRevision);
+            $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
+        }
+
+        foreach ($childrenArray as $aChild) {
+            $restoredChild = Child::find($aChild->id);
+            $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
+            $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
+        }
+    }
+
+    private function setUpRelationAndUpdateModelManually()
+    {
+        // Create ParentWithRevision, ParentNoRevision, and Child model
+        $insertCount = 3;
+        $modelGrandParent = $this->setupModel(GrandParent::class);
+        for ($i = 0; $i < $insertCount; $i++) {
+            $modelParent = $this->setupModel(ParentWithRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(Child::class, ['parent_with_revision_id' => $modelParent->id]);
+            }
+            $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
+            }
+        }
+
+        // Load GrandParent with its relations
+        $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
+            'parentWithRevision' => function ($parent) {
+                $parent->with('children');
+            },
+            'parentNoRevision' => function ($parent) {
+                $parent->with('children');
+            }
+        ])->first();
+
+        // Set the the relational revision manually, because the GrandParent model will not be updated
+        $modelGrandParent->setAsRelationalRevision();
+
+        // Clone the original models and assign the model with new values
+        $modelGrandParentCopy = clone $modelGrandParent;
+        $parentsWithRevisionArray = [];
+        $childrenArray = [];
+
+        $this->updateModel($modelGrandParent);
+        foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+            array_push($parentsWithRevisionArray, clone $aParentWithRevision);
+            $this->updateModel($aParentWithRevision);
+            foreach ($aParentWithRevision->children as $aChild) {
+                array_push($childrenArray, clone $aChild);
+                $this->updateModel($aChild);
+            }
+        }
+
+        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
+            $this->updateModel($aParentNoRevision);
+            foreach ($aParentNoRevision->children as $aChild) {
+                array_push($childrenArray, clone $aChild);
+                $this->updateModel($aChild);
+            }
+        }
+
+        // Get the latest revision id and rollback with relation
+        $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->latest('id')->first();
+        $aRelationRevision = $modelGrandParentCopy->getRelationalRevision($grandParentRevision->id);
+        $this->assertEquals($grandParentRevision, $aRelationRevision, "The two revisions should be equal");
+
+        $changedGrandParent = GrandParent::find($modelGrandParentCopy->id);
+        $changedGrandParent->rollback($grandParentRevision->id);
+
+        $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
 
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);

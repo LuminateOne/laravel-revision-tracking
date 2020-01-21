@@ -143,10 +143,11 @@ trait Revisionable
         }
 
         if (array_key_exists('original_values', $targetRevision->revisions)) {
-            if (empty($targetRevision->original_values)) {
+            $originalValues = $targetRevision->original_values;
+            if (empty($originalValues)) {
                 $this->delete();
             } else {
-                foreach ($targetRevision->original_values as $key => $value) {
+                foreach ($originalValues as $key => $value) {
                     $this[$key] = $value;
                 }
                 $this->save();
