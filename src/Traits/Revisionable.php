@@ -29,26 +29,26 @@ trait Revisionable
     public $usingRevisionableTrait = true;
 
     /**
-     *  Catch the updated, deleted event
+     *  Catch the created, updated, deleted event
      */
     public static function bootRevisionable()
     {
         static::created(function ($model) {
-            // $model->trackChanges();
+            $model->trackChanges();
         });
 
         static::updated(function ($model) {
-            // \Log::info(print_r($model, true));
             $model->trackChanges();
         });
 
         static::deleted(function ($model) {
-            // $model->trackChanges();
+            $model->trackChanges();
             RevisionTracking::eloquentDelete($model);
         });
     }
 
-    public function setAsRelationalRevision(){
+    public function setAsRelationalRevision()
+    {
         $this->addThisModelToItsChildModel($this, $this);
     }
 
@@ -106,7 +106,7 @@ trait Revisionable
             return;
         }
 
-        if(!$this->parentModel->createdRevision){
+        if (!$this->parentModel->createdRevision) {
             RevisionTracking::eloquentStoreDiff($this->parentModel, null);
         }
 
@@ -117,7 +117,7 @@ trait Revisionable
 
     /**
      * Restoring the revision.
-     * Using the model name and the revision ID provided to retrieve the revision for the model
+     * Using the revision ID provided to retrieve the revision for the model
      *
      * @param integer $revisionId Revision ID for the model
      * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
@@ -164,8 +164,8 @@ trait Revisionable
     }
 
     /**
-     * Restoring the revision.
-     * Using the model name and the revision ID provided to retrieve the revision for the model
+     * Restoring the relational revision.
+     * Using the revision ID provided to retrieve the revision for the model
      *
      * @param integer $revisionId Revision ID for the model
      * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
@@ -180,20 +180,12 @@ trait Revisionable
         $relationalModelName = get_class($this);
 
         if (!$relationalRevision) {
-            throw new ErrorException("No relational revisions found for " . get_class($this) . " model");
-        }
-
-        if (!$relationalRevision->parent_revision && !$relationalRevision->child_revision) {
-            throw new ErrorException("No relational revisions found for " . get_class($this) . " model");
+            throw new ErrorException("Relational revisions not found for " . get_class($this) . " model");
         }
 
         while ($relationalRevision->parent_revision) {
             $relationalModelName = $relationalRevision->parent_revision['model_name'];
             $relationalRevision = $this->getTargetRevision($relationalRevision->parent_revision);
-        }
-
-        if (!$relationalRevision->child_revisions) {
-            throw new ErrorException("Child revisions not found for " . get_class($relationalModel) . " model");
         }
 
         $relationalModel = (new $relationalModelName())->where($relationalRevision->model_identifier)->first();
@@ -262,11 +254,11 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions();
-        //     ->where(function ($query) {
-        //     $query->where('parent_revision', '!=', '')
-        //         ->orWhere('child_revisions', '!=', '');
-        // });
+        return $this->allRevisions()
+            ->where(function ($query) {
+                $query->where('revisions', 'REGEXP', 's:[0-9]+:"parent";a:[0-9]+:')
+                    ->orWhere('revisions', 'REGEXP', 's:[0-9]+:"child";a:[0-9]+:');
+            });
     }
 
     /**

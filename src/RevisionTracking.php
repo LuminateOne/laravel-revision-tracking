@@ -60,7 +60,7 @@ class RevisionTracking
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();
-        if($originalFields){
+        if($originalFields !== null){
             $revisionModel->original_values = $originalFields;
         }
         $revisionModel->save();

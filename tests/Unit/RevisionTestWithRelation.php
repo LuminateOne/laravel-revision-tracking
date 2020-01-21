@@ -28,6 +28,7 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'all']);
         $this->relationUpdate();
         $this->relationRollback();
+        $this->noRevisionException();
     }
 
     /**
@@ -39,13 +40,24 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'single']);
         $this->relationUpdate();
         $this->relationRollback();
+        $this->noRevisionException();
     }
 
     /**
-     * Test update is a relation is loaded
-     * It will create GrandParent, PraentWithRevision, ParentNoRevision, Child
-     * It will check if the parent_revision of the Child revision equals to the Parent revision identifiers
-     * It will check if the child_revisions of the Parent revision contains to the Child revision identifiers
+     * Test relational rollback, it will create GrandParent, ParentWithRevision, ParentNoRevision, Child
+     *
+     * In the relationship of GrandParent           hasMany ParentWithRevision (Revision tracking turned on)
+     *                        ParentWithRevision    hasMany Child
+     *
+     *      It will check if the parent revision of the Child revision equals the Parent revision
+     *      It will check if the child revisions of the ParentWithRevision contains the Child
+     *      It will check if the parent revision of the Child is Parent
+     *
+     * In the relationship of GrandParent       hasMany ParentNoRevision (Revision tracking turned off)
+     *                        ParentNoRevision  hasMany Child
+     *
+     *      It will check if the parent revision of the Child is GrandParent
+     *
      */
     private function relationUpdate()
     {
@@ -91,11 +103,11 @@ class RevisionTestWithRelation extends TestCase
                 $this->fillModelWithNewValue($aChild);
             }
         }
-        // \Log::info(print_r('updated', true));
 
         $modelGrandParent->push();
 
         $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
+
         $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
             "The child revision count of GrandParent should be " . $insertCount);
 
@@ -141,10 +153,23 @@ class RevisionTestWithRelation extends TestCase
     }
 
     /**
-     * Test relational rollback
-     * It will create GrandParent, PraentWithRevision, ParentNoRevision, Child
-     * It will check if the parent_revision of the Child revision equals to the Parent revision identifiers
-     * It will check if the child_revisions of the Parent revision contains to the Child revision identifiers
+     * Test relational rollback, it will create GrandParent, ParentWithRevision, ParentNoRevision, Child
+     * This will test setAsRelationalRevision function, the GrandParent will not be updated, so we need to set the relation manually
+     *
+     * In the relationship of GrandParent           hasMany ParentWithRevision (Revision tracking turned on)
+     *                        ParentWithRevision    hasMany Child
+     *
+     *      It will check if the parent revision of the Child revision equals the Parent revision
+     *      It will check if the child revisions of the ParentWithRevision contains the Child
+     *      It will check if the parent revision of the Child is Parent
+     *
+     * In the relationship of GrandParent       hasMany ParentNoRevision (Revision tracking turned off)
+     *                        ParentNoRevision  hasMany Child
+     *
+     *      It will check if the parent revision of the Child is GrandParent
+     *
+     * It will use a Child to perform the rollback action
+     * After rollback, it will check the fillbale value between restored model and original model
      */
     private function relationRollback()
     {
@@ -166,20 +191,18 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-        $modelGrandParent->load([
+        $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
             'parentWithRevision' => function ($parent) {
                 $parent->with('children');
             },
             'parentNoRevision' => function ($parent) {
                 $parent->with('children');
             }
-        ]);
+        ])->first();
 
         $modelGrandParentCopy = clone $modelGrandParent;
         $parentsWithRevisionArray = [];
         $childrenArray = [];
-
-        $modelGrandParent->setAsRelationalRevision();
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             array_push($parentsWithRevisionArray, clone $aParentWithRevision);
@@ -197,11 +220,14 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        $modelGrandParent->setAsRelationalRevision();
         $modelGrandParent->push();
-        $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
 
+        $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
+        $this->assertEquals(null, $grandParentRevision->parent_revision, "GrandParent should not have parent revision");
         $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
             "The child revision count of GrandParent should be " . $insertCount);
+        $this->assertEquals(null, $grandParentRevision->original_values, "GrandParent should not have original values");
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
@@ -240,15 +266,15 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-        // Get the latested revision id and rollback with relation
+        // Get the latest revision id and rollback with relation
         $aChildMode = $modelGrandParent->parentWithRevision[0]->children[0];
         $relationalRevisions = $aChildMode->allRelationalRevisions()->first();
         $aChildMode->rollbackWithRelation($relationalRevisions->id);
 
         $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->latest('id')->first();
         $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $insertCount);
-        $restoredGrandParentWithRevision = GrandParent::find($modelGrandParentCopy->id);
-        $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParentWithRevision);
+        $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
+        $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
         $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
 
         foreach ($parentsWithRevisionArray as $aParentWithRevision) {
@@ -261,6 +287,16 @@ class RevisionTestWithRelation extends TestCase
             $restoredChild = Child::find($aChild->id);
             $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
             $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
+        }
+    }
+
+    private function noRevisionException(){
+        $modelGrandParent = GrandParent::where('id', 1)->first();
+
+        try{
+            $modelGrandParent->rollbackWithRelation(1);
+        } catch (\Throwable $exception){
+            $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
         }
     }
 }
