@@ -290,9 +290,8 @@ class RevisionTestWithRelation extends TestCase
     }
 
     private function noRevisionException(){
-        $modelGrandParent = GrandParent::where('id', 1)->first();
-
         try{
+            $modelGrandParent = GrandParent::where('id', 1)->first();
             $modelGrandParent->rollbackWithRelation(1);
         } catch (\Throwable $exception){
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
