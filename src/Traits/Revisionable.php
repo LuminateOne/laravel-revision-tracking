@@ -156,8 +156,9 @@ trait Revisionable
         if (array_key_exists('child', $targetRevision->revisions)) {
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
-                $revision = $this->getTargetRevision($aChildRevision);
-                $childModel = (new $modelName())->where($revision->model_identifier)->first();
+                $targetModel = new $modelName();
+                $revision = $targetModel->getRevisionModel()->find($revisionInfo['revision_id']);;
+                $childModel = $targetModel->where($revision->model_identifier)->first();
 
                 if ($childModel->usingRevisionableTrait) {
                     $childModel->parentModel = $this;
@@ -170,19 +171,7 @@ trait Revisionable
             $this->allRevisions()->where('id', '>=', $revisionId)->delete();
         }
     }
-
-    /**
-     * Get a revision from another revision
-     *
-     * @param array $revisionInfo
-     * @return mixed
-     */
-    public function getTargetRevision($revisionInfo)
-    {
-        $modelName = $revisionInfo['model_name'];
-        return (new $modelName())->getRevisionModel()->find($revisionInfo['revision_id']);
-    }
-
+    
     /**
      * Get a specific revision by the revision ID.
      *
