@@ -98,3 +98,16 @@ $model->rollback($revisionId, false);
 
 #### Relational revision
 
+This package works with models which have the relations loaded.
+```php
+class GrandParent extends Model
+{
+    /**
+     * A grand parent has many parents
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function parentWithRevision(){
+        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
+    }
+```
