@@ -210,8 +210,6 @@ class RevisionTestWithRelation extends TestCase
 
         $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
         $this->assertEquals($expected, count($grandParentRevision->child_revisions), "The child revision count of GrandParent should be " . $expected);
-
-        $this->assertEquals(null, $grandParentRevision->parent_revision, "GrandParent should not have parent revision");
         $this->assertEquals(null, $grandParentRevision->original_values, "GrandParent should not have original values");
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
