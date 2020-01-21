@@ -50,6 +50,8 @@ php artisan table:revision {modelName}
 ```
 See the [revision_tracking.php](config/config.php) config file for more detail.
 ## Docs
+- [Basic Usage](#markdown-basic-usage)
+- [Relational revision](#markdown-relational-revision)
 
 #### Basic Usage
 
@@ -93,3 +95,6 @@ $model->rollback($revisionId);
 
 $model->rollback($revisionId, false);
 ```
+
+#### Relational revision
+
