@@ -164,7 +164,7 @@ See the following examples:
 If you want to create the relational revision automatically, 
 the most top parent model has to be updated 
 (in the following case, the most top parent model is `Customer`). 
-Otherwise, you can [create the relational revision manually](#markdown-header-create-relational-revision-manually).
+Otherwise, you have to [create the relational revision manually](#markdown-header-create-relational-revision-manually).
 
 You can create relational revision automatically like this:
 ```php
