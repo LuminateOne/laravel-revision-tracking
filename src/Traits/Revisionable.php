@@ -93,17 +93,16 @@ trait Revisionable
 
             foreach (array_filter($relations) as $aRelation) {
                 if ($aRelation->usingRevisionableTrait) {
-                    if(!$aRelation->parentModel){
-                        $aRelation->parentModel = $parentModel;
-                        $aRelation->addThisModelToItsChildModels($aRelation, $parentModel);
+                    if($aRelation->parentModel){
+                        return;
                     }
-                } else {
-                    // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
-                    // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
-                    // because when a model without the revision control turned on involved,
-                    // it will break the recursive loop
-                    $this->addThisModelToItsChildModels($aRelation, $parentModel);
+                    $aRelation->parentModel = $parentModel;
                 }
+                // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
+                // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
+                // because when a model without the revision control turned on involved,
+                // it will break the recursive loop
+                $this->addThisModelToItsChildModels($aRelation, $parentModel);
             }
         }
     }
