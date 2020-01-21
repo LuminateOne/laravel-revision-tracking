@@ -22,7 +22,7 @@ class CustomPrimaryKey extends Model
         }
 
         Schema::create($this->getTable(), function (Blueprint $table) {
-            $table->string('name')->unique();
+            $table->string('name')->unique('unique1');
             $table->string('name1');
             $table->string('name2');
             $table->string('name3');

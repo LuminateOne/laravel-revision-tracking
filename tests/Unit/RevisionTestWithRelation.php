@@ -1,5 +1,4 @@
 <?php
-
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
 use Illuminate\Support\Facades\Schema;
@@ -12,13 +11,34 @@ use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
 class RevisionTestWithRelation extends TestCase
 {
     /**
-     * Change the revision mode to all
+     * Setup the test
      */
     public function setUp(): void
     {
         parent::setUp();
+        $this->setupRevisionTable();
+    }
 
+    /**
+     * Test relational revision mode all
+     *
+     * @throws \Exception
+     */
+    public function testRelationalRevisionModeAll(){
         config(['revision_tracking.mode' => 'all']);
+        $this->relationUpdate();
+        $this->relationRollback();
+    }
+
+    /**
+     * Test relational revision mode single
+     *
+     * @throws \Exception
+     */
+    public function testRelationalRevisionModeSingle(){
+        config(['revision_tracking.mode' => 'single']);
+        $this->relationUpdate();
+        $this->relationRollback();
     }
 
     /**
@@ -27,7 +47,7 @@ class RevisionTestWithRelation extends TestCase
      * It will check if the parent_revision of the Child revision equals to the Parent revision identifiers
      * It will check if the child_revisions of the Parent revision contains to the Child revision identifiers
      */
-    public function testRelationUpdate()
+    private function relationUpdate()
     {
         $modelGrandParent = $this->setupModel(GrandParent::class);
 
@@ -47,16 +67,6 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-
-        // $modelGrandParent = GrandParent::find($modelGrandParent->id)->with([
-        //     'parentWithRevision' => function ($parent) {
-        //         $parent->with('children');
-        //     },
-        //     'parentNoRevision' => function ($parent) {
-        //         $parent->with('children');
-        //     }
-        // ])->get();
-        // \Log::info(print_r($modelGrandParent, true));
         $modelGrandParent->load([
             'parentWithRevision' => function ($parent) {
                 $parent->with('children');
@@ -66,8 +76,7 @@ class RevisionTestWithRelation extends TestCase
             }
         ]);
 
-        // $this->fillModelWithNewValue($modelGrandParent);
-        $modelGrandParent->setAsRelationalRevision();
+        $this->fillModelWithNewValue($modelGrandParent);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $this->fillModelWithNewValue($aParentWithRevision);
@@ -137,7 +146,7 @@ class RevisionTestWithRelation extends TestCase
      * It will check if the parent_revision of the Child revision equals to the Parent revision identifiers
      * It will check if the child_revisions of the Parent revision contains to the Child revision identifiers
      */
-    public function testRelationRollback()
+    private function relationRollback()
     {
         $modelGrandParent = $this->setupModel(GrandParent::class);
 
@@ -170,7 +179,6 @@ class RevisionTestWithRelation extends TestCase
         $parentsWithRevisionArray = [];
         $childrenArray = [];
 
-        // $this->fillModelWithNewValue($modelGrandParent);
         $modelGrandParent->setAsRelationalRevision();
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {

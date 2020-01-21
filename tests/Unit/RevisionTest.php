@@ -9,6 +9,21 @@ use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
 class RevisionTest extends TestCase
 {
     /**
+     * Test Exception when the revision table not exist
+     *
+     * @throws \Exception
+     */
+    public function testNoRevisionTableException(){
+        config(['revision_tracking.mode' => 'all']);
+        $this->noRevisionTableException();
+
+        config(['revision_tracking.mode' => 'single']);
+        $this->noRevisionTableException();
+
+        $this->setupRevisionTable();
+    }
+
+    /**
      * Test revision mode all
      *
      * @throws \Exception
@@ -18,7 +33,6 @@ class RevisionTest extends TestCase
         config(['revision_tracking.mode' => 'all']);
 
         $this->noRevisionTableException();
-        $this->setupRevisionTable();
         $this->update();
         $this->getAllRevision();
         $this->getRevision();
@@ -38,7 +52,6 @@ class RevisionTest extends TestCase
     {
         config(['revision_tracking.mode' => 'single']);
 
-        $this->noRevisionTableException();
         $this->update();
         $this->getAllRevision();
         $this->getRevision();
@@ -58,14 +71,8 @@ class RevisionTest extends TestCase
     private function noRevisionTableException()
     {
         try {
-            $model = new DefaultPrimaryKey();
-            // $this->fillModelWithNewValue($model);
-            foreach (($model->getFillable()) as $key) {
-                $model[$key] = $faker->name;
-            }
-            $model->save();
+            $model = $this->setupModel(DefaultPrimaryKey::class);
             $this->updateModel($model);
-            // $this->setupModel(DefaultPrimaryKey::class);
         } catch (\Throwable $exception) {
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;

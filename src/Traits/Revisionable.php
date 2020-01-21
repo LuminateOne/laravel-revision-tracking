@@ -88,7 +88,7 @@ trait Revisionable
                     $aRelation->parentModel = $parentModel;
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
-                    // We need to always use `$this` to call the addThisRevisionToChildRelation recursively,
+                    // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
                     // because when a model without the revision control turned on involved,
                     // it will break the recursive loop
                     $this->addThisModelToItsChildModel($aRelation, $parentModel);
@@ -146,7 +146,6 @@ trait Revisionable
         }
 
         if (array_key_exists('child', $targetRevision->revisions)) {
-
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
                 $revision = $this->getTargetRevision($aChildRevision);

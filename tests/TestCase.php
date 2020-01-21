@@ -5,6 +5,13 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use LuminateOne\RevisionTracking\Tests\Models\Child;
+use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
+use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision;
+use LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimarykey;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -13,8 +20,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
     public function setUp(): void
     {
         parent::setUp();
-
-        $this->setupRevisionTable();
     }
 
     /**
@@ -27,16 +32,58 @@ class TestCase extends \Orchestra\Testbench\TestCase
     }
 
     /**
-     * Create revision table
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        $app['config']->set('database.connections.mysql', [
+            'driver' => 'mysql',
+            'host' => '127.0.0.1',
+            'port' => '3306',
+            'database' => 'yiming_laravel_revision_tracking',
+            'username' => 'root',
+            'password' => '',
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+        ]);
+    }
+
+    /**
+     * Create revision tables
      */
     public function setupRevisionTable()
     {
-        if (Schema::hasTable('revisions')) {
-            return;
+        if (!Schema::hasTable('revisions')) {
+            include_once __DIR__ . '/../migrations/create_revisions_table.php';
+            (new \CreateRevisionsTable)->up();
         }
 
-        include_once __DIR__ . '/../migrations/create_revisions_table.php';
-        (new \CreateRevisionsTable)->up();
+        $models = [
+            new Child(),
+            new CustomPrimaryKey(),
+            new DefaultPrimarykey(),
+            new GrandParent(),
+            new NoPrimaryKey(),
+            new ParentNoRevision(),
+            new ParentWithRevision()
+        ];
+
+        foreach ($models as $aModel) {
+            if ($aModel->usingRevisionableTrait) {
+                $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $aModel->getTable();
+                if (!Schema::hasTable($revisionTableName)) {
+                    Schema::create($revisionTableName, function (Blueprint $table) {
+                        $table->bigIncrements('id');
+                        $table->text('model_identifier');
+                        $table->text('revisions')->nullable();
+                        $table->timestamps();
+                    });
+                }
+            }
+        }
     }
 
     /**
@@ -79,7 +126,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
      *
      * @return boolean
      */
-    public function compareTwoModel($modelA, $modelB){
+    public function compareTwoModel($modelA, $modelB)
+    {
         $hasDifferent = false;
         foreach ($modelA->getFillable() as $key) {
             if ($modelB[$key] !== $modelA[$key]) {
@@ -106,19 +154,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
         $model = new $modelClass();
         $model->createTable();
-
-        if ($model->usingRevisionableTrait && $model->revisionMode() === 'single') {
-            $revisionTableName = config('revision_tracking.table_prefix', 'revisions_') . $model->getTable();
-
-            if (!Schema::hasTable($revisionTableName)) {
-                Schema::create($revisionTableName, function (Blueprint $table) {
-                    $table->bigIncrements('id');
-                    $table->text('model_identifier');
-                    $table->text('revisions')->nullable();
-                    $table->timestamps();
-                });
-            }
-        }
 
         foreach (($model->getFillable()) as $key) {
             $model[$key] = $faker->name;
