@@ -76,7 +76,7 @@ trait Revisionable
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
         $this->addThisModelToItsChildModels($this, $this);
-        $this->updateParentRevisions();
+        $this->updateParentRevision();
     }
 
     /**
@@ -110,7 +110,7 @@ trait Revisionable
     /**
      * Update parent revision and self revision
      */
-    public function updateParentRevisions()
+    public function updateParentRevision()
     {
         if (!$this->parentModel) {
             return;
