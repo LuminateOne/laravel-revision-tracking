@@ -85,7 +85,7 @@ You can get a single revision with a `revision id` for a specific model like thi
 $revision = $model->getRevision($revisionId);
 ```
 
-You can get rollback to a specific revision with a `revision id` for a specific model like this:
+You can rollback to a specific revision with a `revision id` for a specific model like this:
 ```php
 // $revisionId, integer, an id of a revision
 // $rollback,   boolean, true will save the “rollback” as a new revision of the model
@@ -157,7 +157,7 @@ the most top parent model has to updated, in this case the
 most top parent model is `$customer`. Otherwise you can 
 [create the relational revision manually](#markdown-create-relational-revision-manually).
 
-You can create relational revision like this:
+You can create relational revision automatically like this:
 ```php
     // Eager loading with relations
     $customer = Customer::where('id', 1)->with([
@@ -175,7 +175,10 @@ You can create relational revision like this:
 
 ##### Create relational revision manually
 
-If any of the `parent` model will not be updated, you need to call this method manually `before you update the model`, after the `child` model is updated it will create a revision for its parent:
+If most top model will not be updated, you need to call this method manually 
+`before you update the model`, after the `child` model is updated it will 
+create a revision for its parent.
+
 ```php
 // Eager loading with relations
 $customer = Customer::where('id', 1)->with([
@@ -188,13 +191,19 @@ $customer->setAsRelationalRevision();
 
 // Your logic here
 
-// After order is updated it will create a revision for the customer, 
-// and set the customer revision as the parent revision of 
-// the order reivsion
-$customer->order[0]->save();
+// After the child model (order or product) is updated it will create 
+// a revision for the customer, and setup the relation between 
+// customer revision and the order reivsion
+$customer->push();
 ```
 
-You can updated the model separately like this:
+##### Updated the model and create relational revision manually
+You can updated the model manually like this:
+
+When update the model manually, you have to update models from 
+most top model to the most bottom model, in the following case
+from `$customer` to `$product`.
+
 ```php
 // Eager loading with relations
 $customer = Customer::where('id', 1)->with([
@@ -206,5 +215,48 @@ $customer = Customer::where('id', 1)->with([
 // call `setAsRelationalRevision` to set relations with its child model manually
 $customer->setAsRelationalRevision();
 
-foreach($customer)
+// Your logic here
+// update $customer, $order and $product
+
+// This one is equvilent to the $customer->push()
+$customer->save();
+foreach($customer->order as $aOrder){
+    $aOrder->save();
+    foreach($aOrder->$product as $aProduct){
+        $aProduct->save();
+    }
+}
+```
+
+##### Retrieve the relational revisions
+You can get the all relational revisions like this:
+```php
+// Returns collection of relational revision
+$relationalRevision = $model->allRelationalRevisions();
+```
+`allRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+
+You can get a single relational revisions like this:
+```php
+// Returns a single relational revision
+$relationalRevision = $model->getRelationalRevision($reivsionId);
+```
+
+You can check if a revision is a relational revisions like this:
+```php
+// Returns boolean
+if($reivsion->hasRelatedRevision()){
+    // Your logic here
+}
+```
+
+You can rollback to a specific relational revision with a `revision id` for a specific model like this:
+```php
+// $revisionId, integer, an id of a revision
+// $rollback,   boolean, true will save the “rollback” as a new revision of the model
+//                       false will delete the revisions that came after that revision
+
+$model->rollback($relationalRevisionId);
+
+$model->rollback($relationalRevisionId, false);
 ```
