@@ -173,35 +173,6 @@ trait Revisionable
     }
 
     /**
-     * Restoring the relational revision.
-     * Using the revision ID provided to retrieve the revision for the model
-     *
-     * @param integer $revisionId Revision ID for the model
-     * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
-     *                                false => rollback to a specific revision and delete all the revisions that came
-     *                                           after that revision
-     *
-     * @throws ErrorException  If the revision or the original record cannot be found
-     */
-    public function rollbackWithRelation($revisionId, $saveAsRevision = true)
-    {
-        $relationalRevision = $this->getRelationalRevision($revisionId);
-        $relationalModelName = get_class($this);
-
-        if (!$relationalRevision) {
-            throw new ErrorException("Relational revisions not found for " . get_class($this) . " model");
-        }
-
-        while ($relationalRevision->parent_revision) {
-            $relationalModelName = $relationalRevision->parent_revision['model_name'];
-            $relationalRevision = $this->getTargetRevision($relationalRevision->parent_revision);
-        }
-
-        $relationalModel = (new $relationalModelName())->where($relationalRevision->model_identifier)->first();
-        $relationalModel->rollback($relationalRevision->id, $saveAsRevision);
-    }
-
-    /**
      * Get a revision from another revision
      *
      * @param array $revisionInfo
@@ -263,11 +234,7 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions()
-            ->where(function ($query) {
-                $query->where('revisions', 'REGEXP', 's:[0-9]+:"parent";a:[0-9]+:')
-                    ->orWhere('revisions', 'REGEXP', 's:[0-9]+:"child";a:[0-9]+:');
-            });
+        return $this->allRevisions()->where('revisions', 'REGEXP', 's:[0-9]+:"child";a:[0-9]+:');
     }
 
     /**

@@ -13,6 +13,14 @@ class Revision extends Model
     protected $fillable = ['model_identifier', 'revisions', 'model_name'];
 
     /**
+     * Check if the revision has related revisions
+     * @return bool
+     */
+    public function hasRelatedRevision(){
+        return $this->child_revisions ? true: false;
+    }
+
+    /**
      * A function to append the child revision to revisions attributes
      *
      * @param array $value
