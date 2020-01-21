@@ -13,7 +13,22 @@
             "LuminateOne\\RevisionTracking\\": "src/"
         }
     },
-
+    "autoload-dev": {
+        "psr-4": {
+            "LuminateOne\\RevisionTracking\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LuminateOne\\RevisionTracking\\Providers\\RevisionServiceProvider"
+            ]
+        }
+    },
     "minimum-stability": "dev",
-    "require": {}
+    "require": {},
+    "require-dev": {
+        "orchestra/testbench": "3.8",
+        "phpunit/phpunit": "^7.0"
+    }
 }

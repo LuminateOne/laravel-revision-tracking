@@ -11,6 +11,11 @@ use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
  */
 class RevisionServiceProvider extends ServiceProvider
 {
+    public function register()
+    {
+        $this->mergeConfigFrom(__DIR__.'/../../config/config.php', 'revision_tracking');
+    }
+
     /**
      * Bootstrap revision tracking services.
      *
@@ -18,13 +23,14 @@ class RevisionServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $configPath = realpath(__DIR__ . '/../../config/config.php');
-        $this->publishes([$configPath => config_path('revision_tracking.php')], 'config');
-
-        $migrationPath = realpath(__DIR__ . '/../../migrations');
-        $this->loadMigrationsFrom($migrationPath);
-
         if ($this->app->runningInConsole()) {
+            $configPath = realpath(__DIR__ . '/../../config/config.php');
+            $this->publishes([$configPath => config_path('revision_tracking.php')], 'config');
+
+            $this->publishes([
+                __DIR__ . '/../../migrations/create_revisions_versions_table.php' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_posts_table.php'),
+            ], 'migrations');
+
             $this->commands([
                 CreateModelRevisionTable::class
             ]);
