@@ -162,8 +162,8 @@ See the following examples:
 ##### Create relational revision automatically
 
 If you want to create the relational revision automatically, 
-the most top parent model has to be updated, 
-in the following case, the most top parent model is `$customer`. 
+the most top parent model has to be updated 
+(in the following case, the most top parent model is `Customer`). 
 Otherwise, you can [create the relational revision manually](#markdown-header-create-relational-revision-manually).
 
 You can create relational revision automatically like this:
@@ -184,10 +184,10 @@ You can create relational revision automatically like this:
 
 ##### Create relational revision manually
 
-If most top model will not be updated (in the following case the `$customer` will not be updated),
-you need to call this method manually `before you update the model`, 
-after the `child` model is updated it will 
-create a revision for its parent.
+If most top model will not be updated (in the following case, the `$customer` will not be updated),
+you need to call this method manually `before you update the model`, after the `child` model 
+(in the following case, the `Order` and the `Product` are the child models) 
+is updated it will create a revision for its parent.
 
 ```php
 // Eager loading with relations
@@ -197,6 +197,7 @@ $customer = Customer::where('id', 1)->with([
     }
 ])->first();
 
+// After relations are loaded, call this method manually with the most top model
 $customer->setAsRelationalRevision();
 
 // Your logic here
@@ -210,8 +211,8 @@ $customer->push();
 ##### Update models manually
 
 When update models manually, you have to update models from 
-the most top model to the most bottom model, in the 
-following case from `$customer` to `$product`.
+the most top model to the most bottom model 
+(in the following case, from `Customer` to `Product`).
 
 You can update the model manually like this:
 ```php
@@ -222,14 +223,14 @@ $customer = Customer::where('id', 1)->with([
     }
 ])->first();
 
-// call `setAsRelationalRevision` to set relations with its child model manually, 
-// if the $customer will not be updated
+// if the $customer will not be updated call `setAsRelationalRevision` manually
+// to set relations with its child model.
 $customer->setAsRelationalRevision();
 
 // Your logic here
 // assign new values to $customer, $order and $product
 
-// This one is equvilent to the $customer->push()
+// This is equvilent to the $customer->push()
 $customer->save();
 foreach($customer->order as $aOrder){
     $aOrder->save();
