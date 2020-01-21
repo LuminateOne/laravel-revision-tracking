@@ -120,20 +120,14 @@ There are three models, and they have relations like this:
     ])->first();
     
     // Model relations:
-    Customer:   is the parent model of the Order
-    
+    Customer:   is the parent model of the Order and Product
     Order:      is the child model of the Customer
-                is the parent model of the Product 
-    
-    Product:    is the child model of the Order
+    Product:    is the child model of the Customer
      
     // Revision relations:
-    CustomerRevision:    is the parent revision of the OrderRevision
-    
-    OrderRevision:       is the child revision of the CustomerRevision
-                         is the parent revision of the ProductRevision
-                         
-    ProductRevision:     is the child revision of the OrderRevision
+    CustomerRevision:    is the parent revision of the OrderRevision and ProductRevision
+    OrderRevision:       is the child revision of the CustomerRevision                         
+    ProductRevision:     is the child revision of the CustomerRevision
 ```
 
 ###### Relation 2:
@@ -146,21 +140,14 @@ There are three models, and they have relations like this:
     ])->first();
     
     // Model relations:
-    Product:    is the parent model of the Order
-
-    Order:      is the child model of the Product
-                is the parent model of the Customer 
-                
+    Product:    is the parent model of the Order and Customer
+    Order:      is the child model of the Product                
     Customer:   is the child model of the Order
     
-     
     // Revision relations:
-    ProductRevision:    is the parent revision of the OrderRevision
-
-    OrderRevision:       is the child revision of the ProductRevision
-                         is the parent revision of the CustomerRevision
-                         
-    CustomerRevision:    is the child revision of the OrderRevision
+    ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
+    OrderRevision:      is the child revision of the ProductRevision
+    CustomerRevision:   is the child revision of the ProductRevision
  ```
 
 ##### Create relational revision automatically
