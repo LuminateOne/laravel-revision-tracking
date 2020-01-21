@@ -13,7 +13,7 @@ class ParentWithRevision extends Model
     protected $fillable = ['first_name', 'last_name'];
 
     /**
-     * A parent belongs to grand parent
+     * A parent belongs to grandparent
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

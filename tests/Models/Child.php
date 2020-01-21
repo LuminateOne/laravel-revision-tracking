@@ -13,7 +13,7 @@ class Child extends Model
     protected $fillable = ['first_name', 'last_name'];
 
     /**
-     * A child belongs to parent
+     * A child belongs to parentWithRevision
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -22,7 +22,7 @@ class Child extends Model
     }
 
     /**
-     * A child belongs to parent2
+     * A child belongs to ParentNoRevision
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
