@@ -109,10 +109,10 @@ There are three models, and they have relations like this:
 ```php
     Customer:   has many Order
     
-    Order:      belonges to Customer, 
+    Order:      belongs to Customer, 
                 and has many Product
                 
-    Product:    belonges to Order
+    Product:    belongs to Order
 ```
 ##### Relation definitions:
 
@@ -162,9 +162,9 @@ See the following examples:
 ##### Create relational revision automatically
 
 If you want to create the relational revision automatically, 
-the most top parent model has to updated, in this case the 
-most top parent model is `$customer`. Otherwise you can 
-[create the relational revision manually](#markdown-header-create-relational-revision-manually).
+the most top parent model has to be updated, 
+in the following case, the most top parent model is `$customer`. 
+Otherwise, you can [create the relational revision manually](#markdown-header-create-relational-revision-manually).
 
 You can create relational revision automatically like this:
 ```php
@@ -202,15 +202,15 @@ $customer->setAsRelationalRevision();
 // Your logic here
 
 // After the child model (order or product) is updated it will create 
-// a revision for the customer, and setup the relation between 
-// customer revision and the order reivsion
+// a revision for the customer, and set up the relation between 
+// customer revision and the order revision
 $customer->push();
 ```
 
 ##### Update models manually
 
 When update models manually, you have to update models from 
-most top model to the most bottom model, in the 
+the most top model to the most bottom model, in the 
 following case from `$customer` to `$product`.
 
 You can update the model manually like this:
