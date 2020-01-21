@@ -244,7 +244,7 @@ foreach($customer->order as $aOrder){
 You can get all the relational revisions like this:
 ```php
 // Returns collection of relational revision
-$relationalRevision = $model->allRelationalRevisions();
+$relationalRevision = $model->allRelationalRevisions()->get();
 ```
 `allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
