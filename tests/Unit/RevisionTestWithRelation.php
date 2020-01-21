@@ -58,7 +58,7 @@ class RevisionTestWithRelation extends TestCase
      *      It will check if the parent revision of the Child is GrandParent
      *
      */
-    private function relationUpdate()
+    public function testRelationUpdate()
     {
         $modelGrandParent = $this->setupModel(GrandParent::class);
 

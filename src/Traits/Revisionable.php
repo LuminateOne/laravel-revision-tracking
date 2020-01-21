@@ -76,7 +76,7 @@ trait Revisionable
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
         $this->addThisModelToItsChildModels($this, $this);
-        $this->updateRelatedRevisions();
+        $this->updateParentRevisions();
     }
 
     /**
@@ -95,6 +95,7 @@ trait Revisionable
                 if ($aRelation->usingRevisionableTrait) {
                     if(!$aRelation->parentModel){
                         $aRelation->parentModel = $parentModel;
+                        $aRelation->addThisModelToItsChildModels($aRelation, $parentModel);
                     }
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
@@ -110,7 +111,7 @@ trait Revisionable
     /**
      * Update parent revision and self revision
      */
-    public function updateRelatedRevisions()
+    public function updateParentRevisions()
     {
         if (!$this->parentModel) {
             return;
@@ -121,8 +122,6 @@ trait Revisionable
         }
 
         $this->parentModel->createdRevision->addChildRevision($this->self_revision_identifier);
-
-        $this->createdRevision->addParentRevision($this->parent_revision_identifier);
     }
 
     /**
@@ -326,19 +325,6 @@ trait Revisionable
         return [
             'revision_id' => $this->createdRevision->id,
             'model_name' => get_class($this)
-        ];
-    }
-
-    /**
-     * An accessor to get the parent revision identifier
-     *
-     * @return mixed
-     */
-    public function getParentRevisionIdentifierAttribute()
-    {
-        return [
-            'revision_id' => $this->parentModel->createdRevision->id,
-            'model_name' => get_class($this->parentModel)
         ];
     }
 
