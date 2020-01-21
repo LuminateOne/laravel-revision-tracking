@@ -55,7 +55,7 @@ See the [revision_tracking.php](config/config.php) config file for more detail.
     - [Relation definitions](#markdown-header-relation-definitions)
     - [Create relational revision automatically](#markdown-header-create-relational-revision-automatically)
     - [Create relational revision manually](#markdown-header-create-relational-revision-manually)
-    - [Update models and create relational revision manually](#markdown-header-updated-the-model-and-create-relational-revision-manually)
+    - [Update models manually](#markdown-header-update-models-manually)
     - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
 
 #### Basic Usage
@@ -160,7 +160,7 @@ There are three models, and they have relations like this:
 If you want to create the relational revision automatically, 
 the most top parent model has to updated, in this case the 
 most top parent model is `$customer`. Otherwise you can 
-[create the relational revision manually](#markdown-create-relational-revision-manually).
+[create the relational revision manually](#markdown-header-create-relational-revision-manually).
 
 You can create relational revision automatically like this:
 ```php
@@ -180,8 +180,9 @@ You can create relational revision automatically like this:
 
 ##### Create relational revision manually
 
-If most top model will not be updated, you need to call this method manually 
-`before you update the model`, after the `child` model is updated it will 
+If most top model will not be updated (in the following case the `$customer` will not be updated),
+you need to call this method manually `before you update the model`, 
+after the `child` model is updated it will 
 create a revision for its parent.
 
 ```php
@@ -202,7 +203,7 @@ $customer->setAsRelationalRevision();
 $customer->push();
 ```
 
-##### Update models and create relational revision manually
+##### Update models manually
 You can updated the model manually like this:
 
 When update the model manually, you have to update models from 
@@ -217,11 +218,12 @@ $customer = Customer::where('id', 1)->with([
     }
 ])->first();
 
-// call `setAsRelationalRevision` to set relations with its child model manually
+// call `setAsRelationalRevision` to set relations with its child model manually, 
+// if the $customer will not be updated
 $customer->setAsRelationalRevision();
 
 // Your logic here
-// update $customer, $order and $product
+// assign new values to $customer, $order and $product
 
 // This one is equvilent to the $customer->push()
 $customer->save();
