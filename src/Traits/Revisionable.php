@@ -12,7 +12,7 @@ trait Revisionable
 {
     /**
      * Holds the parent model
-     * @var string
+     * @var Model
      */
     public $parentModel = null;
 
