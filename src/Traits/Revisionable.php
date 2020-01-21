@@ -93,7 +93,9 @@ trait Revisionable
 
             foreach (array_filter($relations) as $aRelation) {
                 if ($aRelation->usingRevisionableTrait) {
-                    $aRelation->parentModel = $parentModel;
+                    if(!$aRelation->parentModel){
+                        $aRelation->parentModel = $parentModel;
+                    }
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
                     // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
