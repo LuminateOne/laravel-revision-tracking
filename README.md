@@ -246,7 +246,7 @@ You can get all the relational revisions like this:
 // Returns collection of relational revision
 $relationalRevision = $model->allRelationalRevisions();
 ```
-`allRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
 You can get a single relational revisions like this:
 ```php
