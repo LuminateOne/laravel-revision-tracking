@@ -100,7 +100,7 @@ $model->rollback($revisionId, false);
 
 The relational revision will only work with a Model which have the relations loaded.
 
-Model relations like this:
+There are three models, and they have relations like this:
 ```php
     GrandParent has many Parent
     Parent has many Child
@@ -122,7 +122,7 @@ You can create relational revision like this:
     $grandParent->push();
 ```
 
-If the `GrandParent` will not be updated, you need to call this method manually, after the `Parent` and `Child` model is updated it will create a relational revision:
+If the `GrandParent` will not be updated, you need to call this method manually `before you update the model`, after the `Parent` and `Child` model is updated it will create a relational revision:
 ```
 $grandParent->setAsRelationalRevision();
 ``` 
