@@ -157,7 +157,7 @@ trait Revisionable
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
                 $targetModel = new $modelName();
-                $revision = $targetModel->getRevisionModel()->find($revisionInfo['revision_id']);;
+                $revision = $targetModel->getRevisionModel()->find($aChildRevision['revision_id']);;
                 $childModel = $targetModel->where($revision->model_identifier)->first();
 
                 if ($childModel->usingRevisionableTrait) {
