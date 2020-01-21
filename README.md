@@ -240,7 +240,7 @@ foreach($customer->order as $aOrder){
 ```
 
 ##### Retrieve relational revisions
-You can get the all relational revisions like this:
+You can get all the relational revisions like this:
 ```php
 // Returns collection of relational revision
 $relationalRevision = $model->allRelationalRevisions();
