@@ -76,7 +76,7 @@ trait Revisionable
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
         $this->addThisModelToItsChildModels($this, $this);
-        $this->updateRelatedRevisions();
+        $this->updateParentRevisions();
     }
 
     /**
@@ -95,6 +95,7 @@ trait Revisionable
                 if ($aRelation->usingRevisionableTrait) {
                     if(!$aRelation->parentModel){
                         $aRelation->parentModel = $parentModel;
+                        $aRelation->addThisModelToItsChildModels($aRelation, $parentModel);
                     }
                 } else {
                     // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
@@ -110,7 +111,7 @@ trait Revisionable
     /**
      * Update parent revision and self revision
      */
-    public function updateRelatedRevisions()
+    public function updateParentRevisions()
     {
         if (!$this->parentModel) {
             return;
@@ -121,8 +122,6 @@ trait Revisionable
         }
 
         $this->parentModel->createdRevision->addChildRevision($this->self_revision_identifier);
-
-        $this->createdRevision->addParentRevision($this->parent_revision_identifier);
     }
 
     /**
@@ -171,35 +170,6 @@ trait Revisionable
         if (!$saveAsRevision) {
             $this->allRevisions()->where('id', '>=', $revisionId)->delete();
         }
-    }
-
-    /**
-     * Restoring the relational revision.
-     * Using the revision ID provided to retrieve the revision for the model
-     *
-     * @param integer $revisionId Revision ID for the model
-     * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
-     *                                false => rollback to a specific revision and delete all the revisions that came
-     *                                           after that revision
-     *
-     * @throws ErrorException  If the revision or the original record cannot be found
-     */
-    public function rollbackWithRelation($revisionId, $saveAsRevision = true)
-    {
-        $relationalRevision = $this->getRelationalRevision($revisionId);
-        $relationalModelName = get_class($this);
-
-        if (!$relationalRevision) {
-            throw new ErrorException("Relational revisions not found for " . get_class($this) . " model");
-        }
-
-        while ($relationalRevision->parent_revision) {
-            $relationalModelName = $relationalRevision->parent_revision['model_name'];
-            $relationalRevision = $this->getTargetRevision($relationalRevision->parent_revision);
-        }
-
-        $relationalModel = (new $relationalModelName())->where($relationalRevision->model_identifier)->first();
-        $relationalModel->rollback($relationalRevision->id, $saveAsRevision);
     }
 
     /**
@@ -264,11 +234,7 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions()
-            ->where(function ($query) {
-                $query->where('revisions', 'REGEXP', 's:[0-9]+:"parent";a:[0-9]+:')
-                    ->orWhere('revisions', 'REGEXP', 's:[0-9]+:"child";a:[0-9]+:');
-            });
+        return $this->allRevisions()->where('revisions', 'REGEXP', 's:[0-9]+:"child";a:[0-9]+:');
     }
 
     /**
@@ -326,19 +292,6 @@ trait Revisionable
         return [
             'revision_id' => $this->createdRevision->id,
             'model_name' => get_class($this)
-        ];
-    }
-
-    /**
-     * An accessor to get the parent revision identifier
-     *
-     * @return mixed
-     */
-    public function getParentRevisionIdentifierAttribute()
-    {
-        return [
-            'revision_id' => $this->parentModel->createdRevision->id,
-            'model_name' => get_class($this->parentModel)
         ];
     }
 

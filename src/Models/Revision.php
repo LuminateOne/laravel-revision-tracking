@@ -13,6 +13,14 @@ class Revision extends Model
     protected $fillable = ['model_identifier', 'revisions', 'model_name'];
 
     /**
+     * Check if the revision has related revisions
+     * @return bool
+     */
+    public function hasRelatedRevision(){
+        return $this->child_revisions ? true: false;
+    }
+
+    /**
      * A function to append the child revision to revisions attributes
      *
      * @param array $value
@@ -25,18 +33,6 @@ class Revision extends Model
         }
         array_push($revision['child'], $value);
         $this->revisions = $revision;
-        $this->save();
-    }
-
-    /**
-     * A function to add the parent revision to revisions attributes
-     *
-     * @param array $value
-     */
-    public function addParentRevision($value){
-        $revisions = $this->revisions;
-        $revisions['parent'] = $value;
-        $this->revisions = $revisions;
         $this->save();
     }
 
@@ -63,29 +59,16 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized parent revision
+     * An accessor to retrieve the unserialized original values
      *
      * @return mixed
      */
     public function getOriginalValuesAttribute(){
-        $parent = null;
+        $originalValues = null;
         if(array_key_exists('original_values', $this->revisions)){
-            $parent = $this->revisions['original_values'];
+            $originalValues = $this->revisions['original_values'];
         }
-        return $parent;
-    }
-
-    /**
-     * An accessor to retrieve the unserialized parent revision
-     *
-     * @return mixed
-     */
-    public function getParentRevisionAttribute(){
-        $parent = null;
-        if(array_key_exists('parent', $this->revisions)){
-            $parent = $this->revisions['parent'];
-        }
-        return $parent;
+        return $originalValues;
     }
 
     /**

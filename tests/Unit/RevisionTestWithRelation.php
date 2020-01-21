@@ -27,7 +27,6 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'all']);
         $this->relationUpdate();
         $this->relationRollback();
-        $this->noRevisionException();
     }
 
     /**
@@ -39,7 +38,6 @@ class RevisionTestWithRelation extends TestCase
         config(['revision_tracking.mode' => 'single']);
         $this->relationUpdate();
         $this->relationRollback();
-        $this->noRevisionException();
     }
 
     /**
@@ -60,13 +58,9 @@ class RevisionTestWithRelation extends TestCase
      */
     private function relationUpdate()
     {
-        $modelGrandParent = $this->setupModel(GrandParent::class);
-
-        (new ParentWithRevision())->createTable();
-        (new ParentNoRevision())->createTable();
-        (new Child())->createTable();
-
+        // Create ParentWithRevision, ParentNoRevision, and Child model
         $insertCount = 3;
+        $modelGrandParent = $this->setupModel(GrandParent::class);
         for ($i = 0; $i < $insertCount; $i++) {
             $modelParent = $this->setupModel(ParentWithRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
@@ -78,6 +72,7 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        // Load relations
         $modelGrandParent->load([
             'parentWithRevision' => function ($parent) {
                 $parent->with('children');
@@ -87,15 +82,14 @@ class RevisionTestWithRelation extends TestCase
             }
         ]);
 
+        // Fill the model with new values
         $this->fillModelWithNewValue($modelGrandParent);
-
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $this->fillModelWithNewValue($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
                 $this->fillModelWithNewValue($aChild);
             }
         }
-
         foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
             $this->fillModelWithNewValue($aParentNoRevision);
             foreach ($aParentNoRevision->children as $aChild) {
@@ -103,35 +97,29 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        // Call push() to update the models
         $modelGrandParent->push();
 
         $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
 
-        $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
-            "The child revision count of GrandParent should be " . $insertCount);
+        $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
 
-            $this->assertContains($aParentWithRevision->self_revision_identifier,
-                $grandParentRevision->child_revisions,
+            $this->assertNull($aParentRevision, "The Parent should not have relational revision");
+
+            $this->assertContains($aParentWithRevision->self_revision_identifier, $grandParentRevision->child_revisions,
                 "The child_revision of GrandParent model should contains the revision of Parent model");
-            $this->assertEquals($modelGrandParent->self_revision_identifier,
-                $aParentRevision->parent_revision,
-                "The parent_revision of Parent model should equal to the GrandParent revision identifiers");
-            $this->assertEquals($insertCount, count($aParentRevision->child_revisions),
-                "The child_revision count of Parent should be " . $insertCount);
 
             foreach ($aParentWithRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->self_revision_identifier, $aParentRevision->child_revisions,
+                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+
+                $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
-                $this->assertEquals($aParentWithRevision->self_revision_identifier,
-                    $aChildRevision->parent_revision,
-                    "The parent_revision of Child model should equal to the Parent revision identifiers");
-                $this->assertEmpty($aChildRevision->child_revisions,
-                    "The child_revision count of Parent should be empty");
             }
         }
 
@@ -139,14 +127,11 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentNoRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->self_revision_identifier,
-                    $grandParentRevision->child_revisions,
+                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+
+                $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of GrandParent revision should contain the revisions` identifiers of Child model");
-                $this->assertEquals($modelGrandParent->self_revision_identifier,
-                    $aChildRevision->parent_revision,
-                    "The parent_revision of the revision`s identifiers of Child model should equal to the GrandParent revision identifiers");
-                $this->assertEmpty($aChildRevision->child_revisions,
-                    "The child_revision count of Parent should be empty");
+
             }
         }
     }
@@ -172,13 +157,9 @@ class RevisionTestWithRelation extends TestCase
      */
     private function relationRollback()
     {
-        $modelGrandParent = $this->setupModel(GrandParent::class);
-
-        (new ParentWithRevision())->createTable();
-        (new ParentNoRevision())->createTable();
-        (new Child())->createTable();
-
+        // Create ParentWithRevision, ParentNoRevision, and Child model
         $insertCount = 3;
+        $modelGrandParent = $this->setupModel(GrandParent::class);
         for ($i = 0; $i < $insertCount; $i++) {
             $modelParent = $this->setupModel(ParentWithRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
@@ -190,6 +171,7 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        // Load GrandParent with its relations
         $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
             'parentWithRevision' => function ($parent) {
                 $parent->with('children');
@@ -199,6 +181,7 @@ class RevisionTestWithRelation extends TestCase
             }
         ])->first();
 
+        // Clone the original models and assign the model with new values
         $modelGrandParentCopy = clone $modelGrandParent;
         $parentsWithRevisionArray = [];
         $childrenArray = [];
@@ -219,34 +202,31 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
+        // Set the the relational revision manually, bencause the GrandParent model will ot be updated
         $modelGrandParent->setAsRelationalRevision();
         $modelGrandParent->push();
 
         $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
-        $this->assertEquals(null, $grandParentRevision->parent_revision, "GrandParent should not have parent revision");
-        $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),
-            "The child revision count of GrandParent should be " . $insertCount);
+
+        $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions), "The child revision count of GrandParent should be " . $expected);
         $this->assertEquals(null, $grandParentRevision->original_values, "GrandParent should not have original values");
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
             $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
 
+            $this->assertNull($aParentRevision, "The Parent should not have relational revision");
+
             $this->assertContains($aParentWithRevision->self_revision_identifier, $grandParentRevision->child_revisions,
-                "The child_revision of GrandParent model should contain the revision of Parent model");
-            $this->assertEquals($modelGrandParent->self_revision_identifier, $aParentRevision->parent_revision,
-                "The parent_revision of Parent model should equal to the GrandParent revision identifiers");
-            $this->assertEquals($insertCount, count($aParentRevision->child_revisions),
-                "The child_revision count of Parent should be " . $insertCount);
+                "The child_revision of GrandParent model should contains the revision of Parent model");
 
             foreach ($aParentWithRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->self_revision_identifier, $aParentRevision->child_revisions,
+                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+
+                $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
-                $this->assertEquals($aParentWithRevision->self_revision_identifier, $aChildRevision->parent_revision,
-                    "The parent_revision of Child model should equal to the Parent revision identifiers");
-                $this->assertEmpty($aChildRevision->child_revisions,
-                    "The child_revision count of Parent should be empty");
             }
         }
 
@@ -254,24 +234,26 @@ class RevisionTestWithRelation extends TestCase
             foreach ($aParentNoRevision->children as $aChild) {
                 $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
 
-                $this->assertContains($aChild->self_revision_identifier,
-                    $grandParentRevision->child_revisions,
-                    "The child_revision of GrandParent revision should contain the revisions of Child model");
-                $this->assertEquals($modelGrandParent->self_revision_identifier,
-                    $aChildRevision->parent_revision,
-                    "The parent_revision of the revision`s identifiers of Child model should equal to the GrandParent revision identifiers");
-                $this->assertEmpty($aChildRevision->child_revisions,
-                    "The child_revision count of Parent should be empty");
+                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+
+                $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
+                    "The child_revision of GrandParent revision should contain the revisions` identifiers of Child model");
+
             }
         }
 
         // Get the latest revision id and rollback with relation
-        $aChildMode = $modelGrandParent->parentWithRevision[0]->children[0];
-        $relationalRevisions = $aChildMode->allRelationalRevisions()->first();
-        $aChildMode->rollbackWithRelation($relationalRevisions->id);
-
         $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->latest('id')->first();
-        $this->assertEquals(($insertCount * $insertCount) + $insertCount, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $insertCount);
+        $aRelationRevision = $modelGrandParentCopy->getRelationalRevision($grandParentRevision->id);
+        $this->assertEquals($grandParentRevision, $aRelationRevision, "The two revisions should be equal");
+
+        if($grandParentRevision->hasRelatedRevision()){
+            $modelGrandParentCopy->rollback($grandParentRevision->id);
+        }
+
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+        \Log::info(print_r($grandParentRevision->child_revisions, true));
+
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
         $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
         $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
@@ -286,15 +268,6 @@ class RevisionTestWithRelation extends TestCase
             $restoredChild = Child::find($aChild->id);
             $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
             $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
-        }
-    }
-
-    private function noRevisionException(){
-        try{
-            $modelGrandParent = GrandParent::where('id', 1)->first();
-            $modelGrandParent->rollbackWithRelation(1);
-        } catch (\Throwable $exception){
-            $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
         }
     }
 }
