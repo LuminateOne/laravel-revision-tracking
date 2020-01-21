@@ -50,8 +50,13 @@ php artisan table:revision {modelName}
 ```
 See the [revision_tracking.php](config/config.php) config file for more detail.
 ## Docs
-- [Basic Usage](#markdown-basic-usage)
-- [Relational revision](#markdown-relational-revision)
+- [Basic Usage](#markdown-header-basic-usage)
+- [Relational revision](#markdown-header-relational-revision)
+    - [Relation definitions](#markdown-header-relation-definitions)
+    - [Create relational revision automatically](#markdown-header-create-relational-revision-automatically)
+    - [Create relational revision manually](#markdown-header-create-relational-revision-manually)
+    - [Update models and create relational revision manually](#markdown-header-updated-the-model-and-create-relational-revision-manually)
+    - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
 
 #### Basic Usage
 
@@ -197,7 +202,7 @@ $customer->setAsRelationalRevision();
 $customer->push();
 ```
 
-##### Updated the model and create relational revision manually
+##### Update models and create relational revision manually
 You can updated the model manually like this:
 
 When update the model manually, you have to update models from 
@@ -228,7 +233,7 @@ foreach($customer->order as $aOrder){
 }
 ```
 
-##### Retrieve the relational revisions
+##### Retrieve relational revisions
 You can get the all relational revisions like this:
 ```php
 // Returns collection of relational revision
