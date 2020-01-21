@@ -98,16 +98,73 @@ $model->rollback($revisionId, false);
 
 #### Relational revision
 
-This package works with models which have the relations loaded.
+The relational revision will only work with a Model which have the relations loaded.
+
+Example: 
+```php
+    GrandParent has many Parent
+    Parent has many Child
+    
+    // Eager loading with relations
+    $grandParent = GrandParent::where('id', 1)->with([
+        'parent' => function ($parent) {
+            $parent->with('children');
+        }
+    ])->first();
+    
+    // You logic here
+    // Assign new values to the model
+    
+    // Call $model->push() to update the model and its related models
+    $grandParent->push();
+```
+`GrandParent Model:`
 ```php
 class GrandParent extends Model
 {
+    use Revisionable;
+
     /**
-     * A grand parent has many parents
+     * A grandparent has many parents
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function parentWithRevision(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
+    public function parent(){
+        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentModel');
     }
+}
+```
+
+`Parent Model:`
+```
+class ParentModel extends Model
+{
+    use Revisionable;
+
+    /**
+     * A parent belongs to grandparent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function grandParent(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
+    }
+}
+```
+
+`Child Model:`
+```
+class Child extends Model
+{
+    use Revisionable;
+
+    /**
+     * A child belongs to parent
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function parent(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentModel');
+    }
+}
 ```
