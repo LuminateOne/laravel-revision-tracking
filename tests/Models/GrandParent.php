@@ -13,7 +13,7 @@ class GrandParent extends Model
     protected $fillable = ['first_name', 'last_name'];
 
     /**
-     * A grand parent has many to parent
+     * A grandparent has many parent
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -22,7 +22,7 @@ class GrandParent extends Model
     }
 
     /**
-     * A grand parent has many parent
+     * A grandparent has many parent
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

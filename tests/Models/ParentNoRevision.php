@@ -13,7 +13,7 @@ class ParentNoRevision extends Model
     protected $fillable = ['first_name', 'last_name'];
 
     /**
-     * A parent belongs to grand parent
+     * A parent belongs to grandparent
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -22,7 +22,7 @@ class ParentNoRevision extends Model
     }
 
     /**
-     * A parent has amny children
+     * A parent has many children
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
