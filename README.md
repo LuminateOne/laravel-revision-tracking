@@ -102,27 +102,122 @@ The relational revision will only work with a Model which have the relations loa
 
 There are three models, and they have relations like this:
 ```php
-    GrandParent has many Parent
-    Parent has many Child
+    Customer:   has many Order
+    
+    Order:      belonges to Customer, 
+                and has many Product
+                
+    Product:    belonges to Order
 ```
+##### Relation definitions:
+###### Relation 1:
+```php
+    // When Eager loading with relations like this
+    $customer = Customer::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('product');
+        }
+    ])->first();
+    
+    // Model relations:
+    Customer:   is the parent model of the Order
+    
+    Order:      is the child model of the Customer
+                is the parent model of the Product 
+    
+    Product:    is the child model of the Order
+     
+    // Revision relations:
+    CustomerRevision:    is the parent revision of the OrderRevision
+    
+    OrderRevision:       is the child revision of the CustomerRevision
+                         is the parent revision of the ProductRevision
+                         
+    ProductRevision:     is the child revision of the OrderRevision
+```
+
+###### Relation 2:
+```php
+    // When Eager loading with relations like this
+    $product = Product::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('customer');
+        }
+    ])->first();
+    
+    // Model relations:
+    Product:    is the parent model of the Order
+
+    Order:      is the child model of the Product
+                is the parent model of the Customer 
+                
+    Customer:   is the child model of the Order
+    
+     
+    // Revision relations:
+    ProductRevision:    is the parent revision of the OrderRevision
+
+    OrderRevision:       is the child revision of the ProductRevision
+                         is the parent revision of the CustomerRevision
+                         
+    CustomerRevision:    is the child revision of the OrderRevision
+ ```
+
+##### Create relational revision automatically
+
+If you want to create the relational revision automatically, 
+the most top parent model has to updated, in this case the 
+most top parent model is `$customer`. Otherwise you can 
+[create the relational revision manually](#markdown-create-relational-revision-manually).
 
 You can create relational revision like this:
 ```php
     // Eager loading with relations
-    $grandParent = GrandParent::where('id', 1)->with([
-        'parent' => function ($parent) {
-            $parent->with('children');
+    $customer = Customer::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('product');
         }
     ])->first();
     
-    // You logic here
+    // Your logic here
     // Assign new values to the model
     
     // Call $model->push() to update the model and its related models
-    $grandParent->push();
+    $customer->push();
 ```
 
-If the `GrandParent` will not be updated, you need to call this method manually `before you update the model`, after the `Parent` and `Child` model is updated it will create a relational revision:
+##### Create relational revision manually
+
+If any of the `parent` model will not be updated, you need to call this method manually `before you update the model`, after the `child` model is updated it will create a revision for its parent:
+```php
+// Eager loading with relations
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
+    }
+])->first();
+
+$customer->setAsRelationalRevision();
+
+// Your logic here
+
+// After order is updated it will create a revision for the customer, 
+// and set the customer revision as the parent revision of 
+// the order reivsion
+$customer->order[0]->save();
 ```
-$grandParent->setAsRelationalRevision();
-``` 
+
+You can updated the model separately like this:
+```php
+// Eager loading with relations
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
+    }
+])->first();
+
+// call `setAsRelationalRevision` to set relations with its child model manually
+$customer->setAsRelationalRevision();
+
+foreach($customer)
+```
