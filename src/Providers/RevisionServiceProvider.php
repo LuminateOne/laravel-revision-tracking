@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use LuminateOne\RevisionTracking\Commands\CreateModelRevisionTable;
 
 /**
  * RevisionServiceProvider registers and bootstraps the revision tracking service
@@ -22,5 +23,11 @@ class RevisionServiceProvider extends ServiceProvider
 
         $migrationPath = realpath(__DIR__ . '/../../migrations');
         $this->loadMigrationsFrom($migrationPath);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CreateModelRevisionTable::class
+            ]);
+        }
     }
 }

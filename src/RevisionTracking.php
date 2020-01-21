@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking;
 
 use Illuminate\Database\Eloquent\Model;
+use ErrorException;
 
 /**
  * This class can find and store the diff of a model
@@ -47,17 +48,38 @@ class RevisionTracking
      */
     public static function eloquentStoreDiff($model, $originalFields)
     {
-        $revisionIdentifier = [$model->getKeyName() => $model->getKey()];
-
         $revisionModel = $model->getRevisionModel();
 
         if($model->revisionMode() === 'all'){
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = serialize($revisionIdentifier);
-        $revisionModel->original_values = serialize($originalFields);
+        $revisionModel->revision_identifier = $model->revisionIdentifier();
+        $revisionModel->original_values = $originalFields;
 
         $revisionModel->save();
+    }
+
+    /**
+     * Delete the revision or not when a model is deleted
+     * It depends on the "remove_on_delete" value in the config file
+     *
+     * @param Model $model A Eloquent model
+     *
+     * @throws ErrorException If the model cannot be found
+     */
+    public static function eloquentDelete($model)
+    {
+        if (config('revision_tracking.remove_on_delete', true)) {
+            $revisionModel = $model->getRevisionModel();
+
+            $targetRevisions = $revisionModel->where('revision_identifier', $model->revisionIdentifier(true));
+
+            if ($model->revisionMode() === 'all') {
+                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
+            }
+
+            $targetRevisions->delete();
+        }
     }
 }
