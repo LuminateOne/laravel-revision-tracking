@@ -47,9 +47,16 @@ trait Revisionable
         });
     }
 
+    /**
+     * Set relational revision manually, sometimes the parent model will not be changed (updated, created, deleted),
+     * So the parent model will not trigger any event in this Revisionable Trait, so we need to call this
+     * method manually, to set this model as the parentModel to its all child models, so when the child
+     * model is changed, the child model can create a revision for its parent model,
+     * and set the relation between revisions
+     */
     public function setAsRelationalRevision()
     {
-        $this->addThisModelToItsChildModel($this, $this);
+        $this->addThisModelToItsChildModels($this, $this);
     }
 
     /**
@@ -68,17 +75,18 @@ trait Revisionable
 
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-        $this->addThisModelToItsChildModel($this, $this);
+        $this->addThisModelToItsChildModels($this, $this);
         $this->updateRelatedRevisions();
     }
 
     /**
-     * Add this model to each of its child models as parentModel,
+     * Add this model to each of its child models as parentModel, it will go deeper if the
+     * child model does not have the revision control turned on
      *
      * @param Model $currentModel The model`s relations that the revision will be assigned to
      * @param Model $parentModel parentModel
      */
-    public function addThisModelToItsChildModel($currentModel, $parentModel)
+    public function addThisModelToItsChildModels($currentModel, $parentModel)
     {
         foreach ($currentModel->relations as $relations) {
             $relations = $relations instanceof Collection ? $relations->all() : [$relations];
@@ -91,7 +99,7 @@ trait Revisionable
                     // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
                     // because when a model without the revision control turned on involved,
                     // it will break the recursive loop
-                    $this->addThisModelToItsChildModel($aRelation, $parentModel);
+                    $this->addThisModelToItsChildModels($aRelation, $parentModel);
                 }
             }
         }
@@ -193,7 +201,7 @@ trait Revisionable
     }
 
     /**
-     * Get the target model from the revision
+     * Get a revision from another revision
      *
      * @param array $revisionInfo
      * @return mixed
