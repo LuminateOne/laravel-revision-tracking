@@ -106,17 +106,19 @@ class RevisionTestWithRelation extends TestCase
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
-            $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
+            $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                "The parent model of Parent model should be " . GrandParent::class);
 
-            $this->assertNull($aParentRevision, "The Parent should not have relational revision");
+            $this->assertNull($aParentWithRevision->allRelationalRevisions()->latest('id')->first(), "The Parent should not have relational revision");
 
             $this->assertContains($aParentWithRevision->self_revision_identifier, $grandParentRevision->child_revisions,
                 "The child_revision of GrandParent model should contains the revision of Parent model");
 
             foreach ($aParentWithRevision->children as $aChild) {
-                $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
+                $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                    "The parent model of Child model should be " . GrandParent::class);
 
-                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+                $this->assertNull($aChild->allRelationalRevisions()->latest('id')->first(), "The Child should not have relational revision");
 
                 $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
@@ -125,9 +127,10 @@ class RevisionTestWithRelation extends TestCase
 
         foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
             foreach ($aParentNoRevision->children as $aChild) {
-                $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
+                $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                    "The parent model of Child model should be " . GrandParent::class);
 
-                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+                $this->assertNull($aChild->allRelationalRevisions()->latest('id')->first(), "The Child should not have relational revision");
 
                 $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of GrandParent revision should contain the revisions` identifiers of Child model");
@@ -213,17 +216,19 @@ class RevisionTestWithRelation extends TestCase
         $this->assertEquals(null, $grandParentRevision->original_values, "GrandParent should not have original values");
 
         foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
-            $aParentRevision = $aParentWithRevision->allRelationalRevisions()->latest('id')->first();
+            $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                "The parent model of Parent model should be " . GrandParent::class);
 
-            $this->assertNull($aParentRevision, "The Parent should not have relational revision");
+            $this->assertNull($aParentWithRevision->allRelationalRevisions()->latest('id')->first(), "The Parent should not have relational revision");
 
             $this->assertContains($aParentWithRevision->self_revision_identifier, $grandParentRevision->child_revisions,
                 "The child_revision of GrandParent model should contains the revision of Parent model");
 
             foreach ($aParentWithRevision->children as $aChild) {
-                $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
+                $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                    "The parent model of Child model should be " . GrandParent::class);
 
-                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+                $this->assertNull($aChild->allRelationalRevisions()->latest('id')->first(), "The Child should not have relational revision");
 
                 $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of Parent model should contains the revision of Child model");
@@ -232,9 +237,10 @@ class RevisionTestWithRelation extends TestCase
 
         foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
             foreach ($aParentNoRevision->children as $aChild) {
-                $aChildRevision = $aChild->allRelationalRevisions()->latest('id')->first();
+                $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
+                    "The parent model of Child model should be " . GrandParent::class);
 
-                $this->assertNull($aChildRevision, "The Child should not have relational revision");
+                $this->assertNull($aChild->allRelationalRevisions()->latest('id')->first(), "The Child should not have relational revision");
 
                 $this->assertContains($aChild->self_revision_identifier, $grandParentRevision->child_revisions,
                     "The child_revision of GrandParent revision should contain the revisions` identifiers of Child model");
@@ -252,7 +258,6 @@ class RevisionTestWithRelation extends TestCase
         }
 
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
-        \Log::info(print_r($grandParentRevision->child_revisions, true));
 
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
         $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
