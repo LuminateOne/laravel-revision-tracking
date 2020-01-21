@@ -1,7 +1,6 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use Illuminate\Support\Facades\Schema;
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\Child;
 use LuminateOne\RevisionTracking\Tests\Models\GrandParent;

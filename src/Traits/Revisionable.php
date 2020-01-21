@@ -49,8 +49,8 @@ trait Revisionable
 
     /**
      * Set relational revision manually, sometimes the parent model will not be changed (updated, created, deleted),
-     * So the parent model will not trigger any event in this Revisionable Trait, so we need to call this
-     * method manually, to set this model as the parentModel to its all child models, so when the child
+     * So the parent model will never trigger any event in this Revisionable Trait, so we need to call this
+     * method manually to set this model as the parentModel to its all child models, so when the child
      * model is changed, the child model can create a revision for its parent model,
      * and set the relation between revisions
      */

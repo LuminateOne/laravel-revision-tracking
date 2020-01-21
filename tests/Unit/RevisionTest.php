@@ -1,7 +1,6 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Unit;
 
-use Illuminate\Support\Facades\Schema;
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
 use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
@@ -165,13 +164,10 @@ class RevisionTest extends TestCase
         $model = $this->setupModel(DefaultPrimaryKey::class);
         $oldModel = clone $model;
         $model = $this->updateModel($model, 3);
-
         $aRevision = ($model->allRevisions()->orderBy('id', 'asc')->get())[1];
 
         $model->rollback($aRevision->id, true);
-
         $hasDifferent = $this->compareTwoModel($oldModel, $model);
-
         $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
 
         $aRevision = $model->allRevisions()->orderBy('id', 'asc')->first();
