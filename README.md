@@ -53,9 +53,9 @@ See the [revision_tracking.php](config/config.php) config file for more detail.
 - [Basic Usage](#markdown-header-basic-usage)
 - [Relational revision](#markdown-header-relational-revision)
     - [Relation definitions](#markdown-header-relation-definitions)
-    - [Create relational revision automatically](#markdown-header-create-relational-revision-automatically)
-    - [Create relational revision manually](#markdown-header-create-relational-revision-manually)
-    - [Update models manually](#markdown-header-update-models-manually)
+    - [Create relational revision](#markdown-header-create-relational-revision)
+    - [Update models separately](#markdown-header-update-models-separately)
+    - [Start a new relational revision with the same model](#markdown-start-a-new-relational-revision-with-the-same-model)
     - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
 
 #### Basic Usage
@@ -159,7 +159,7 @@ See the following examples:
     CustomerRevision:   is the child revision of the ProductRevision
 ```
 
-##### Create relational revision automatically
+##### Create relational revision
 
 If you want to create the relational revision automatically, 
 the most top parent model has to be updated 
@@ -182,37 +182,28 @@ You can create relational revision automatically like this:
     $customer->push();
 ```
 
-##### Create relational revision manually
-
-If most top model will not be updated (in the following case, the `$customer` will not be updated),
-you need to call this method manually `before you update the model`, after the `child` model 
-(in the following case, the `Order` and the `Product` are the child models) 
-is updated it will create a revision for its parent.
+**If most top model will not be updated** (in the above case, the `$customer` is the most top model),
+you need to call this method manually `before you update the model`.
 
 ```php
-// Eager loading with relations
-$customer = Customer::where('id', 1)->with([
-    'order' => function ($order) {
-        $order->with('product');
-    }
-])->first();
-
 // After relations are loaded, call this method manually with the most top model
 $customer->setAsRelationalRevision();
 
 // Your logic here
 
+// then you can call `$customer->push()`
+// or update models separately
+
 // After the child model (order or product) is updated it will create 
 // a revision for the customer, and set up the relation between 
 // customer revision and the order revision
-$customer->push();
 ```
 
-##### Update models manually
+##### Update models separately
 
-When update models manually, you have to update models from 
-the most top model to the most bottom model 
-(in the following case, from `Customer` to `Product`).
+If you want to update models separately (without using `$model->push()`), you have to call `setAsRelationalRevision()` 
+with the most top model (in the following case, the `$customer` is the most top model), 
+it will create the relation with the revision of its child revisions.
 
 You can update the model manually like this:
 ```php
@@ -223,21 +214,30 @@ $customer = Customer::where('id', 1)->with([
     }
 ])->first();
 
-// if the $customer will not be updated call `setAsRelationalRevision` manually
-// to set relations with its child model.
 $customer->setAsRelationalRevision();
 
 // Your logic here
-// assign new values to $customer, $order and $product
+// and Update models separately
+```
+##### Start a new relational revision with the same model
+In the relational revisions, when you want to start a new revision with the same model, you can do it like this:
+**You only need this when you are trying to save it as relational revision**
 
-// This is equvilent to the $customer->push()
-$customer->save();
-foreach($customer->order as $aOrder){
-    $aOrder->save();
-    foreach($aOrder->$product as $aProduct){
-        $aProduct->save();
+```php
+// Eager loading with relations
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
     }
-}
+])->first();
+
+// After updated and saved
+
+// Call this function to refresh the realtional revision
+$customer->setAsRelationalRevision();
+
+// Then you can update model, and it will save this as new relational revision
+
 ```
 
 ##### Retrieve relational revisions
@@ -252,14 +252,6 @@ You can get a single relational revisions like this:
 ```php
 // Returns a single relational revision
 $relationalRevision = $model->getRelationalRevision($reivsionId);
-```
-
-You can check if a revision is a relational revisions like this:
-```php
-// Returns boolean
-if($reivsion->hasRelatedRevision()){
-    // Your logic here
-}
 ```
 
 You can rollback to a specific relational revision with a `revision id` for a specific model like this:
