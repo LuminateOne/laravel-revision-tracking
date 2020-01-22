@@ -231,7 +231,7 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions()->where('revisions->child', '!=', '');
+        return $this->allRevisions()->whereNotNull('revisions->child');
     }
 
     /**
