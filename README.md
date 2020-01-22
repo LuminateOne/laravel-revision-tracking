@@ -168,40 +168,40 @@ Otherwise, you have to [create the relational revision manually](#create-relatio
 
 - Automatically
 
-You can create relational revision automatically like this:
-```php
-    // Eager loading with relations
-    $customer = Customer::where('id', 1)->with([
-        'order' => function ($order) {
-            $order->with('product');
-        }
-    ])->first();
-    
-    // Your logic here
-    // Assign new values to the model
-    
-    // Call $model->push() to update the model and its related models
-    $customer->push();
-```
+    You can create relational revision automatically like this:
+    ```php
+        // Eager loading with relations
+        $customer = Customer::where('id', 1)->with([
+            'order' => function ($order) {
+                $order->with('product');
+            }
+        ])->first();
+        
+        // Your logic here
+        // Assign new values to the model
+        
+        // Call $model->push() to update the model and its related models
+        $customer->push();
+    ```
 
 - Manually
 
-**If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
-you need to call this method manually `before you update the model`.
-
-```php
-// After relations are loaded, call this method manually with the most top model
-$customer->setAsRelationalRevision();
-
-// Your logic here
-
-// then you can call `$customer->push()`
-// or update models separately
-
-// After the child model (order or product) is updated it will create 
-// a revision for the customer, and set up the relation between 
-// customer revision and the order revision
-```
+    **If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
+    you need to call this method manually `before you update the model`.
+    
+    ```php
+    // After relations are loaded, call this method manually with the most top model
+    $customer->setAsRelationalRevision();
+    
+    // Your logic here
+    
+    // then you can call `$customer->push()`
+    // or update models separately
+    
+    // After the child model (order or product) is updated it will create 
+    // a revision for the customer, and set up the relation between 
+    // customer revision and the order revision
+    ```
 
 ##### Update models separately
 
