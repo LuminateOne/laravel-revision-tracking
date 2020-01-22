@@ -50,11 +50,7 @@ class Revision extends Model
      * @return mixed
      */
     public function getOriginalValuesAttribute(){
-        $originalValues = null;
-        if(array_key_exists('original_values', $this->revisions)){
-            $originalValues = $this->revisions['original_values'];
-        }
-        return $originalValues;
+        return array_key_exists('original_values', $this->revisions) ? $this->revisions['original_values'] : null;
     }
 
     /**
@@ -63,11 +59,7 @@ class Revision extends Model
      * @return mixed
      */
     public function getChildRevisionsAttribute(){
-        $child = null;
-        if(array_key_exists('child', $this->revisions)){
-            $child = $this->revisions['child'];
-        }
-        return $child;
+        return array_key_exists('child', $this->revisions) ? $this->revisions['child'] : null;
     }
 
     /**

@@ -4,7 +4,7 @@ namespace LuminateOne\RevisionTracking\Tests\Unit;
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\Child;
 use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
-use LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
 use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
 
 class RevisionTestWithRelation extends TestCase
@@ -55,7 +55,7 @@ class RevisionTestWithRelation extends TestCase
     }
 
     /**
-     * Test relational rollback, it will create GrandParent, ParentWithRevision, ParentNoRevision, Child
+     * Test relational rollback, it will create GrandParent, ParentWithRevision, ParentWithoutRevision, Child
      *
      * In the relationship of GrandParent           hasMany ParentWithRevision (Revision tracking turned on)
      *                        ParentWithRevision    hasMany Child
@@ -64,15 +64,15 @@ class RevisionTestWithRelation extends TestCase
      *      It will check if the child revisions of the ParentWithRevision contains the Child
      *      It will check if the parent revision of the Child is Parent
      *
-     * In the relationship of GrandParent       hasMany ParentNoRevision (Revision tracking turned off)
-     *                        ParentNoRevision  hasMany Child
+     * In the relationship of GrandParent       hasMany ParentWithoutRevision (Revision tracking turned off)
+     *                        ParentWithoutRevision  hasMany Child
      *
      *      It will check if the parent revision of the Child is GrandParent
      *
      */
     private function relationUpdate()
     {
-        // Create ParentWithRevision, ParentNoRevision, and Child model
+        // Create ParentWithRevision, ParentWithoutRevision, and Child model
         $insertCount = 3;
         $modelGrandParent = $this->setupModel(GrandParent::class);
         for ($i = 0; $i < $insertCount; $i++) {
@@ -80,31 +80,31 @@ class RevisionTestWithRelation extends TestCase
             for ($o = 0; $o < $insertCount; $o++) {
                 $this->setupModel(Child::class, ['parent_with_revision_id' => $modelParent->id]);
             }
-            $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            $modelCParent2 = $this->setupModel(ParentWithoutRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
-                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
+                $this->setupModel(Child::class, ['parent_without_revision_id' => $modelCParent2->id]);
             }
         }
 
         // Load relations
         $modelGrandParent->load([
-            'parentWithRevision' => function ($parent) {
+            'parentsWithRevisions' => function ($parent) {
                 $parent->with('children');
             },
-            'parentNoRevision' => function ($parent) {
+            'parentsWithoutRevisions' => function ($parent) {
                 $parent->with('children');
             }
         ]);
 
         // Fill the model with new values
         $this->fillModelWithNewValue($modelGrandParent);
-        foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+        foreach ($modelGrandParent->parentsWithRevisions as $aParentWithRevision) {
             $this->fillModelWithNewValue($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
                 $this->fillModelWithNewValue($aChild);
             }
         }
-        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
+        foreach ($modelGrandParent->parentsWithoutRevisions as $aParentNoRevision) {
             $this->fillModelWithNewValue($aParentNoRevision);
             foreach ($aParentNoRevision->children as $aChild) {
                 $this->fillModelWithNewValue($aChild);
@@ -119,7 +119,7 @@ class RevisionTestWithRelation extends TestCase
         $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
 
-        foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+        foreach ($modelGrandParent->parentsWithRevisions as $aParentWithRevision) {
             $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
                 "The parent model of Parent model should be " . GrandParent::class);
 
@@ -139,7 +139,7 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
+        foreach ($modelGrandParent->parentsWithoutRevisions as $aParentNoRevision) {
             foreach ($aParentNoRevision->children as $aChild) {
                 $this->assertEquals(GrandParent::class, get_class($aParentWithRevision->parentModel),
                     "The parent model of Child model should be " . GrandParent::class);
@@ -155,7 +155,7 @@ class RevisionTestWithRelation extends TestCase
 
     /**
      * Test relational rollback after create revision and update models manually,
-     * it will create GrandParent, ParentWithRevision, ParentNoRevision, Child
+     * it will create GrandParent, ParentWithRevision, ParentWithoutRevision, Child
      *
      * After rollback, it will check the fillbale value between restored model and original model
      *
@@ -163,7 +163,7 @@ class RevisionTestWithRelation extends TestCase
      */
     private function updateModelManually($saveAsRevision)
     {
-        // Create ParentWithRevision, ParentNoRevision, and Child model
+        // Create ParentWithRevision, ParentWithoutRevision, and Child model
         $insertCount = 3;
         $modelGrandParent = $this->setupModel(GrandParent::class);
         for ($i = 0; $i < $insertCount; $i++) {
@@ -171,18 +171,18 @@ class RevisionTestWithRelation extends TestCase
             for ($o = 0; $o < $insertCount; $o++) {
                 $this->setupModel(Child::class, ['parent_with_revision_id' => $modelParent->id]);
             }
-            $modelCParent2 = $this->setupModel(ParentNoRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
+            $modelCParent2 = $this->setupModel(ParentWithoutRevision::class, ['grand_parent_id' => $modelGrandParent->id]);
             for ($o = 0; $o < $insertCount; $o++) {
-                $this->setupModel(Child::class, ['parent_no_revision_id' => $modelCParent2->id]);
+                $this->setupModel(Child::class, ['parent_without_revision_id' => $modelCParent2->id]);
             }
         }
 
         // Load GrandParent with its relations
         $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
-            'parentWithRevision' => function ($parent) {
+            'parentsWithRevisions' => function ($parent) {
                 $parent->with('children');
             },
-            'parentNoRevision' => function ($parent) {
+            'parentsWithoutRevisions' => function ($parent) {
                 $parent->with('children');
             }
         ])->first();
@@ -195,7 +195,7 @@ class RevisionTestWithRelation extends TestCase
         $parentsWithRevisionArray = [];
         $childrenArray = [];
 
-        foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+        foreach ($modelGrandParent->parentsWithRevisions as $aParentWithRevision) {
             array_push($parentsWithRevisionArray, clone $aParentWithRevision);
             $this->updateModel($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
@@ -204,7 +204,7 @@ class RevisionTestWithRelation extends TestCase
             }
         }
 
-        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
+        foreach ($modelGrandParent->parentsWithoutRevisions as $aParentNoRevision) {
             $this->updateModel($aParentNoRevision);
             foreach ($aParentNoRevision->children as $aChild) {
                 array_push($childrenArray, clone $aChild);
@@ -217,14 +217,14 @@ class RevisionTestWithRelation extends TestCase
         $modelGrandParent->setAsRelationalRevision();
         $this->updateModel($modelGrandParent);
 
-        foreach ($modelGrandParent->parentWithRevision as $aParentWithRevision) {
+        foreach ($modelGrandParent->parentsWithRevisions as $aParentWithRevision) {
             $this->updateModel($aParentWithRevision);
             foreach ($aParentWithRevision->children as $aChild) {
                 $this->updateModel($aChild);
             }
         }
 
-        foreach ($modelGrandParent->parentNoRevision as $aParentNoRevision) {
+        foreach ($modelGrandParent->parentsWithoutRevisions as $aParentNoRevision) {
             $this->updateModel($aParentNoRevision);
             foreach ($aParentNoRevision->children as $aChild) {
                 $this->updateModel($aChild);

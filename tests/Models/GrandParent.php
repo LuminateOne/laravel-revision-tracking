@@ -17,7 +17,7 @@ class GrandParent extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function parentWithRevision(){
+    public function parentsWithRevisions(){
         return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
     }
 
@@ -26,8 +26,8 @@ class GrandParent extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function parentNoRevision(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
+    public function parentsWithoutRevisions(){
+        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision');
     }
 
     public function createTable(){
