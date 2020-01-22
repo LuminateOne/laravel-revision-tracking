@@ -26,8 +26,10 @@ class RevisionTestWithRelation extends TestCase
     public function testRelationalRevisionModeAll(){
         config(['revision_tracking.mode' => 'all']);
         $this->relationUpdate();
-        $this->relationRollback();
-        $this->setUpRelationAndUpdateModelManually();
+        $this->relationRollback(false);
+        $this->relationRollback(true);
+        $this->setUpRelationAndUpdateModelManually(false);
+        $this->setUpRelationAndUpdateModelManually(true);
     }
 
     /**
@@ -38,8 +40,10 @@ class RevisionTestWithRelation extends TestCase
     public function testRelationalRevisionModeSingle(){
         config(['revision_tracking.mode' => 'single']);
         $this->relationUpdate();
-        $this->relationRollback();
-        $this->setUpRelationAndUpdateModelManually();
+        $this->relationRollback(false);
+        $this->relationRollback(true);
+        $this->setUpRelationAndUpdateModelManually(false);
+        $this->setUpRelationAndUpdateModelManually(true);
     }
 
     /**
@@ -157,10 +161,11 @@ class RevisionTestWithRelation extends TestCase
      *
      *      It will check if the parent revision of the Child is GrandParent
      *
-     * It will use a Child to perform the rollback action
      * After rollback, it will check the fillbale value between restored model and original model
+     *
+     * @param boolean $saveAsRevision
      */
-    private function relationRollback()
+    private function relationRollback($saveAsRevision)
     {
         // Create ParentWithRevision, ParentNoRevision, and Child model
         $insertCount = 3;
@@ -257,10 +262,13 @@ class RevisionTestWithRelation extends TestCase
 
         if($grandParentRevision->hasRelatedRevision()){
             $changedGrandParent = GrandParent::find($modelGrandParentCopy->id);
-            $changedGrandParent->rollback($grandParentRevision->id);
+            $changedGrandParent->rollback($grandParentRevision->id, $saveAsRevision);
         }
 
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+
+        $expected = $saveAsRevision ? 3 : 1;
+        $this->assertEquals($expected, $modelGrandParentCopy->allRevisions()->count(),"The revision count of GrandParent should be " . $expected);
 
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
         $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
@@ -279,7 +287,15 @@ class RevisionTestWithRelation extends TestCase
         }
     }
 
-    private function setUpRelationAndUpdateModelManually()
+    /**
+     * Test relational rollback after create revision and update models manually,
+     * it will create GrandParent, ParentWithRevision, ParentNoRevision, Child
+     *
+     * After rollback, it will check the fillbale value between restored model and original model
+     *
+     * @param boolean $saveAsRevision
+     */
+    private function setUpRelationAndUpdateModelManually($saveAsRevision)
     {
         // Create ParentWithRevision, ParentNoRevision, and Child model
         $insertCount = 3;
@@ -337,10 +353,13 @@ class RevisionTestWithRelation extends TestCase
         $this->assertEquals($grandParentRevision, $aRelationRevision, "The two revisions should be equal");
 
         $changedGrandParent = GrandParent::find($modelGrandParentCopy->id);
-        $changedGrandParent->rollback($grandParentRevision->id);
+        $changedGrandParent->rollback($grandParentRevision->id, $saveAsRevision);
 
         $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+
+        $expected = $saveAsRevision ? 3 : 1;
+        $this->assertEquals($expected, $changedGrandParent->allRevisions()->count(),"The revision count of GrandParent should be " . $expected);
 
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
         $hasDifferent = $this->compareTwoModel($modelGrandParentCopy, $restoredGrandParent);
