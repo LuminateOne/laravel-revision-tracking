@@ -55,7 +55,7 @@ class RevisionTracking
     {
         $revisionModel = $model->getRevisionModel();
 
-        // If current model is the most top model, then it will use the
+        // If current model is the top-level model, then it will use the
         // existing revision to store the changed values
         if(!$model->parentModel && $model->hasRelationLoaded() && $model->createdRevision){
             $revisionModel = $model->createdRevision;
