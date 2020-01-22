@@ -12,6 +12,11 @@ class Revision extends Model
 {
     protected $fillable = ['model_identifier', 'revisions', 'model_name'];
 
+    protected $casts = [
+        'model_identifier' => 'array',
+        'revisions' => 'array'
+    ];
+
     /**
      * A function to append the child revision to revisions attributes
      *
@@ -29,14 +34,19 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized model_identifier
+     * Get all revisions for the given model
      *
-     * @param $value
+     * @param $model
      * @return mixed
      */
-    public function getModelIdentifierAttribute($value)
-    {
-        return unserialize($value);
+    public function revisions($model){
+        $targetRevision = $model->getRevisionModel()->where('model_identifier->' . $model->getKeyName(), $model->getKey());
+
+        if ($model->revisionMode() === 'all') {
+            $targetRevision = $targetRevision->where('model_name', get_class($model));
+        }
+
+        return $targetRevision;
     }
 
     /**
@@ -47,7 +57,7 @@ class Revision extends Model
      */
     public function getRevisionsAttribute($value)
     {
-        return $value ? unserialize($value) : [];
+        return $value ? json_decode($value, true) : [];
     }
 
     /**
@@ -89,27 +99,5 @@ class Revision extends Model
         $revisions['original_values'] = $value;
 
         $this->revisions = $revisions;
-    }
-
-    /**
-     * A mutator to serialize model_identifier
-     *
-     * @param $value
-     * @return void
-     */
-    public function setModelIdentifierAttribute($value)
-    {
-        $this->attributes['model_identifier'] = serialize($value);
-    }
-
-    /**
-     * A mutator to serialize original_values
-     *
-     * @param $value
-     * @return void
-     */
-    public function setRevisionsAttribute($value)
-    {
-        $this->attributes['revisions'] = serialize($value);
     }
 }

@@ -66,9 +66,11 @@ class RevisionTracking
         }
 
         $revisionModel->model_identifier = $model->modelIdentifier();
+
         if($originalFields !== null){
             $revisionModel->original_values = $originalFields;
         }
+
         $revisionModel->save();
 
         $model->createdRevision = $revisionModel;
@@ -85,15 +87,7 @@ class RevisionTracking
     public static function eloquentDelete($model)
     {
         if (config('revision_tracking.remove_on_delete', true)) {
-            $revisionModel = $model->getRevisionModel();
-
-            $targetRevisions = $revisionModel->where('model_identifier', $model->modelIdentifier(true));
-
-            if ($model->revisionMode() === 'all') {
-                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
-            }
-
-            $targetRevisions->delete();
+            $model->getRevisionModel()->revisions($model)->delete();
         }
     }
 }
