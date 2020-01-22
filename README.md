@@ -129,7 +129,7 @@ See the following examples:
     ])->first();
     
     // Model relations:
-    Customer:   is the parent model of the Order and Product
+    Customer:   is the top-level model
     Order:      is the child model of the Customer
     Product:    is the child model of the Customer
      
@@ -149,7 +149,7 @@ See the following examples:
     ])->first();
     
     // Model relations:
-    Product:    is the parent model of the Order and Customer
+    Product:    is the top-level model
     Order:      is the child model of the Product                
     Customer:   is the child model of the Order
     
@@ -162,8 +162,8 @@ See the following examples:
 ##### Create relational revision
 
 If you want to create the relational revision automatically, 
-the most top parent model has to be updated 
-(in the following case, the most top parent model is `Customer`). 
+the top-level model has to be updated 
+(in the following case, the top-level model is `Customer`). 
 Otherwise, you have to [create the relational revision manually]().
 
 - Automatically
@@ -186,11 +186,11 @@ Otherwise, you have to [create the relational revision manually]().
 
 - Manually
 
-    **If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
+    **If the top-level model will not be updated** (in the above case, the `$customer` is the top-level model),
     you need to call this method manually `before you update the model`.
     
 ```php
-    // After relations are loaded, call this method manually with the most top model
+    // After relations are loaded, call this method manually with the top-level model
     $customer->setAsRelationalRevision();
     
     // Your logic here
@@ -206,7 +206,7 @@ Otherwise, you have to [create the relational revision manually]().
 ##### Update models separately
 
 If you want to update models separately (without using `$model->push()`), you have to call `setAsRelationalRevision()` 
-with the most top model (in the following case, the `$customer` is the most top model), 
+with the top-level model (in the following case, the `$customer` is the top-level model), 
 it will create the relation with the revision of its child revisions.
 
 You can update the model manually like this:
