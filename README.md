@@ -5,7 +5,8 @@ changes. It can store, restore, retrieve all the Model changes. It stores only t
 ## Requirements
 1. [Laravel 5.8 and above](https://laravel.com/docs/5.8/releases)
 2. [PHP 7.1.0 and above](https://www.php.net/releases/7_1_0.php)
-3. The package can only work with models that have a primary key.
+3. [MySQL 5.7.8 and above](https://dev.mysql.com/doc/relnotes/mysql/5.7/en/news-5-7-8.html)
+4. The package can only work with models that have a primary key.
 
 ## Before you start
 The Laraval Revision Tracking package does work with a model that does not have the `int` primary key, for example, 
@@ -50,6 +51,13 @@ php artisan table:revision {modelName}
 ```
 See the [revision_tracking.php](config/config.php) config file for more detail.
 ## Docs
+- [Basic Usage](#markdown-header-basic-usage)
+- [Relational revision](#markdown-header-relational-revision)
+    - [Relation definitions](#markdown-header-relation-definitions)
+    - [Create relational revision](#markdown-header-create-relational-revision)
+    - [Update models separately](#markdown-header-update-models-separately)
+    - [Start a new relational revision with the same model](#markdown-start-a-new-relational-revision-with-the-same-model)
+    - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
 
 #### Basic Usage
 
@@ -83,7 +91,7 @@ You can get a single revision with a `revision id` for a specific model like thi
 $revision = $model->getRevision($revisionId);
 ```
 
-You can get rollback to a specific revision with a `revision id` for a specific model like this:
+You can rollback to a specific revision with a `revision id` for a specific model like this:
 ```php
 // $revisionId, integer, an id of a revision
 // $rollback,   boolean, true will save the “rollback” as a new revision of the model
@@ -92,4 +100,173 @@ You can get rollback to a specific revision with a `revision id` for a specific 
 $model->rollback($revisionId);
 
 $model->rollback($revisionId, false);
+```
+
+#### Relational revision
+
+**The relational revision will only work with a Model which have the relations loaded.**
+
+There are three models, and they have relations like this:
+```php
+    Customer:   has many Order
+    
+    Order:      belongs to Customer, 
+                and has many Product
+                
+    Product:    belongs to Order
+```
+##### Relation definitions:
+
+The model and revision relations depend on the way how the model is loaded.
+See the following examples:
+ 
+###### Relation 1:
+```php
+    // When Eager loading with relations like this
+    $customer = Customer::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('product');
+        }
+    ])->first();
+    
+    // Model relations:
+    Customer:   is the top-level model
+    Order:      is the child model of the Customer
+    Product:    is the child model of the Customer
+     
+    // Revision relations:
+    CustomerRevision:    is the parent revision of the OrderRevision and ProductRevision
+    OrderRevision:       is the child revision of the CustomerRevision                         
+    ProductRevision:     is the child revision of the CustomerRevision
+```
+
+###### Relation 2:
+```php
+    // When Eager loading with relations like this
+    $product = Product::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('customer');
+        }
+    ])->first();
+    
+    // Model relations:
+    Product:    is the top-level model
+    Order:      is the child model of the Product                
+    Customer:   is the child model of the Order
+    
+    // Revision relations:
+    ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
+    OrderRevision:      is the child revision of the ProductRevision
+    CustomerRevision:   is the child revision of the ProductRevision
+```
+
+##### Create relational revision
+
+If you want to create the relational revision automatically, 
+the top-level model has to be updated 
+(in the following case, the top-level model is `Customer`). 
+Otherwise, you have to [create the relational revision manually]().
+
+- Automatically
+
+    You can create relational revision automatically like this:
+```php
+    // Eager loading with relations
+    $customer = Customer::where('id', 1)->with([
+        'order' => function ($order) {
+            $order->with('product');
+        }
+    ])->first();
+    
+    // Your logic here
+    // Assign new values to the model
+    
+    // Call $model->push() to update the model and its related models
+    $customer->push();
+```
+
+- Manually
+
+    **If the top-level model will not be updated** (in the above case, the `$customer` is the top-level model),
+    you need to call this method manually `before you update the model`.
+    
+```php
+    // After relations are loaded, call this method manually with the top-level model
+    $customer->setAsRelationalRevision();
+    
+    // Your logic here
+    
+    // then you can call `$customer->push()`
+    // or update models separately
+    
+    // After the child model (order or product) is updated it will create 
+    // a revision for the customer, and set up the relation between 
+    // customer revision and the order revision
+```
+
+##### Update models separately
+
+If you want to update models separately (without using `$model->push()`), you have to call `setAsRelationalRevision()` 
+with the top-level model (in the following case, the `$customer` is the top-level model), 
+it will create the relation with the revision of its child revisions.
+
+You can update the model manually like this:
+```php
+// Eager loading with relations
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
+    }
+])->first();
+
+$customer->setAsRelationalRevision();
+
+// Your logic here
+// and Update models separately
+```
+##### Start a new relational revision with the same model
+In the relational revisions, when you want to start a new revision with the same model, you can do it like this:
+
+**You only need this when you are trying to save it as relational revision**
+
+```php
+// Eager loading with relations
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
+    }
+])->first();
+
+// After updated and saved
+
+// Call this function to refresh the relational revision
+$customer->setAsRelationalRevision();
+
+// Then you can update model, and it will save this as new relational revision
+
+```
+
+##### Retrieve relational revisions
+You can get all the relational revisions like this:
+```php
+// Returns collection of relational revision
+$relationalRevision = $model->allRelationalRevisions()->get();
+```
+`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+
+You can get a single relational revisions like this:
+```php
+// Returns a single relational revision
+$relationalRevision = $model->getRelationalRevision($reivsionId);
+```
+
+You can rollback to a specific relational revision with a `revision id` for a specific model like this:
+```php
+// $revisionId, integer, an id of a revision
+// $rollback,   boolean, true will save the “rollback” as a new revision of the model
+//                       false will delete the revisions that came after that revision
+
+$model->rollback($relationalRevisionId);
+
+$model->rollback($relationalRevisionId, false);
 ```

@@ -28,13 +28,6 @@
         <log type="coverage-clover" target="tests/Report/report.xml"/>
     </logging>
     <php>
-        <env name="DB_CONNECTION" value="mysql"/>
-        <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_PORT" value="3306"/>
-        <env name="DB_DATABASE" value="yiming_laravel_revision_tracking"/>
-        <env name="DB_USERNAME" value="root"/>
-        <env name="DB_PASSWORD" value=""/>
-
         <server name="APP_ENV" value="testing"/>
         <server name="BCRYPT_ROUNDS" value="4"/>
         <server name="CACHE_DRIVER" value="array"/>

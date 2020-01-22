@@ -1,10 +1,10 @@
 <?php
 namespace LuminateOne\RevisionTracking\Tests\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use LuminateOne\RevisionTracking\Traits\Revisionable;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use LuminateOne\RevisionTracking\Traits\Revisionable;
 
 class DefaultPrimaryKey extends Model
 {

@@ -1,9 +1,9 @@
 <?php
 namespace LuminateOne\RevisionTracking;
 
-use Illuminate\Database\Eloquent\Model;
 use ErrorException;
-use PharIo\Manifest\Exception;
+use Illuminate\Database\Eloquent\Model;
+use LuminateOne\RevisionTracking\Models\Revision;
 
 /**
  * This class can find and store the diff of a model
@@ -22,21 +22,23 @@ class RevisionTracking
      */
     public static function eloquentDiff($model)
     {
-        $originalFields = [];
+        $aOriginalValue = [];
 
         $changes = $model->getChanges();
         $original = $model->getOriginal();
 
-        foreach ($changes as $key => $value) {
-            $aOriginalValue = [
-                "value" => $original[$key],
-                "column" => $key
-            ];
-
-            array_push($originalFields, $aOriginalValue);
+        // If changes is empty, then the action could be deletion or creation
+        // then we return the original value, this will be used to
+        // check what rollback action will be performed
+        if (empty($changes)) {
+            return $original;
         }
 
-        return $originalFields;
+        foreach ($changes as $key => $value) {
+            $aOriginalValue[$key] = $original[$key];
+        }
+
+        return $aOriginalValue;
     }
 
     /**
@@ -46,19 +48,32 @@ class RevisionTracking
      *
      * @param Model $model The changes will be stored for
      * @param array $originalFields A key => value pair array, which stores the field names and the original values
+     *
+     * @return Revision The newly created revision model
      */
-    public static function eloquentStoreDiff($model, $originalFields)
+    public static function eloquentStoreDiff($model, $originalFields = null)
     {
         $revisionModel = $model->getRevisionModel();
+
+        // If current model is the top-level model, then it will use the
+        // existing revision to store the changed values
+        if(!$model->parentModel && $model->hasRelationLoaded() && $model->createdRevision){
+            $revisionModel = $model->createdRevision;
+        }
 
         if ($model->revisionMode() === 'all') {
             $revisionModel->model_name = get_class($model);
         }
 
-        $revisionModel->revision_identifier = $model->revisionIdentifier();
-        $revisionModel->original_values = $originalFields;
+        $revisionModel->model_identifier = $model->modelIdentifier();
+
+        if($originalFields !== null){
+            $revisionModel->original_values = $originalFields;
+        }
 
         $revisionModel->save();
+
+        $model->createdRevision = $revisionModel;
     }
 
     /**
@@ -72,15 +87,7 @@ class RevisionTracking
     public static function eloquentDelete($model)
     {
         if (config('revision_tracking.remove_on_delete', true)) {
-            $revisionModel = $model->getRevisionModel();
-
-            $targetRevisions = $revisionModel->where('revision_identifier', $model->revisionIdentifier(true));
-
-            if ($model->revisionMode() === 'all') {
-                $targetRevisions = $targetRevisions->where('model_name', get_class($model));
-            }
-
-            $targetRevisions->delete();
+            $model->allRevisions()->delete();
         }
     }
 }
