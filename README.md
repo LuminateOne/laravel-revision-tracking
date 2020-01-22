@@ -164,8 +164,9 @@ See the following examples:
 If you want to create the relational revision automatically, 
 the most top parent model has to be updated 
 (in the following case, the most top parent model is `Customer`). 
-Otherwise, you have to [create the relational revision manually](#markdown-header-create-relational-revision-manually).
+Otherwise, you have to [create the relational revision manually](#markdown-manually).
 
+###### Automatically
 You can create relational revision automatically like this:
 ```php
     // Eager loading with relations
@@ -182,7 +183,8 @@ You can create relational revision automatically like this:
     $customer->push();
 ```
 
-**If most top model will not be updated** (in the above case, the `$customer` is the most top model),
+###### Manually
+**If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
 you need to call this method manually `before you update the model`.
 
 ```php
@@ -221,6 +223,7 @@ $customer->setAsRelationalRevision();
 ```
 ##### Start a new relational revision with the same model
 In the relational revisions, when you want to start a new revision with the same model, you can do it like this:
+
 **You only need this when you are trying to save it as relational revision**
 
 ```php
@@ -233,7 +236,7 @@ $customer = Customer::where('id', 1)->with([
 
 // After updated and saved
 
-// Call this function to refresh the realtional revision
+// Call this function to refresh the relational revision
 $customer->setAsRelationalRevision();
 
 // Then you can update model, and it will save this as new relational revision
