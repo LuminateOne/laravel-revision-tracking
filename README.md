@@ -166,7 +166,7 @@ the most top parent model has to be updated
 (in the following case, the most top parent model is `Customer`). 
 Otherwise, you have to [create the relational revision manually](#create-relationale-revision-manually).
 
-<p>Automatically</p>
+Automatically
 You can create relational revision automatically like this:
 ```php
     // Eager loading with relations
