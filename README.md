@@ -164,9 +164,9 @@ See the following examples:
 If you want to create the relational revision automatically, 
 the most top parent model has to be updated 
 (in the following case, the most top parent model is `Customer`). 
-Otherwise, you have to [create the relational revision manually](#markdown-header-manually).
+Otherwise, you have to [create the relational revision manually](#create-relationale-revision-manually).
 
-###### Automatically
+<p>Automatically</p>
 You can create relational revision automatically like this:
 ```php
     // Eager loading with relations
@@ -183,7 +183,7 @@ You can create relational revision automatically like this:
     $customer->push();
 ```
 
-###### Manually
+<p id="create-relationale-revision-manually">Manually</p>
 **If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
 you need to call this method manually `before you update the model`.
 
