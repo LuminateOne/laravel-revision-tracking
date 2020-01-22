@@ -87,7 +87,7 @@ class RevisionTracking
     public static function eloquentDelete($model)
     {
         if (config('revision_tracking.remove_on_delete', true)) {
-            $model->getRevisionModel()->revisions($model)->delete();
+            $model->allRevisions()->delete();
         }
     }
 }

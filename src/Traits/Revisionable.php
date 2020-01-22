@@ -201,7 +201,13 @@ trait Revisionable
      */
     public function allRevisions()
     {
-        return $this->getRevisionModel()->revisions($this);
+        $targetRevision = $this->getRevisionModel()->where('model_identifier->' . $this->getKeyName(), $this->getKey());
+
+        if ($this->revisionMode() === 'all') {
+            $targetRevision = $targetRevision->where('model_name', get_class($this));
+        }
+
+        return $targetRevision;
     }
 
     /**

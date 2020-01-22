@@ -34,22 +34,6 @@ class Revision extends Model
     }
 
     /**
-     * Get all revisions for the given model
-     *
-     * @param $model
-     * @return mixed
-     */
-    public function revisions($model){
-        $targetRevision = $model->getRevisionModel()->where('model_identifier->' . $model->getKeyName(), $model->getKey());
-
-        if ($model->revisionMode() === 'all') {
-            $targetRevision = $targetRevision->where('model_name', get_class($model));
-        }
-
-        return $targetRevision;
-    }
-
-    /**
      * An accessor to retrieve the unserialized original_values
      *
      * @param $value
