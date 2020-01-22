@@ -53,9 +53,16 @@ trait Revisionable
      * method manually to set this model as the parentModel to its all child models, so when the child
      * model is changed, the child model can create a revision for its parent model,
      * and set the relation between revisions
+     *
+     * @throws ErrorException
      */
     public function setAsRelationalRevision()
     {
+        if(!$this->hasRelationLoaded()){
+            throw new ErrorException("This " . self::class . " model does not have any relations loaded, it cannot be set as relational revision.");
+        }
+
+        $this->createdRevision = null;
         $this->addThisModelToItsChildModels($this, $this);
     }
 
@@ -292,5 +299,17 @@ trait Revisionable
     public function revisionMode()
     {
         return config('revision_tracking.mode', 'all');
+    }
+
+    /**
+     * Check if any relation is laoded for the current model
+     *
+     * @return boolean
+     */
+    public function hasRelationLoaded(){
+        foreach ($this->relations as $relations) {
+           return true;
+        }
+        return false;
     }
 }
