@@ -166,7 +166,8 @@ the most top parent model has to be updated
 (in the following case, the most top parent model is `Customer`). 
 Otherwise, you have to [create the relational revision manually](#create-relationale-revision-manually).
 
-Automatically
+- Automatically
+
 You can create relational revision automatically like this:
 ```php
     // Eager loading with relations
@@ -183,7 +184,8 @@ You can create relational revision automatically like this:
     $customer->push();
 ```
 
-<p id="create-relationale-revision-manually">Manually</p>
+- Manually
+
 **If the most top model will not be updated** (in the above case, the `$customer` is the most top model),
 you need to call this method manually `before you update the model`.
 
