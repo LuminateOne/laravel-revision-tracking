@@ -34,7 +34,7 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized original_values
+     * An accessor to retrieve the revision
      *
      * @param $value
      * @return mixed
@@ -45,7 +45,7 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized original values
+     * An accessor to retrieve the original values
      *
      * @return mixed
      */
@@ -54,7 +54,7 @@ class Revision extends Model
     }
 
     /**
-     * An accessor to retrieve the unserialized child revision
+     * An accessor to retrieve the child revisions
      *
      * @return mixed
      */
@@ -63,7 +63,7 @@ class Revision extends Model
     }
 
     /**
-     * A mutator to serialize original_values
+     * A mutator to set original values
      *
      * @param $value
      * @return void
