@@ -17,7 +17,7 @@ class ParentWithRevision extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function grandParent(){
+    public function grandparent(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 

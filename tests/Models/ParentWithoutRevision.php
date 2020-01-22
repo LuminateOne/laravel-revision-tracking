@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 // use LuminateOne\RevisionTracking\Traits\Revisionable;
 
-class ParentNoRevision extends Model
+class ParentWithoutRevision extends Model
 {
     // use Revisionable;
 
@@ -17,7 +17,7 @@ class ParentNoRevision extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function grandParent(){
+    public function grandparent(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 
