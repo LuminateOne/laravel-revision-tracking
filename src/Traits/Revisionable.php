@@ -48,11 +48,8 @@ trait Revisionable
     }
 
     /**
-     * Set relational revision manually, sometimes the parent model will not be changed (updated, created, deleted),
-     * So the parent model will never trigger any event in this Revisionable Trait, so we need to call this
-     * method manually to set this model as the parentModel to its all child models, so when the child
-     * model is changed, the child model can create a revision for its parent model,
-     * and set the relation between revisions
+     * Set relational revision manually, parent model will never trigger any event if the parent model will not be changed,
+     * so we need to call this method manually to set this model as the parentModel to its all child models
      *
      * @throws ErrorException
      */
@@ -105,10 +102,8 @@ trait Revisionable
                     }
                     $aRelation->parentModel = $parentModel;
                 }
-                // If the current relation is not using the Revisionable Trait, then we need to go deeper to find its child relations,
-                // We need to always use `$this` to call the addThisModelToItsChildModel recursively,
-                // because when a model without the revision control turned on involved,
-                // it will break the recursive loop
+                // If the current relation is not using the Revisionable Trait, then we need to find its child relations
+                // of current relation. We need to always use `$this` to call the addThisModelToItsChildModel recursively
                 $this->addThisModelToItsChildModels($aRelation, $parentModel);
             }
         }
@@ -135,9 +130,8 @@ trait Revisionable
      * Using the revision ID provided to retrieve the revision for the model
      *
      * @param integer $revisionId Revision ID for the model
-     * @param boolean $saveAsRevision true =>  save the “rollback” as a new revision of the model
-     *                                false => rollback to a specific revision and delete all the revisions that came
-     *                                         after that revision
+     * @param boolean $saveAsRevision true =>  rollback and save a new revision
+     *                                false => rollback and delete old revisions
      *
      * @throws ErrorException  If the revision or the original record cannot be found
      */

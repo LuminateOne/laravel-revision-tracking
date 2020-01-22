@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\Tests\Models\Child;
 use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
 use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
-use LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
 use LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey;
 use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimarykey;
 use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
@@ -67,7 +67,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
             new DefaultPrimarykey(),
             new GrandParent(),
             new NoPrimaryKey(),
-            new ParentNoRevision(),
+            new ParentWithoutRevision(),
             new ParentWithRevision()
         ];
 

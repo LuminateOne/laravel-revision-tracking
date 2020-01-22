@@ -17,17 +17,17 @@ class Child extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function childParent(){
+    public function parentWithRevision(){
         return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
     }
 
     /**
-     * A child belongs to ParentNoRevision
+     * A child belongs to ParentWithoutRevision
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function childParent2(){
-        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentNoRevision');
+    public function parentsWithoutRevisions(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision');
     }
 
     /**
@@ -41,13 +41,13 @@ class Child extends Model
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('parent_with_revision_id')->nullable();
-            $table->bigInteger('parent_no_revision_id')->nullable();
+            $table->bigInteger('parent_without_revision_id')->nullable();
             $table->string('first_name');
             $table->string('last_name');
             $table->timestamps();
 
             $table->foreign('parent_with_revision_id')->references('id')->on('parent_with_revisions')->onDelete('cascade');
-            $table->foreign('parent_no_revision_id')->references('id')->on('parent_no_revisions')->onDelete('cascade');
+            $table->foreign('parent_without_revision_id')->references('id')->on('parent_without_revisions')->onDelete('cascade');
         });
     }
 }
