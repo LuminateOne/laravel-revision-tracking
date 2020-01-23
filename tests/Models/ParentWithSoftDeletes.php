@@ -5,38 +5,31 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use LuminateOne\RevisionTracking\Traits\Revisionable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class GrandParent extends Model
+class ParentWithSoftDeletes extends Model
 {
-    use Revisionable;
+    use Revisionable,
+        SoftDeletes;
 
     protected $fillable = ['first_name', 'last_name'];
 
     /**
-     * A grandparent has many parent
+     * A parent has many childWithSoftDeletes
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function parentsWithRevisions(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision');
+    public function childrenWithSoftDeletes(){
+        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ChildWithSoftDeletes');
     }
 
     /**
-     * A grandparent has many parent
+     * A parent belongs to grandparent
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function parentsWithoutRevisions(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision');
-    }
-
-    /**
-     * A grandparent has many parentsWithSoftDeletes
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function parentsWithSoftDeletes(){
-        return $this->hasMany('LuminateOne\RevisionTracking\Tests\Models\ParentWithSoftDeletes');
+    public function grandparent(){
+        return $this->belongsTo('LuminateOne\RevisionTracking\Tests\Models\GrandParent');
     }
 
     public function createTable(){
@@ -46,10 +39,13 @@ class GrandParent extends Model
 
         Schema::create($this->getTable(), function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->bigInteger('grand_parent_id');
             $table->string('first_name');
             $table->string('last_name');
-
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->foreign('grand_parent_id')->references('id')->on('grand_parents')->onDelete('cascade');
         });
     }
 }

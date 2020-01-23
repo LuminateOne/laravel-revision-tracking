@@ -43,7 +43,10 @@ trait Revisionable
 
         static::deleted(function ($model) {
             $model->trackChanges();
-            RevisionTracking::eloquentDelete($model);
+
+            if(!$model->isUsingSoftDeletes() || ($model->isUsingSoftDeletes() && $model->isForceDeleting())){
+                RevisionTracking::eloquentDelete($model);
+            }
         });
     }
 
@@ -158,9 +161,14 @@ trait Revisionable
         if (array_key_exists('child', $targetRevision->revisions)) {
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
-                $targetModel = new $modelName();
-                $revision = $targetModel->getRevisionModel()->find($aChildRevision['revision_id']);;
-                $childModel = $targetModel->where($revision->model_identifier)->first();
+                $childModel = new $modelName();
+                $revision = $childModel->getRevisionModel()->find($aChildRevision['revision_id']);
+
+                if(in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($childModel))){
+                    $childModel = $childModel->where($revision->model_identifier)->withTrashed()->first();
+                } else {
+                    $childModel = $childModel->where($revision->model_identifier)->first();
+                }
 
                 if ($childModel->usingRevisionableTrait) {
                     $childModel->parentModel = $this;
@@ -299,5 +307,14 @@ trait Revisionable
            return true;
         }
         return false;
+    }
+
+    /**
+     * Check if this model is using soft deletes
+     *
+     * @return boolean
+     */
+    public function isUsingSoftDeletes(){
+        return in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this));
     }
 }

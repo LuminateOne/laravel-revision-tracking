@@ -4,8 +4,10 @@ namespace LuminateOne\RevisionTracking\Tests\Unit;
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\Child;
 use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
-use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
 use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
+use LuminateOne\RevisionTracking\Tests\Models\ChildWithSoftDeletes;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithSoftDeletes;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
 
 class RevisionTestWithRelation extends TestCase
 {
@@ -29,6 +31,8 @@ class RevisionTestWithRelation extends TestCase
         $this->relationUpdate();
         $this->updateModelManually(false);
         $this->updateModelManually(true);
+        $this->relationalWithSoftDeletes(false);
+        $this->relationalWithSoftDeletes(true);
     }
 
     /**
@@ -42,6 +46,8 @@ class RevisionTestWithRelation extends TestCase
         $this->relationUpdate();
         $this->updateModelManually(false);
         $this->updateModelManually(true);
+        $this->relationalWithSoftDeletes(false);
+        $this->relationalWithSoftDeletes(true);
     }
 
     private function noRelationLoadedException(){
@@ -259,6 +265,64 @@ class RevisionTestWithRelation extends TestCase
             $restoredChild = Child::find($aChild->id);
             $hasDifferent = $this->compareTwoModel($aChild, $restoredChild);
             $this->assertEquals(false, $hasDifferent, 'Fillable attribute values do not match');
+        }
+    }
+
+    /**
+     * Test relational rollback with soft delete turned on
+     *
+     * After rollback, it will check the if the model is trashed
+     *
+     * @param boolean $saveAsRevision
+     */
+    private function relationalWithSoftDeletes($saveAsRevision = false)
+    {
+        // Create ParentWithRevision, ParentWithoutRevision, and Child model
+        $insertCount = 3;
+        $modelGrandParent = $this->setupModel(GrandParent::class);
+        for ($i = 0; $i < $insertCount; $i++) {
+            $modelParent = $this->setupModel(ParentWithSoftDeletes::class, ['grand_parent_id' => $modelGrandParent->id]);
+            for ($o = 0; $o < $insertCount; $o++) {
+                $this->setupModel(ChildWithSoftDeletes::class, ['parent_with_soft_deletes_id' => $modelParent->id]);
+            }
+        }
+
+        // Load GrandParent with its relations
+        $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
+            'parentsWithSoftDeletes' => function ($parent) {
+                $parent->with('childrenWithSoftDeletes');
+            }
+        ])->first();
+
+        // Set the the relational revision manually
+        $modelGrandParent->setAsRelationalRevision();
+        foreach ($modelGrandParent->parentsWithSoftDeletes as $aParentsWithSoftDeletes) {
+            $aParentsWithSoftDeletes->delete();
+            foreach ($aParentsWithSoftDeletes->childrenWithSoftDeletes as $aChildWithSoftDeletes) {
+                $aChildWithSoftDeletes->delete();
+            }
+        }
+        $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
+        $expected = ($insertCount * $insertCount) + $insertCount;
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+
+        // Load GrandParent with its relations
+        $modelGrandParent = GrandParent::find($modelGrandParent->id);
+        $grandParentRevision = $modelGrandParent->allRelationalRevisions()->latest('id')->first();
+        $modelGrandParent->rollback($grandParentRevision->id, $saveAsRevision);
+        $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
+
+        $modelGrandParent = GrandParent::where('id', $modelGrandParent->id)->with([
+            'parentsWithSoftDeletes' => function ($parent) {
+                $parent->with('childrenWithSoftDeletes');
+            }
+        ])->first();
+        foreach ($modelGrandParent->parentsWithSoftDeletes as $aParentsWithSoftDeletes) {
+            $this->assertEquals(false, $aParentsWithSoftDeletes->trashed(),"The ParentsWithSoftDeletes should not be trashed");
+
+            foreach ($aParentsWithSoftDeletes->childrenWithSoftDeletes as $aChildWithSoftDeletes) {
+                $this->assertEquals(false, $aChildWithSoftDeletes->trashed(),"The ChildWithSoftDeletes should not be trashed");
+            }
         }
     }
 }
