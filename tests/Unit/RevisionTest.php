@@ -4,6 +4,7 @@ namespace LuminateOne\RevisionTracking\Tests\Unit;
 use LuminateOne\RevisionTracking\Tests\TestCase;
 use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
 use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKey;
+use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKeyWithSoftDelete;
 
 class RevisionTest extends TestCase
 {
@@ -40,6 +41,8 @@ class RevisionTest extends TestCase
         $this->removeOnDelete(true);
         $this->noRevisionException();
         $this->noPrimaryKeyException();
+        $this->softDelete(true);
+        $this->softDelete(false);
     }
 
     /**
@@ -59,6 +62,8 @@ class RevisionTest extends TestCase
         $this->removeOnDelete(true);
         $this->noRevisionException();
         $this->noPrimaryKeyException();
+        $this->softDelete(true);
+        $this->softDelete(false);
     }
 
     /**
@@ -235,5 +240,48 @@ class RevisionTest extends TestCase
             $this->assertInstanceOf(\ErrorException::class, $exception, 'An ErrorException should be thrown');
             return;
         }
+    }
+
+    /**
+     * Test if soft deleted model rollback
+     *
+     * @param boolean $deleteRevision
+     * @throws \ErrorException If the Model does not have a primary key
+     *                    If the Model does not have any revision
+     */
+    private function softDelete($deleteRevision = true){
+        $this->setupRevisionTable();
+        $model = $this->setupModel(DefaultPrimaryKeyWithSoftDelete::class);
+
+        $model = $this->updateModel($model);
+
+        config(['revision_tracking.remove_on_delete' => $deleteRevision]);
+        $model = DefaultPrimaryKeyWithSoftDelete::withTrashed()->where('id', $model->id)->first();
+        $model->forceDelete();
+        $expected = $deleteRevision ? 0 : 3;
+        $this->assertEquals($expected, $model->allRevisions()->count(), 'The number of revisions should be ' . $expected);
+
+        $model = $this->setupModel(DefaultPrimaryKeyWithSoftDelete::class);
+        $model = DefaultPrimaryKeyWithSoftDelete::find($model->id);
+        $model->delete();
+        $revision = $model->allRevisions()->latest('id')->first();
+        $this->assertEquals(2, $model->allRevisions()->count(), 'The number of revisions should be 2');
+        $this->assertNull($revision->original_values['deleted_at'], 'The deleted_at should be null');
+        $this->assertEquals(true, $model->trashed(), 'The model should be trashed');
+
+        $model = DefaultPrimaryKeyWithSoftDelete::withTrashed()->where('id', $model->id)->first();
+        $model->rollback($revision->id, true);
+        $this->assertEquals(false, $model->trashed(), 'The model should not be trashed');
+        $this->assertEquals(3, $model->allRevisions()->count(), 'The number of revisions should be 3');
+
+        $model = DefaultPrimaryKeyWithSoftDelete::withTrashed()->where('id', $model->id)->first();
+        $model->delete();
+        $model = DefaultPrimaryKeyWithSoftDelete::withTrashed()->where('id', $model->id)->first();
+        $model->restore();
+        $revision = $model->allRevisions()->latest('id')->first();
+        $this->assertNotNull($revision->original_values['deleted_at'], 'The deleted_at should not be null');
+
+        $model->rollback($revision->id);
+        $this->assertEquals(true, $model->trashed(), 'The model should be trashed');
     }
 }

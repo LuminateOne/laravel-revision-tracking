@@ -8,10 +8,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use LuminateOne\RevisionTracking\Tests\Models\Child;
 use LuminateOne\RevisionTracking\Tests\Models\GrandParent;
 use LuminateOne\RevisionTracking\Tests\Models\NoPrimaryKey;
-use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
 use LuminateOne\RevisionTracking\Tests\Models\CustomPrimaryKey;
 use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimarykey;
 use LuminateOne\RevisionTracking\Tests\Models\ParentWithRevision;
+use LuminateOne\RevisionTracking\Tests\Models\ChildWithSoftDeletes;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithSoftDeletes;
+use LuminateOne\RevisionTracking\Tests\Models\ParentWithoutRevision;
+use LuminateOne\RevisionTracking\Tests\Models\DefaultPrimaryKeyWithSoftDelete;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -63,12 +66,15 @@ class TestCase extends \Orchestra\Testbench\TestCase
 
         $models = [
             new Child(),
-            new CustomPrimaryKey(),
-            new DefaultPrimarykey(),
             new GrandParent(),
             new NoPrimaryKey(),
+            new CustomPrimaryKey(),
+            new DefaultPrimarykey(),
+            new ParentWithRevision(),
             new ParentWithoutRevision(),
-            new ParentWithRevision()
+            new ChildWithSoftDeletes (),
+            new ParentWithSoftDeletes (),
+            new DefaultPrimaryKeyWithSoftDelete(),
         ];
 
         foreach ($models as $aModel) {

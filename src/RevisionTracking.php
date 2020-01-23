@@ -27,6 +27,10 @@ class RevisionTracking
         $changes = $model->getChanges();
         $original = $model->getOriginal();
 
+        if($model->isUsingSoftDeletes() && $model->trashed()){
+            return [$model->getDeletedAtColumn() => null];
+        }
+
         // If changes is empty, then the action could be deletion or creation
         // then we return the original value, this will be used to
         // check what rollback action will be performed
