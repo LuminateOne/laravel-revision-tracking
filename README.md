@@ -275,7 +275,7 @@ $model->rollback($relationalRevisionId, false);
 #### Track bulk actions
 With using the functions blow, the revisions will be created for every bulk insert, update, delete.
 
-you can track bulk insert like this: 
+You can track bulk insert like this: 
 ```php
 Model::trackBulkInsert([
    ['first_name' => 'Peter', 'last_name' => 'Owen'],
@@ -284,14 +284,14 @@ Model::trackBulkInsert([
 ]);
 ```
 
-you can track bulk update like this: 
+You can track bulk update like this: 
 ```php
 Model::where('first_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
 
 Model::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
 ```
 
-you can track bulk delete like this: 
+You can track bulk delete like this: 
 ```php
 Model::where('first_name', '!=', '')->trackBulkDelete();
 ```
