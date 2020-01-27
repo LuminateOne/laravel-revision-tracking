@@ -17,6 +17,7 @@
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src/Builder</directory>
             <directory suffix=".php">./src/Models</directory>
             <directory suffix=".php">./src/Providers</directory>
             <directory suffix=".php">./src/Traits</directory>

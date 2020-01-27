@@ -58,6 +58,7 @@ See the [revision_tracking.php](config/config.php) config file for more detail.
     - [Update models separately](#markdown-header-update-models-separately)
     - [Start a new relational revision with the same model](#markdown-start-a-new-relational-revision-with-the-same-model)
     - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
+- [Track bulk actions](#markdown-header-track-bulk-actions)
 
 #### Basic Usage
 
@@ -269,4 +270,28 @@ You can rollback to a specific relational revision with a `revision id` for a sp
 $model->rollback($relationalRevisionId);
 
 $model->rollback($relationalRevisionId, false);
+```
+
+#### Track bulk actions
+With using the functions blow, the revisions will be created for every bulk insert, update, delete.
+
+You can track bulk insert like this: 
+```php
+Model::trackBulkInsert([
+   ['first_name' => 'Peter', 'last_name' => 'Owen'],
+   ['first_name' => 'first name', 'last_name' => 'last name'],
+   ...
+]);
+```
+
+You can track bulk update like this: 
+```php
+Model::where('first_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
+
+Model::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
+```
+
+You can track bulk delete like this: 
+```php
+Model::where('first_name', '!=', '')->trackBulkDelete();
 ```

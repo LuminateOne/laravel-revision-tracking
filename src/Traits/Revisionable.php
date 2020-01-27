@@ -1,12 +1,14 @@
 <?php
 namespace LuminateOne\RevisionTracking\Traits;
 
+use DB;
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use LuminateOne\RevisionTracking\Models\Revision;
 use LuminateOne\RevisionTracking\RevisionTracking;
+use LuminateOne\RevisionTracking\Builder\RevisionTrackingBuilder;
 
 trait Revisionable
 {
@@ -44,7 +46,7 @@ trait Revisionable
         static::deleted(function ($model) {
             $model->trackChanges();
 
-            if(!$model->isUsingSoftDeletes() || ($model->isUsingSoftDeletes() && $model->isForceDeleting())){
+            if (!$model->isUsingSoftDeletes() || ($model->isUsingSoftDeletes() && $model->isForceDeleting())) {
                 RevisionTracking::eloquentDelete($model);
             }
         });
@@ -58,7 +60,7 @@ trait Revisionable
      */
     public function setAsRelationalRevision()
     {
-        if(!$this->hasRelationLoaded()){
+        if (!$this->hasRelationLoaded()) {
             throw new ErrorException("This " . self::class . " model does not have any relations loaded, it cannot be set as relational revision.");
         }
 
@@ -100,7 +102,7 @@ trait Revisionable
 
             foreach (array_filter($relations) as $aRelation) {
                 if ($aRelation->usingRevisionableTrait) {
-                    if($aRelation->parentModel){
+                    if ($aRelation->parentModel) {
                         return;
                     }
                     $aRelation->parentModel = $parentModel;
@@ -164,7 +166,7 @@ trait Revisionable
                 $childModel = new $modelName();
                 $revision = $childModel->getRevisionModel()->find($aChildRevision['revision_id']);
 
-                if(in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($childModel))){
+                if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($childModel))) {
                     $childModel = $childModel->where($revision->model_identifier)->withTrashed()->first();
                 } else {
                     $childModel = $childModel->where($revision->model_identifier)->first();
@@ -181,7 +183,7 @@ trait Revisionable
             $this->allRevisions()->where('id', '>=', $revisionId)->delete();
         }
     }
-    
+
     /**
      * Get a specific revision by the revision ID.
      *
@@ -302,9 +304,10 @@ trait Revisionable
      *
      * @return boolean
      */
-    public function hasRelationLoaded(){
+    public function hasRelationLoaded()
+    {
         foreach ($this->relations as $relations) {
-           return true;
+            return true;
         }
         return false;
     }
@@ -314,7 +317,41 @@ trait Revisionable
      *
      * @return boolean
      */
-    public function isUsingSoftDeletes(){
+    public function isUsingSoftDeletes()
+    {
         return in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this));
+    }
+
+
+    /**
+     * Create a revisions for each insert
+     *
+     * @param array $data
+     * @throws \ErrorException
+     */
+    public static function trackBulkInsert($data = [])
+    {
+        try {
+            DB::beginTransaction();
+
+            foreach ($data as $aDataArray) {
+                self::create($aDataArray);
+                DB::commit();
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * Override the existing newEloquentBuilder
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return LuminateOne\RevisionTracking\Builder\RevisionTrackingBuilder|static
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new RevisionTrackingBuilder($query);
     }
 }
