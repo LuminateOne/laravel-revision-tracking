@@ -51,19 +51,16 @@ See the [revision_tracking.php](config/config.php) config file for more detail.
 ## Features
 
 #### Track and rollback to the changes of a single model.
-This package can track a single model changes after the model gets created, updated, and deleted. [See example](#markdown-header-controller)
-
-This package can also rollback to a specific revision. [See example](#markdown-header-controller)
+- This package can track a single model changes after the model gets created, updated, and deleted. [See example](#markdown-header-controller)
+- This package can also rollback to a specific revision. [See example](#markdown-header-controller)
 
 #### Track and rollback to the changes of a model when it has relations loaded.
-Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
-
-When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
-
-When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
+- Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
+- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
+- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
 
 #### Track and rollback to the changes when bulk creating, updating, deleting.
-This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
+- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
 
 ## Examples
 - [Model](#markdown-header-model)
