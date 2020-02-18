@@ -58,7 +58,7 @@ This package can also rollback to a specific revision. [See example](#markdown-h
 #### Track and rollback to the changes of a model when it has relations loaded.
 Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
 
-When a model has relations loaded, this package will create relational revision. [See example](#markdown-header-create-relational-revision)
+When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
 
 When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
 
@@ -138,7 +138,7 @@ class ExampleController extends Controller
     }
     
     /*
-     * Get all revisions for a specific
+     * Get all revisions for a specific model
      */
     public function allRevisions($id) {
         //Query the model
@@ -176,7 +176,7 @@ class ExampleController extends Controller
 
 #### Relational revision
 
-**The relational revision will only work with a Model which has the relations loaded.**
+**The relational revision will only work with a Model that has the relations loaded.**
 
 There are three models, and they have relations like this:
 ```php
