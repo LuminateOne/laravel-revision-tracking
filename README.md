@@ -59,7 +59,7 @@ See the [revision_tracking.php](config/config.php) config file for more detail.
 - When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
 - When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
 
-#### Track and rollback to the changes when bulk creating, updating, deleting.
+#### Track the changes when bulk creating, updating, deleting.
 - This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
 
 ## Examples
