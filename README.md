@@ -1,12 +1,12 @@
-# Laraval Revision Tracking
-Laraval Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) 
+# Laravel Revision Tracking
+Laravel Revision Tracking is a Laravel package that tracks the [Eloquent model](https://laravel.com/docs/6.x/eloquent) 
 changes. It can store, restore, retrieve all the Model changes. It stores only the diff of fields.
 
 ## Requirements
 1. [Laravel 5.8 and above](https://laravel.com/docs/5.8/releases)
 2. [PHP 7.1.0 and above](https://www.php.net/releases/7_1_0.php)
 3. [MySQL 5.7.8 and above](https://dev.mysql.com/doc/relnotes/mysql/5.7/en/news-5-7-8.html)
-4. The package can only work with models that have a primary key.
+4. This package can only work with models that have a primary key.
 
 ## Before you start
 The Laraval Revision Tracking package does work with a model that does not have the `int` primary key, for example, 
@@ -15,55 +15,69 @@ but rollback the revisions will be very tricky after the model primary key chang
 
 **So we suggest you use the `int` as the primary key type and avoid changing the primary key**.
 
-## Installation
+## Getting Started
 ### Install via [composer](https://getcomposer.org/doc/00-intro.md)
-
+`cd to/your/project` and run the following command:
 ```
 composer require luminateone/revision-tracking
 ```
 
 ### Publish the config and migrations
-Run the following command to publish the package config file and migration file:
+Run the following command to publish the config file and migration file, 
+it will copy and paste the config and migration file from the package 
+to the corresponding folder of your project:
 ```bash
-// Publish the config and migration file at once
+// Publish the config and migration file
 php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider"
-
-// Publish the config file only
-php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider" --tag="config"
-
-// Publish the migration file only
-php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider" --tag="migrations"
 ```
 
 ### Run migrations
 
 #### If you are running mode `all`, run this command:
-Mode `all`, revisions will be stored in one table
+Mode `all`, revisions will be stored in one table, you can change the mode in `./config/revision_tracking.php`.
 ```bash
 php artisan migrate
 ```
 
 #### If you are running mode `single`, run the following command for each model you want to track:
-Mode `single`, revisions will be stored in a separate table based on the model
+Mode `single`, revisions will be stored in a separate table based on the model, 
+you can change the mode in `./config/revision_tracking.php`.
 ```bash
 // Please include the namespace
 php artisan table:revision {modelName}
 ```
 See the [revision_tracking.php](config/config.php) config file for more detail.
-## Docs
-- [Basic Usage](#markdown-header-basic-usage)
+
+## Features
+
+#### Track and rollback to the changes of a single model.
+This package can track a single model changes after the model gets created, updated, and deleted. [See example](#markdown-header-controller)
+
+This package can also rollback to a specific revision. [See example](#markdown-header-controller)
+
+#### Track and rollback to the changes of a model when it has relations loaded.
+Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
+
+When a model has relations loaded, this package will create relational revision. [See example](#markdown-header-create-relational-revision)
+
+When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
+
+#### Track and rollback to the changes when bulk creating, updating, deleting.
+This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
+
+## Examples
+- [Model](#markdown-header-model)
+- [Controller](#markdown-header-controller)
 - [Relational revision](#markdown-header-relational-revision)
     - [Relation definitions](#markdown-header-relation-definitions)
     - [Create relational revision](#markdown-header-create-relational-revision)
-    - [Update models separately](#markdown-header-update-models-separately)
-    - [Start a new relational revision with the same model](#markdown-start-a-new-relational-revision-with-the-same-model)
     - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
 - [Track bulk actions](#markdown-header-track-bulk-actions)
 
-#### Basic Usage
+#### Model
 
 Use the `Revisionable` [Trait](https://www.php.net/manual/en/language.oop5.traits.php) to monitor the model changes.
-Include the `LuminateOne\RevisionTracking\Traits` namespace and use `Revisionable`
+Include the `LuminateOne\RevisionTracking\Traits` namespace and `use Revisionable`.
 
 ```php
 <?php
@@ -77,44 +91,101 @@ class ExampleModel extends Model
     use Revisionable;
 }
 ```
-
-After a model is updated, you can get the all the revisions like this:
+#### Controller
 ```php
-// Returns collection of revision
-$allRevisions = $model->allRevisions()->get();
-```
+<?php
+namespace App\Http\Controllers;
 
-`allRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+use Illuminate\Http\Request;
+use App\Models\ExampleModel;
 
-You can get a single revision with a `revision id` for a specific model like this:
-```php
-// Returns a single revision
-$revision = $model->getRevision($revisionId);
-```
+class ExampleController extends Controller
+{
+    /*
+     * Create a model
+     */
+    public function create(Request $request) {
+        //Create model, a revision will be created after the model is created
+        ExampleModel::create($request->post());
+        
+        // Return response
+    }
 
-You can rollback to a specific revision with a `revision id` for a specific model like this:
-```php
-// $revisionId, integer, an id of a revision
-// $rollback,   boolean, true will save the “rollback” as a new revision of the model
-//                       false will delete the revisions that came after that revision
+    /*
+     * Update a model
+     */
+    public function update(Request $request, $id) {
+        //Query the model
+        $model = ExampleModel::find($id);
+        
+        //Update the model, a revision will be created after the model is updated
+        $model->update($request->post());
+        
+        // Return response
+    }
 
-$model->rollback($revisionId);
-
-$model->rollback($revisionId, false);
+    /*
+     * Deleted a model
+     */
+    public function delete($id) {
+        //Query the model
+        $model = ExampleModel::find($id);
+        
+        //Delete the model, a revision will be created after the model is deleted
+        $model->delete();
+        
+        // Return response
+    }
+    
+    /*
+     * Get all revisions for a specific
+     */
+    public function allRevisions($id) {
+        //Query the model
+        $model = ExampleModel::find($id);
+        
+        // You can get all the revisions like this, it returns collection of revision model
+        $allRevisions = $model->allRevisions()->get();
+        
+        // Return response
+    }
+    
+    /*
+     * Roll back to a specific revision
+     */
+    public function rollback($id) {
+        //Query the model
+        $model = ExampleModel::find($id);
+        
+        // allRevisions() will return a EloquentBuilder, so you still can build query. 
+        $revision = $model->allRevisions()->latest('id')->first();
+        $revisionId = $revision->id;
+        
+        // You can rollback to a specific revision with a revision id for a specific model
+        // $revisionId, integer, an id of a revision
+        // $rollback,   boolean, true will save the “rollback” as a new revision of the model
+        //                       false will delete the revisions that came after that revision
+        $model->rollback($revisionId);
+        
+        $model->rollback($revisionId, false);
+        
+        // Return response
+    }
+}
 ```
 
 #### Relational revision
 
-**The relational revision will only work with a Model which have the relations loaded.**
+**The relational revision will only work with a Model which has the relations loaded.**
 
 There are three models, and they have relations like this:
 ```php
-    Customer:   has many Order
-    
-    Order:      belongs to Customer, 
-                and has many Product
-                
-    Product:    belongs to Order
+Customer:   has many Order
+
+Order:      belongs to Customer, 
+            and has many Product
+            
+Product:    belongs to Order
 ```
 ##### Relation definitions:
 
@@ -123,153 +194,115 @@ See the following examples:
  
 ###### Relation 1:
 ```php
-    // When Eager loading with relations like this
-    $customer = Customer::where('id', 1)->with([
-        'order' => function ($order) {
-            $order->with('product');
-        }
-    ])->first();
-    
-    // Model relations:
-    Customer:   is the top-level model
-    Order:      is the child model of the Customer
-    Product:    is the child model of the Customer
-     
-    // Revision relations:
-    CustomerRevision:    is the parent revision of the OrderRevision and ProductRevision
-    OrderRevision:       is the child revision of the CustomerRevision                         
-    ProductRevision:     is the child revision of the CustomerRevision
+// When Eager loading with relations like this
+$customer = Customer::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('product');
+    }
+])->first();
+
+// Model relations:
+Customer:   is the top-level model
+Order:      is the child model of the Customer
+Product:    is the child model of the Customer
+ 
+// Revision relations:
+CustomerRevision:    is the parent revision of the OrderRevision and ProductRevision
+OrderRevision:       is the child revision of the CustomerRevision                         
+ProductRevision:     is the child revision of the CustomerRevision
 ```
 
 ###### Relation 2:
 ```php
-    // When Eager loading with relations like this
-    $product = Product::where('id', 1)->with([
-        'order' => function ($order) {
-            $order->with('customer');
-        }
-    ])->first();
-    
-    // Model relations:
-    Product:    is the top-level model
-    Order:      is the child model of the Product                
-    Customer:   is the child model of the Order
-    
-    // Revision relations:
-    ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
-    OrderRevision:      is the child revision of the ProductRevision
-    CustomerRevision:   is the child revision of the ProductRevision
+// When Eager loading with relations like this
+$product = Product::where('id', 1)->with([
+    'order' => function ($order) {
+        $order->with('customer');
+    }
+])->first();
+
+// Model relations:
+Product:    is the top-level model
+Order:      is the child model of the Product                
+Customer:   is the child model of the Order
+
+// Revision relations:
+ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
+OrderRevision:      is the child revision of the ProductRevision
+CustomerRevision:   is the child revision of the ProductRevision
 ```
 
 ##### Create relational revision
 
-If you want to create the relational revision automatically, 
-the top-level model has to be updated 
-(in the following case, the top-level model is `Customer`). 
-Otherwise, you have to [create the relational revision manually]().
+If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
+with the top-level model (in the following case, the top-level model is `Customer`). 
 
-- Automatically
-
-    You can create relational revision automatically like this:
+You can create relational revision like this:
 ```php
+public function update(Request $request, $id) {
     // Eager loading with relations
-    $customer = Customer::where('id', 1)->with([
+    $customer = Customer::where('id', $id)->with([
         'order' => function ($order) {
             $order->with('product');
         }
     ])->first();
     
-    // Your logic here
-    // Assign new values to the model
-    
-    // Call $model->push() to update the model and its related models
-    $customer->push();
-```
-
-- Manually
-
-    **If the top-level model will not be updated** (in the above case, the `$customer` is the top-level model),
-    you need to call this method manually `before you update the model`.
-    
-```php
-    // After relations are loaded, call this method manually with the top-level model
+    // Call this function after the relations are loaded
+    // and before update the model
     $customer->setAsRelationalRevision();
-    
-    // Your logic here
     
     // then you can call `$customer->push()`
     // or update models separately
     
-    // After the child model (order or product) is updated it will create 
-    // a revision for the customer, and set up the relation between 
-    // customer revision and the order revision
-```
-
-##### Update models separately
-
-If you want to update models separately (without using `$model->push()`), you have to call `setAsRelationalRevision()` 
-with the top-level model (in the following case, the `$customer` is the top-level model), 
-it will create the relation with the revision of its child revisions.
-
-You can update the model manually like this:
-```php
-// Eager loading with relations
-$customer = Customer::where('id', 1)->with([
-    'order' => function ($order) {
-        $order->with('product');
-    }
-])->first();
-
-$customer->setAsRelationalRevision();
-
-// Your logic here
-// and Update models separately
-```
-##### Start a new relational revision with the same model
-In the relational revisions, when you want to start a new revision with the same model, you can do it like this:
-
-**You only need this when you are trying to save it as relational revision**
-
-```php
-// Eager loading with relations
-$customer = Customer::where('id', 1)->with([
-    'order' => function ($order) {
-        $order->with('product');
-    }
-])->first();
-
-// After updated and saved
-
-// Call this function to refresh the relational revision
-$customer->setAsRelationalRevision();
-
-// Then you can update model, and it will save this as new relational revision
-
+    // Return response
+}
 ```
 
 ##### Retrieve relational revisions
 You can get all the relational revisions like this:
 ```php
-// Returns collection of relational revision
-$relationalRevision = $model->allRelationalRevisions()->get();
+public function allRelationalRevisions($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // allRelationalRevisions() will return a EloquentBuilder, so you still can build query. 
+    $relationalRevision = $model->allRelationalRevisions()->get();
+    
+    // Return response
+}
 ```
 `allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
 You can get a single relational revisions like this:
 ```php
-// Returns a single relational revision
-$relationalRevision = $model->getRelationalRevision($reivsionId);
+public function getRelationalRevision($id, $revisionId) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // Returns a single relational revision
+    $relationalRevision = $model->getRelationalRevision($reivsionId);
+    
+    // Return response
+}
 ```
 
 You can rollback to a specific relational revision with a `revision id` for a specific model like this:
 ```php
-// $revisionId, integer, an id of a revision
-// $rollback,   boolean, true will save the “rollback” as a new revision of the model
-//                       false will delete the revisions that came after that revision
-
-$model->rollback($relationalRevisionId);
-
-$model->rollback($relationalRevisionId, false);
+public function rollback($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // allRelationalRevisions() will return a EloquentBuilder, so you still can build query. 
+    $relationalRevisionId = $model->allRelationalRevisions()->latest('id')->first()->id;
+        
+    // $revisionId, integer, an id of a revision
+    // $rollback,   boolean, true will save the “rollback” as a new revision of the model
+    //                       false will delete the revisions that came after that revision
+    
+    $model->rollback($relationalRevisionId);
+    
+    $model->rollback($relationalRevisionId, false);
+}
 ```
 
 #### Track bulk actions
@@ -277,21 +310,24 @@ With using the functions blow, the revisions will be created for every bulk inse
 
 You can track bulk insert like this: 
 ```php
-Model::trackBulkInsert([
-   ['first_name' => 'Peter', 'last_name' => 'Owen'],
-   ['first_name' => 'first name', 'last_name' => 'last name'],
-   ...
-]);
+public function bulkInsert(Request $request) {
+    ExampleModel::trackBulkInsert([
+       ['first_name' => 'Peter', 'last_name' => 'Owen'],
+       ['first_name' => 'first name', 'last_name' => 'last name']
+    ]);
+}
 ```
 
-You can track bulk update like this: 
+You can track bulk update like this:
 ```php
-Model::where('first_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
-
-Model::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
+public function bulkUpdate(Request $request) {
+    ExampleModel::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
+}
 ```
 
 You can track bulk delete like this: 
 ```php
-Model::where('first_name', '!=', '')->trackBulkDelete();
+public function bulkDelete() {
+    ExampleModel::where('first_name', '!=', '')->trackBulkDelete();
+}
 ```
