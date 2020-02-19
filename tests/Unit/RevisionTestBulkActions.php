@@ -26,7 +26,6 @@ class RevisionTestBulkActions extends TestCase
         config(['revision_tracking.mode' => 'all']);
 
         $this->trackBulkActions();
-        $this->trackBulkCreateException();
     }
 
     /**
@@ -39,12 +38,11 @@ class RevisionTestBulkActions extends TestCase
         config(['revision_tracking.mode' => 'single']);
 
         $this->trackBulkActions();
-        $this->trackBulkCreateException();
     }
 
 
     /**
-     * Test bulk actions, insert, update, delete
+     * Test bulk update, and delete
      *
      * @throws \ErrorException
      */
@@ -53,29 +51,23 @@ class RevisionTestBulkActions extends TestCase
         $grandparentModel = new GrandParent();
         $grandparentModel->createTable();
 
-        $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        GrandParent::trackBulkInsert([
+        GrandParent::insert([
             ['first_name' => 'aaa1', 'last_name' => 'bbb'],
             ['first_name' => 'aaa2', 'last_name' => 'bbb'],
             ['first_name' => 'aaa3', 'last_name' => 'bbb']
         ]);
-        $count = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        $this->assertEquals(3, $count - $oldCount, 'The count of bulk insert revision should be 3');
 
         $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        GrandParent::where('last_name', 'bbb')->trackBulkDelete();
+        GrandParent::where('last_name', 'bbb')->deleteTracked();
         $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
         $this->assertEquals($grandparentModel->revisionMode() === 'all' ? 3 : 6,
             $actual - $oldCount, 'The count of bulk delete revision should be 3');
 
-        $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        GrandParent::trackBulkInsert([
+        GrandParent::insert([
             ['first_name' => 'ddd', 'last_name' => 'bbb'],
             ['first_name' => 'ddd', 'last_name' => 'bbb'],
             ['first_name' => 'ddd', 'last_name' => 'bbb']
         ]);
-        $count = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        $this->assertEquals(3, $count - $oldCount, 'The count of bulk insert revision should be 3');
 
         $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
         GrandParent::where('first_name', 'ddd')->update(['first_name' => 'ccc']);
@@ -83,23 +75,8 @@ class RevisionTestBulkActions extends TestCase
         $this->assertEquals(0, $actual - $oldCount, 'The count of revision when normal update should be 0');
 
         $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        GrandParent::where('first_name', 'ccc')->trackBulkUpdate(['first_name' => '111']);
+        GrandParent::where('first_name', 'ccc')->updateTracked(['first_name' => '111']);
         $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
         $this->assertEquals(3, $actual - $oldCount, 'The count of bulk insert revision should be 3');
-    }
-
-    /**
-     *  Test Exception when track bulk create
-     */
-    private function trackBulkCreateException()
-    {
-        try {
-            GrandParent::trackBulkInsert([
-                ['first_name' => 'aaa1', 'last_name' => '123'],
-                ['first_name1' => 'aaa2', 'last_name' => '123'],
-            ]);
-        } catch (\Exception $e) {
-            $this->assertInstanceOf(\Exception::class, $e, 'An ErrorException should be thrown');
-        }
     }
 }
