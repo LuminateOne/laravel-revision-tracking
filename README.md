@@ -13,7 +13,7 @@ The Laraval Revision Tracking package does work with a model that does not have 
 a [custom key type](https://laravel.com/docs/5.8/eloquent#eloquent-model-conventions) `string` as the primary key, 
 but rollback the revisions will be very tricky after the model primary key changed. 
 
-**So we suggest you use the `int` as the primary key type and avoid changing the primary key**.
+**Please use the `int` as the primary key type and avoid changing the primary key**.
 
 ## Getting Started
 ### Install via [composer](https://getcomposer.org/doc/00-intro.md)
