@@ -79,15 +79,8 @@ class ExampleModel extends Model
 - [Track bulk changes](#markdown-header-track-bulk-actions)
 
 ### Track changes of a single model
-This package can track a single model changes after the model gets created, updated, and deleted. See following examples:
+You can track a single model changes after the model gets updated, and deleted like his:
 ```php
-public function create(Request $request) {
-    //Create model, a revision will be created after the model is created
-    ExampleModel::create($request->post());
-    
-    // Return response
-}
-
 public function update(Request $request, $id) {
     //Query the model
     $model = ExampleModel::find($id);
@@ -110,8 +103,9 @@ public function delete($id) {
 ```
 
 ### Get all revisions for a specific model
-`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+You can retrieve all the revisions for a specific model like this:
 
+**`allRevisions()` will return a `EloquentBuilder`, so you still can build query.**
 ```php
 public function allRevisions($id) {
     //Query the model
@@ -125,7 +119,7 @@ public function allRevisions($id) {
 ```
 
 ### Get a single revision for a specific model
-You can get a single revisions like this:
+You can get a single revisions for a specific model like this:
 ```php
 public function getRevision($id, $revisionId) {
     //Query the model
@@ -139,11 +133,8 @@ public function getRevision($id, $revisionId) {
 ```
 
 ### Roll back to a specific revision
-This package can also rollback to a specific revision for a single model. See following example:
+You can rollback to a specific revision for a model like this:
 ```php
-/*
- * Roll back to a specific revision
- */
 public function rollback($id) {
     //Query the model
     $model = ExampleModel::find($id);
@@ -165,10 +156,12 @@ public function rollback($id) {
 ```
 
 ### Track the changes of a model when it has relations loaded.
-**The relational revision will only work with a Model that has the relations loaded.**
+You can can track the changes of all the related models when a model has its relations loaded like this:
 
 If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
-with the top-level model (in the following case, the top-level model is `Customer`). 
+with the top-level model (in the following case, the top-level model is `Customer`).
+
+**The relational revision will only work with a Model that has the relations loaded.** 
 ```php
 //There are two models, and they have relations like this:
 Customer:   has many Order
@@ -193,7 +186,7 @@ public function update(Request $request, $id) {
 ### Retrieve all relational revisions for a specific model
 `allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
-you can retrieve all the relational revisions like this:
+You can retrieve all the relational revisions for a specific model like this:
 ```php
 public function allRelationalRevisions($id) {
     //Query the model
@@ -243,10 +236,10 @@ public function rollback($id) {
 You can track bulk update and delete like this:
 ```php
 public function updateTracked(Request $request) {
-    ExampleModel::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
+    ExampleModel::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->updateTracked(['first_name' => 'some first name']);
 }
 
 public function deleteTracked() {
-    ExampleModel::where('first_name', '!=', '')->trackBulkDelete();
+    ExampleModel::where('first_name', '!=', '')->deleteTracked();
 }
 ```
