@@ -70,12 +70,12 @@ class ExampleModel extends Model
     - [Track](#markdown-header-track-changes-of-a-single-model)
     - [Retrieve all revision](#markdown-header-get-all-revisions-for-a-specific-model)
     - [Retrieve single revision](#markdown-header-get-a-single-revision-for-a-specific-model)
-    - [Roll back](#markdown-header-roll-back-to-a-specific-revision)
+    - [Rollback](#markdown-header-rollback-to-a-specific-revision)
 - [Relational revision](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
     - [Track](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
     - [Retrieve all relational revision](#markdown-header-retrieve-all-relational-revisions-for-a-specific-model)
     - [Retrieve a single relational revision](#markdown-header-get-a-single-relational-revision-for-a-specific-model)
-    - [Roll back](#markdown-header-roll-back-to-a-specific-relational-revision)
+    - [Rollback](#markdown-header-rollback-to-a-specific-relational-revision)
 - [Track bulk changes](#markdown-header-track-bulk-actions)
 
 ### Track changes of a single model
@@ -105,7 +105,7 @@ public function delete($id) {
 ### Get all revisions for a specific model
 You can retrieve all the revisions for a specific model like this:
 
-**`allRevisions()` will return a `EloquentBuilder`, so you still can build query.**
+**`allRevisions()` will return an `EloquentBuilder`, so you still can build query.**
 ```php
 public function allRevisions($id) {
     //Query the model
@@ -132,7 +132,7 @@ public function getRevision($id, $revisionId) {
 }
 ```
 
-### Roll back to a specific revision
+### Rollback to a specific revision
 You can rollback to a specific revision for a model like this:
 ```php
 public function rollback($id) {
@@ -156,7 +156,7 @@ public function rollback($id) {
 ```
 
 ### Track the changes of a model when it has relations loaded.
-You can can track the changes of all the related models when a model has its relations loaded like this:
+You can track the changes of all the related models when a model has its relations loaded like this:
 
 If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
 with the top-level model (in the following case, the top-level model is `Customer`).
@@ -212,7 +212,7 @@ public function getRelationalRevision($id, $revisionId) {
 }
 ```
 
-### Roll back to a specific relational revision
+### Rollback to a specific relational revision
 You can rollback to a specific relational revision with a `revision id` for a specific model like this:
 ```php
 public function rollback($id) {
