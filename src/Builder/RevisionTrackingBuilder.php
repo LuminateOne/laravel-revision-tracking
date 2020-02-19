@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking\Builder;
 
 use DB;
+use LuminateOne\RevisionTracking\RevisionTracking;
 
 class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
 {
@@ -17,10 +18,12 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
             DB::beginTransaction();
 
             $modelCollection = $this->get();
-            foreach ($modelCollection as $aModel) {
-                $aModel->update($newValue);
-            }
-            
+
+            parent::update($newValue);
+
+            $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, $newValue);
+            $this->model->getRevisionModel()->insert($revisions);
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -39,9 +42,20 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
             DB::beginTransaction();
 
             $modelCollection = $this->get();
-            foreach ($modelCollection as $aModel) {
-                $aModel->delete();
+
+            parent::delete();
+
+            if (config('revision_tracking.remove_on_delete', true)) {
+                $ids = [];
+                foreach ($modelCollection as $aModel) {
+                    array_push($ids, $aModel->getKey());
+                }
+                $this->model->getRevisionModel()->whereIn($this->model->getKeyName(), $ids)->delete();
+                return;
             }
+
+            $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, []);
+            $this->model->getRevisionModel()->insert($revisions);
 
             DB::commit();
         } catch (\Exception $e) {
