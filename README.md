@@ -69,16 +69,16 @@ class ExampleModel extends Model
 - [Single model](#markdown-header-track-changes-of-a-single-model)
     - [Track](#markdown-header-track-changes-of-a-single-model)
     - [Retrieve all revision](#markdown-header-get-all-revisions-for-a-specific-model)
-    - [Retrieve single revision](#markdown-header-get-a-singel-revision-for-a-specific-model)
+    - [Retrieve single revision](#markdown-header-get-a-single-revision-for-a-specific-model)
     - [Roll back](#markdown-header-roll-back-to-a-specific-revision)
 - [Relational revision](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
     - [Track](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
-    - [Retrieve all relational revision](#markdown-header-retrieve-relational-revisions)
-    - [Retrieve a single relational revision](#markdown-header-retrieve-relational-revisions)
-    - [Roll back]()
-- [Track bulk changes]()
+    - [Retrieve all relational revision](#markdown-header-retrieve-all-relational-revisions-for-a-specific-model)
+    - [Retrieve a single relational revision](#markdown-header-get-a-single-relational-revision-for-a-specific-model)
+    - [Roll back](#markdown-header-roll-back-to-a-specific-relational-revision)
+- [Track bulk changes](#markdown-header-track-bulk-actions)
 
-#### Track changes of a single model
+### Track changes of a single model
 This package can track a single model changes after the model gets created, updated, and deleted. See following examples:
 ```php
 public function create(Request $request) {
@@ -109,7 +109,7 @@ public function delete($id) {
 }
 ```
 
-#### Get all revisions for a specific model
+### Get all revisions for a specific model
 `allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
 ```php
@@ -124,7 +124,7 @@ public function allRevisions($id) {
 }
 ```
 
-#### Get a single revision for a specific model
+### Get a single revision for a specific model
 You can get a single revisions like this:
 ```php
 public function getRevision($id, $revisionId) {
@@ -138,7 +138,7 @@ public function getRevision($id, $revisionId) {
 }
 ```
 
-#### Roll back to a specific revision
+### Roll back to a specific revision
 This package can also rollback to a specific revision for a single model. See following example:
 ```php
 /*
@@ -164,7 +164,7 @@ public function rollback($id) {
 }
 ```
 
-#### Track the changes of a model when it has relations loaded.
+### Track the changes of a model when it has relations loaded.
 **The relational revision will only work with a Model that has the relations loaded.**
 
 If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
@@ -190,7 +190,7 @@ public function update(Request $request, $id) {
 }             
 ```
 
-#### Retrieve all relational revisions for a specific model
+### Retrieve all relational revisions for a specific model
 `allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
 you can retrieve all the relational revisions like this:
@@ -205,7 +205,7 @@ public function allRelationalRevisions($id) {
     // Return response
 }
 ```
-#### Get a single relational revision for a specific model
+### Get a single relational revision for a specific model
 You can get a single relational revisions like this:
 ```php
 public function getRelationalRevision($id, $revisionId) {
@@ -219,7 +219,7 @@ public function getRelationalRevision($id, $revisionId) {
 }
 ```
 
-#### Roll back to a specific relational revision
+### Roll back to a specific relational revision
 You can rollback to a specific relational revision with a `revision id` for a specific model like this:
 ```php
 public function rollback($id) {
@@ -239,7 +239,7 @@ public function rollback($id) {
 }
 ```
 
-#### Track bulk actions
+### Track bulk actions
 You can track bulk update and delete like this:
 ```php
 public function updateTracked(Request $request) {
