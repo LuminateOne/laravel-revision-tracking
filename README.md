@@ -48,31 +48,7 @@ php artisan table:revision {modelName}
 ```
 See the [revision_tracking.php](config/config.php) config file for more detail.
 
-## Features
-
-#### Track and rollback to the changes of a single model.
-- This package can track a single model changes after the model gets created, updated, and deleted. [See example](#markdown-header-controller)
-- This package can also rollback to a specific revision. [See example](#markdown-header-controller)
-
-#### Track and rollback to the changes of a model when it has relations loaded.
-- Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
-- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
-- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
-
-#### Track the changes when bulk creating, updating, deleting.
-- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
-
-## Examples
-- [Model](#markdown-header-model)
-- [Controller](#markdown-header-controller)
-- [Relational revision](#markdown-header-relational-revision)
-    - [Relation definitions](#markdown-header-relation-definitions)
-    - [Create relational revision](#markdown-header-create-relational-revision)
-    - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
-- [Track bulk actions](#markdown-header-track-bulk-actions)
-
-#### Model
-
+### Set up model
 Use the `Revisionable` [Trait](https://www.php.net/manual/en/language.oop5.traits.php) to monitor the model changes.
 Include the `LuminateOne\RevisionTracking\Traits` namespace and `use Revisionable`.
 
@@ -88,87 +64,100 @@ class ExampleModel extends Model
     use Revisionable;
 }
 ```
-#### Controller
+
+## Features
+
+#### Track changes of a single model.
+This package can track a single model changes after the model gets created, updated, and deleted. See following examples:
 ```php
-<?php
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\ExampleModel;
-
-class ExampleController extends Controller
-{
-    /*
-     * Create a model
-     */
-    public function create(Request $request) {
-        //Create model, a revision will be created after the model is created
-        ExampleModel::create($request->post());
-        
-        // Return response
-    }
-
-    /*
-     * Update a model
-     */
-    public function update(Request $request, $id) {
-        //Query the model
-        $model = ExampleModel::find($id);
-        
-        //Update the model, a revision will be created after the model is updated
-        $model->update($request->post());
-        
-        // Return response
-    }
-
-    /*
-     * Deleted a model
-     */
-    public function delete($id) {
-        //Query the model
-        $model = ExampleModel::find($id);
-        
-        //Delete the model, a revision will be created after the model is deleted
-        $model->delete();
-        
-        // Return response
-    }
+public function create(Request $request) {
+    //Create model, a revision will be created after the model is created
+    ExampleModel::create($request->post());
     
-    /*
-     * Get all revisions for a specific model
-     */
-    public function allRevisions($id) {
-        //Query the model
-        $model = ExampleModel::find($id);
-        
-        // You can get all the revisions like this, it returns collection of revision model
-        $allRevisions = $model->allRevisions()->get();
-        
-        // Return response
-    }
-    
-    /*
-     * Roll back to a specific revision
-     */
-    public function rollback($id) {
-        //Query the model
-        $model = ExampleModel::find($id);
-        
-        // allRevisions() will return a EloquentBuilder, so you still can build query. 
-        $revision = $model->allRevisions()->latest('id')->first();
-        $revisionId = $revision->id;
-        
-        // You can rollback to a specific revision with a revision id for a specific model
-        // $revisionId, integer, an id of a revision
-        // $rollback,   boolean, true will save the “rollback” as a new revision of the model
-        //                       false will delete the revisions that came after that revision
-        $model->rollback($revisionId);
-        
-        $model->rollback($revisionId, false);
-        
-        // Return response
-    }
+    // Return response
 }
+
+public function update(Request $request, $id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    //Update the model, a revision will be created after the model is updated
+    $model->update($request->post());
+    
+    // Return response
+}
+
+public function delete($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    //Delete the model, a revision will be created after the model is deleted
+    $model->delete();
+    
+    // Return response
+}
+```
+This package can also rollback to a specific revision for a single model. See following example:
+```php
+/*
+ * Roll back to a specific revision
+ */
+public function rollback($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // allRevisions() will return a EloquentBuilder, so you still can build query. 
+    $revision = $model->allRevisions()->latest('id')->first();
+    $revisionId = $revision->id;
+    
+    // You can rollback to a specific revision with a revision id for a specific model
+    // $revisionId, integer, an id of a revision
+    // $rollback,   boolean, true will save the “rollback” as a new revision of the model
+    //                       false will delete the revisions that came after that revision
+    $model->rollback($revisionId);
+    
+    $model->rollback($revisionId, false);
+    
+    // Return response
+}
+```
+
+#### Track and rollback to the changes of a model when it has relations loaded.
+- Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
+- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
+- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
+
+#### Track the changes when bulk creating, updating, deleting.
+- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
+
+## Examples
+- [Controller](#markdown-header-controller)
+- [Relational revision](#markdown-header-relational-revision)
+    - [Relation definitions](#markdown-header-relation-definitions)
+    - [Create relational revision](#markdown-header-create-relational-revision)
+    - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
+- [Track bulk actions](#markdown-header-track-bulk-actions)
+
+#### Track
+
+```php
+
+
+/*
+ * Get all revisions for a specific model
+ */
+public function allRevisions($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // You can get all the revisions like this, it returns collection of revision model
+    $allRevisions = $model->allRevisions()->get();
+    
+    // Return response
+}
+
+
+
 ```
 
 #### Relational revision
