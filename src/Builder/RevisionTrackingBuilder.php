@@ -17,11 +17,11 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
             DB::beginTransaction();
 
             $modelCollection = $this->get();
-
             foreach ($modelCollection as $aModel) {
                 $aModel->update($newValue);
-                DB::commit();
             }
+            
+            DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
@@ -39,11 +39,11 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
             DB::beginTransaction();
 
             $modelCollection = $this->get();
-
             foreach ($modelCollection as $aModel) {
                 $aModel->delete();
-                DB::commit();
             }
+
+            DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
