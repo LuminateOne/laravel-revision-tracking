@@ -11,7 +11,7 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      * @param array $newValue
      * @throws \Exception
      */
-    public function trackBulkUpdate($newValue = [])
+    public function updateTracked($newValue = [])
     {
         try {
             DB::beginTransaction();
@@ -33,7 +33,7 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      *
      * @throws \Exception
      */
-    public function trackBulkDelete()
+    public function deleteTracked()
     {
         try {
             DB::beginTransaction();

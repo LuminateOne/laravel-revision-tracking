@@ -51,39 +51,32 @@ class RevisionTestBulkActions extends TestCase
         $grandparentModel = new GrandParent();
         $grandparentModel->createTable();
 
-        $model = GrandParent::insert([
+        GrandParent::insert([
             ['first_name' => 'aaa1', 'last_name' => 'bbb'],
             ['first_name' => 'aaa2', 'last_name' => 'bbb'],
             ['first_name' => 'aaa3', 'last_name' => 'bbb']
         ]);
 
-        $model = GrandParent::where('first_name', 'aaa1')->update(['first_name' => '123']);
+        $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        GrandParent::where('last_name', 'bbb')->deleteTracked();
+        $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        $this->assertEquals($grandparentModel->revisionMode() === 'all' ? 3 : 6,
+            $actual - $oldCount, 'The count of bulk delete revision should be 3');
 
-        \Log::info(print_r($model, true));
+        GrandParent::insert([
+            ['first_name' => 'ddd', 'last_name' => 'bbb'],
+            ['first_name' => 'ddd', 'last_name' => 'bbb'],
+            ['first_name' => 'ddd', 'last_name' => 'bbb']
+        ]);
 
-        // $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // GrandParent::where('last_name', 'bbb')->trackBulkDelete();
-        // $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // $this->assertEquals($grandparentModel->revisionMode() === 'all' ? 3 : 6,
-        //     $actual - $oldCount, 'The count of bulk delete revision should be 3');
-        //
-        // $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // GrandParent::insert([
-        //     ['first_name' => 'ddd', 'last_name' => 'bbb'],
-        //     ['first_name' => 'ddd', 'last_name' => 'bbb'],
-        //     ['first_name' => 'ddd', 'last_name' => 'bbb']
-        // ]);
-        // $count = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // $this->assertEquals(3, $count - $oldCount, 'The count of bulk insert revision should be 3');
-        //
-        // $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // GrandParent::where('first_name', 'ddd')->update(['first_name' => 'ccc']);
-        // $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // $this->assertEquals(0, $actual - $oldCount, 'The count of revision when normal update should be 0');
-        //
-        // $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // GrandParent::where('first_name', 'ccc')->trackBulkUpdate(['first_name' => '111']);
-        // $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
-        // $this->assertEquals(3, $actual - $oldCount, 'The count of bulk insert revision should be 3');
+        $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        GrandParent::where('first_name', 'ddd')->update(['first_name' => 'ccc']);
+        $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        $this->assertEquals(0, $actual - $oldCount, 'The count of revision when normal update should be 0');
+
+        $oldCount = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        GrandParent::where('first_name', 'ccc')->updateTracked(['first_name' => '111']);
+        $actual = $grandparentModel->getRevisionModel()->newQuery()->where('id', '!=', '')->count();
+        $this->assertEquals(3, $actual - $oldCount, 'The count of bulk insert revision should be 3');
     }
 }
