@@ -14,21 +14,14 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      */
     public function updateTracked($newValue = [])
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () use ($newValue) {
             $modelCollection = $this->get();
 
             parent::update($newValue);
 
             $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, $newValue);
             $this->model->getRevisionModel()->insert($revisions);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
+        });
     }
 
     /**
@@ -38,9 +31,7 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      */
     public function deleteTracked()
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () {
             $modelCollection = $this->get();
 
             parent::delete();
@@ -56,11 +47,6 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
 
             $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, []);
             $this->model->getRevisionModel()->insert($revisions);
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
+        });
     }
 }
