@@ -79,7 +79,7 @@ class ExampleModel extends Model
 - [Track bulk changes](#markdown-header-track-bulk-actions)
 
 ### Track changes of a single model
-You can track a single model changes after the model gets updated, and deleted like his:
+You can track a single model changes like this:
 ```php
 public function update(Request $request, $id) {
     //Query the model
