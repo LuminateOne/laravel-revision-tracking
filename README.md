@@ -68,11 +68,13 @@ class ExampleModel extends Model
 ## Features
 - [Single model](#markdown-header-track-changes-of-a-single-model)
     - [Track](#markdown-header-track-changes-of-a-single-model)
-    - [Retrieve](#markdown-header-get-all-revisions-for-a-specific-model)
+    - [Retrieve all revision](#markdown-header-get-all-revisions-for-a-specific-model)
+    - [Retrieve single revision](#markdown-header-get-a-singel-revision-for-a-specific-model)
     - [Roll back](#markdown-header-roll-back-to-a-specific-revision)
-- [Relational revision]()
-    - [Track]()
-    - [Retrieve]()
+- [Relational revision](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
+    - [Track](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
+    - [Retrieve all relational revision](#markdown-header-retrieve-relational-revisions)
+    - [Retrieve a single relational revision](#markdown-header-retrieve-relational-revisions)
     - [Roll back]()
 - [Track bulk changes]()
 
@@ -108,6 +110,8 @@ public function delete($id) {
 ```
 
 #### Get all revisions for a specific model
+`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
+
 ```php
 public function allRevisions($id) {
     //Query the model
@@ -119,6 +123,21 @@ public function allRevisions($id) {
     // Return response
 }
 ```
+
+#### Get a single revision for a specific model
+You can get a single revisions like this:
+```php
+public function getRevision($id, $revisionId) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // Returns a single relational revision
+    $revision = $model->getRevision($reivsionId);
+    
+    // Return response
+}
+```
+
 #### Roll back to a specific revision
 This package can also rollback to a specific revision for a single model. See following example:
 ```php
@@ -171,16 +190,10 @@ public function update(Request $request, $id) {
 }             
 ```
 
-#### Retrieve relational revisions
-- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
-- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
+#### Retrieve all relational revisions for a specific model
+`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
 
-#### Track the changes when bulk creating, updating, deleting.
-- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
-
-
-
-You can get all the relational revisions like this:
+you can retrieve all the relational revisions like this:
 ```php
 public function allRelationalRevisions($id) {
     //Query the model
@@ -192,8 +205,7 @@ public function allRelationalRevisions($id) {
     // Return response
 }
 ```
-`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query. 
-
+#### Get a single relational revision for a specific model
 You can get a single relational revisions like this:
 ```php
 public function getRelationalRevision($id, $revisionId) {
@@ -207,6 +219,7 @@ public function getRelationalRevision($id, $revisionId) {
 }
 ```
 
+#### Roll back to a specific relational revision
 You can rollback to a specific relational revision with a `revision id` for a specific model like this:
 ```php
 public function rollback($id) {
@@ -227,28 +240,13 @@ public function rollback($id) {
 ```
 
 #### Track bulk actions
-With using the functions blow, the revisions will be created for every bulk insert, update, delete.
-
-You can track bulk insert like this: 
+You can track bulk update and delete like this:
 ```php
-public function bulkInsert(Request $request) {
-    ExampleModel::trackBulkInsert([
-       ['first_name' => 'Peter', 'last_name' => 'Owen'],
-       ['first_name' => 'first name', 'last_name' => 'last name']
-    ]);
-}
-```
-
-You can track bulk update like this:
-```php
-public function bulkUpdate(Request $request) {
+public function updateTracked(Request $request) {
     ExampleModel::where('first_name', '!=', '')->orWhere('last_name', '!=', '')->trackBulkUpdate(['first_name' => 'some first name']);
 }
-```
 
-You can track bulk delete like this: 
-```php
-public function bulkDelete() {
+public function deleteTracked() {
     ExampleModel::where('first_name', '!=', '')->trackBulkDelete();
 }
 ```
