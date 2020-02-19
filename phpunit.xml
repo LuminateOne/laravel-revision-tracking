@@ -10,9 +10,18 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="revision-test">
+        <testsuite name="all">
             <directory suffix=".php">./tests/Unit</directory>
             <exclude>./src/Commands</exclude>
+        </testsuite>
+        <testsuite name="bulk">
+            <file>tests/Unit/RevisionTestBulkActions.php</file>
+        </testsuite>
+        <testsuite name="normal">
+            <file>tests/Unit/RevisionTest.php</file>
+        </testsuite>
+        <testsuite name="relation">
+            <file>tests/Unit/RevisionTestWithRelation.php</file>
         </testsuite>
     </testsuites>
     <filter>

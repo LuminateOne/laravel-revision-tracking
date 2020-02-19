@@ -2,6 +2,7 @@
 namespace LuminateOne\RevisionTracking\Builder;
 
 use DB;
+use LuminateOne\RevisionTracking\RevisionTracking;
 
 class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
 {
@@ -11,21 +12,16 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      * @param array $newValue
      * @throws \Exception
      */
-    public function trackBulkUpdate($newValue = [])
+    public function updateTracked($newValue = [])
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () use ($newValue) {
             $modelCollection = $this->get();
 
-            foreach ($modelCollection as $aModel) {
-                $aModel->update($newValue);
-                DB::commit();
-            }
-        } catch (\Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
+            parent::update($newValue);
+
+            $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, $newValue);
+            $this->model->getRevisionModel()->insert($revisions);
+        });
     }
 
     /**
@@ -33,20 +29,24 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
      *
      * @throws \Exception
      */
-    public function trackBulkDelete()
+    public function deleteTracked()
     {
-        try {
-            DB::beginTransaction();
-
+        DB::transaction(function () {
             $modelCollection = $this->get();
 
-            foreach ($modelCollection as $aModel) {
-                $aModel->delete();
-                DB::commit();
+            parent::delete();
+
+            if (config('revision_tracking.remove_on_delete', true)) {
+                $ids = [];
+                foreach ($modelCollection as $aModel) {
+                    array_push($ids, $aModel->getKey());
+                }
+                $this->model->getRevisionModel()->whereIn($this->model->getKeyName(), $ids)->delete();
+                return;
             }
-        } catch (\Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
+
+            $revisions = RevisionTracking::eloquentBulkDiff($modelCollection, []);
+            $this->model->getRevisionModel()->insert($revisions);
+        });
     }
 }

@@ -17,15 +17,19 @@ class RevisionTracking
      * Use the field name in changed values to get the original values
      *
      * @param  Model $model             The model will be tracked
+     * @param  array $changes           User defined fields that has been changed
      *
      * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
-    public static function eloquentDiff($model)
+    public static function eloquentDiff($model, $changes = [])
     {
         $aOriginalValue = [];
 
-        $changes = $model->getChanges();
         $original = $model->getOriginal();
+
+        if(empty($changes)) {
+            $changes = $model->getChanges();
+        }
 
         if($model->isUsingSoftDeletes() && $model->trashed()){
             return [$model->getDeletedAtColumn() => null];
@@ -43,6 +47,33 @@ class RevisionTracking
         }
 
         return $aOriginalValue;
+    }
+
+
+    /**
+     * Loop through the model collection, and find the changed attributes for each model
+     *
+     * @param array  $modelCollection
+     * @param array  $newValue
+     * @return array $revisions   An array of key => value pair array, which stores the fields and the original values
+     */
+    public static function eloquentBulkDiff($modelCollection, $newValue = [])
+    {
+        $revisions = [];
+        foreach ($modelCollection as $aModel) {
+            $aRevision = [
+                'model_identifier' => json_encode($aModel->modelIdentifier()),
+                'revisions' => []
+            ];
+
+            if ($aModel->revisionMode() === 'all') {
+                $aRevision['model_name'] = get_class($aModel);
+            }
+
+            $aRevision['revisions'] = json_encode(['original_values' => self::eloquentDiff($aModel, $newValue)]);
+            array_push($revisions, $aRevision);
+        }
+        return $revisions;
     }
 
     /**

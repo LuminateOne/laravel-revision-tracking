@@ -35,10 +35,6 @@ trait Revisionable
      */
     public static function bootRevisionable()
     {
-        static::created(function ($model) {
-            $model->trackChanges();
-        });
-
         static::updated(function ($model) {
             $model->trackChanges();
         });
@@ -149,15 +145,10 @@ trait Revisionable
         }
 
         if (array_key_exists('original_values', $targetRevision->revisions)) {
-            $originalValues = $targetRevision->original_values;
-            if (empty($originalValues)) {
-                $this->delete();
-            } else {
-                foreach ($originalValues as $key => $value) {
-                    $this[$key] = $value;
-                }
-                $this->save();
+            foreach ($targetRevision->original_values as $key => $value) {
+                $this[$key] = $value;
             }
+            $this->save();
         }
 
         if (array_key_exists('child', $targetRevision->revisions)) {
@@ -320,28 +311,6 @@ trait Revisionable
     public function isUsingSoftDeletes()
     {
         return in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this));
-    }
-
-
-    /**
-     * Create a revisions for each insert
-     *
-     * @param array $data
-     * @throws \ErrorException
-     */
-    public static function trackBulkInsert($data = [])
-    {
-        try {
-            DB::beginTransaction();
-
-            foreach ($data as $aDataArray) {
-                self::create($aDataArray);
-                DB::commit();
-            }
-        } catch (\Exception $e) {
-            DB::rollback();
-            throw $e;
-        }
     }
 
     /**
