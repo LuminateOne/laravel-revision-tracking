@@ -66,8 +66,17 @@ class ExampleModel extends Model
 ```
 
 ## Features
+- [Single model](#markdown-header-track-single)
+    - [Track](#markdown-header-track-single)
+    - [Retrieve](#markdown-header-all-revision-single)
+    - [Roll back](#markdown-header-roll-back-single)
+- [Relational revision]()
+    - [Track]()
+    - [Retrieve]()
+    - [Roll back]()
+- [Track bulk changes]()
 
-#### Track changes of a single model.
+<h4 id='track-single'>Track changes of a single model</h4>
 This package can track a single model changes after the model gets created, updated, and deleted. See following examples:
 ```php
 public function create(Request $request) {
@@ -98,8 +107,7 @@ public function delete($id) {
 }
 ```
 
-#### Get all revisions for a specific model
-
+<h4 id='all-revision-single'>Get all revisions for a specific model</h4>
 ```php
 public function allRevisions($id) {
     //Query the model
@@ -111,7 +119,7 @@ public function allRevisions($id) {
     // Return response
 }
 ```
-#### Roll back to a specific revision
+<h4 id='roll-back-single'>Roll back to a specific revision</h4>
 This package can also rollback to a specific revision for a single model. See following example:
 ```php
 /*
@@ -138,47 +146,19 @@ public function rollback($id) {
 ```
 
 #### Track the changes of a model when it has relations loaded.
-Before you go to the example, please read through the relation definitions:
+**The relational revision will only work with a Model that has the relations loaded.**
+
+If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
+with the top-level model (in the following case, the top-level model is `Customer`). 
 ```php
 //There are two models, and they have relations like this:
 Customer:   has many Order
 Order:      belongs to Customer, 
-            and has many Product                     
-```
-- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
-- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
-
-#### Track the changes when bulk creating, updating, deleting.
-- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
-
-## Examples
-- [Controller](#markdown-header-controller)
-- [Relational revision](#markdown-header-relational-revision)
-    - [Relation definitions](#markdown-header-relation-definitions)
-    - [Create relational revision](#markdown-header-create-relational-revision)
-    - [Retrieve relational revisions](#markdown-header-retrieve-relational-revisions)
-- [Track bulk actions](#markdown-header-track-bulk-actions)
-
-#### Track
-
-
-#### Relational revision
-
-**The relational revision will only work with a Model that has the relations loaded.**
-##### Relation definitions:
-
-
-
-##### Create relational revision
-
-If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
-with the top-level model (in the following case, the top-level model is `Customer`). 
-
-You can create relational revision like this:
-```php
+            and has many Product
+            
 public function update(Request $request, $id) {
     // Eager loading with relations
-    $customer = Customer::where('id', 1)->with('order')->first();
+    $customer = Customer::where('id', $id)->with('order')->first();
     
     // Call this function after the relations are loaded
     // and before update the model
@@ -188,10 +168,18 @@ public function update(Request $request, $id) {
     // or update models separately
     
     // Return response
-}
+}             
 ```
 
-##### Retrieve relational revisions
+#### Retrieve relational revisions
+- When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
+- When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
+
+#### Track the changes when bulk creating, updating, deleting.
+- This package can track the changes when bulk creating, updating, and deleting. [See example](#markdown-header-track-bulk-actions)
+
+
+
 You can get all the relational revisions like this:
 ```php
 public function allRelationalRevisions($id) {
