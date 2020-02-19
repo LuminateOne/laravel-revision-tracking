@@ -17,7 +17,7 @@ class RevisionTracking
      * Use the field name in changed values to get the original values
      *
      * @param  Model $model             The model will be tracked
-     * @param  array $changes           New values
+     * @param  array $changes           User defined fields that has been changed
      *
      * @return array $originalFields    A key => value pair array, which stores the fields and the original values
      */
