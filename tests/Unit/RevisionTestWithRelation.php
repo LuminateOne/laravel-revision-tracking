@@ -238,7 +238,7 @@ class RevisionTestWithRelation extends TestCase
         }
 
         // Get the latest revision id and rollback with relation
-        $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->orderBy('id', 'desc')->skip(1)->first();
+        $grandParentRevision = $modelGrandParentCopy->allRelationalRevisions()->orderBy('id', 'asc')->first();
         $aRelationRevision = $modelGrandParentCopy->getRelationalRevision($grandParentRevision->id);
         $this->assertEquals($grandParentRevision, $aRelationRevision, "The two revisions should be equal");
 
@@ -248,7 +248,7 @@ class RevisionTestWithRelation extends TestCase
         $expected = ($insertCount * $insertCount) + $insertCount + ($insertCount * $insertCount);
         $this->assertEquals($expected, count($grandParentRevision->child_revisions),"The child revision count of GrandParent should be " . $expected);
 
-        $expected = $saveAsRevision ? 4 : 1;
+        $expected = $saveAsRevision ? 3 : 0;
         $this->assertEquals($expected, $changedGrandParent->allRevisions()->count(),"The revision count of GrandParent should be " . $expected);
 
         $restoredGrandParent = GrandParent::find($modelGrandParentCopy->id);
