@@ -66,17 +66,17 @@ class ExampleModel extends Model
 ```
 
 ## Features
-- [Single model](#markdown-header-track-single)
-    - [Track](#markdown-header-track-single)
-    - [Retrieve](#markdown-header-all-revision-single)
-    - [Roll back](#markdown-header-roll-back-single)
+- [Single model](#markdown-header-track-changes-of-a-single-model)
+    - [Track](#markdown-header-track-changes-of-a-single-model)
+    - [Retrieve](#markdown-header-get-all-revisions-for-a-specific-model)
+    - [Roll back](#markdown-header-roll-back-to-a-specific-revision)
 - [Relational revision]()
     - [Track]()
     - [Retrieve]()
     - [Roll back]()
 - [Track bulk changes]()
 
-<h4 id='track-single'>Track changes of a single model</h4>
+#### Track changes of a single model
 This package can track a single model changes after the model gets created, updated, and deleted. See following examples:
 ```php
 public function create(Request $request) {
@@ -107,7 +107,7 @@ public function delete($id) {
 }
 ```
 
-<h4 id='all-revision-single'>Get all revisions for a specific model</h4>
+#### Get all revisions for a specific model
 ```php
 public function allRevisions($id) {
     //Query the model
@@ -119,7 +119,7 @@ public function allRevisions($id) {
     // Return response
 }
 ```
-<h4 id='roll-back-single'>Roll back to a specific revision</h4>
+#### Roll back to a specific revision
 This package can also rollback to a specific revision for a single model. See following example:
 ```php
 /*
