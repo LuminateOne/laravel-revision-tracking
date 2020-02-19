@@ -97,6 +97,21 @@ public function delete($id) {
     // Return response
 }
 ```
+
+#### Get all revisions for a specific model
+
+```php
+public function allRevisions($id) {
+    //Query the model
+    $model = ExampleModel::find($id);
+    
+    // You can get all the revisions like this, it returns collection of revision model
+    $allRevisions = $model->allRevisions()->get();
+    
+    // Return response
+}
+```
+#### Roll back to a specific revision
 This package can also rollback to a specific revision for a single model. See following example:
 ```php
 /*
@@ -122,8 +137,14 @@ public function rollback($id) {
 }
 ```
 
-#### Track and rollback to the changes of a model when it has relations loaded.
-- Before you go to the example, please read through the [Relation definitions](#markdown-header-relation-definitions).
+#### Track the changes of a model when it has relations loaded.
+Before you go to the example, please read through the relation definitions:
+```php
+//There are two models, and they have relations like this:
+Customer:   has many Order
+Order:      belongs to Customer, 
+            and has many Product                     
+```
 - When a model has relations loaded, this package will create a relational revision. [See example](#markdown-header-create-relational-revision)
 - When performing rolling back, this package will restore the revisions for all the related models. [See example](#markdown-header-retrieve-relational-revisions)
 
@@ -140,83 +161,13 @@ public function rollback($id) {
 
 #### Track
 
-```php
-
-
-/*
- * Get all revisions for a specific model
- */
-public function allRevisions($id) {
-    //Query the model
-    $model = ExampleModel::find($id);
-    
-    // You can get all the revisions like this, it returns collection of revision model
-    $allRevisions = $model->allRevisions()->get();
-    
-    // Return response
-}
-
-
-
-```
 
 #### Relational revision
 
 **The relational revision will only work with a Model that has the relations loaded.**
-
-There are three models, and they have relations like this:
-```php
-Customer:   has many Order
-
-Order:      belongs to Customer, 
-            and has many Product
-            
-Product:    belongs to Order
-```
 ##### Relation definitions:
 
-The model and revision relations depend on the way how the model is loaded.
-See the following examples:
- 
-###### Relation 1:
-```php
-// When Eager loading with relations like this
-$customer = Customer::where('id', 1)->with([
-    'order' => function ($order) {
-        $order->with('product');
-    }
-])->first();
 
-// Model relations:
-Customer:   is the top-level model
-Order:      is the child model of the Customer
-Product:    is the child model of the Customer
- 
-// Revision relations:
-CustomerRevision:    is the parent revision of the OrderRevision and ProductRevision
-OrderRevision:       is the child revision of the CustomerRevision                         
-ProductRevision:     is the child revision of the CustomerRevision
-```
-
-###### Relation 2:
-```php
-// When Eager loading with relations like this
-$product = Product::where('id', 1)->with([
-    'order' => function ($order) {
-        $order->with('customer');
-    }
-])->first();
-
-// Model relations:
-Product:    is the top-level model
-Order:      is the child model of the Product                
-Customer:   is the child model of the Order
-
-// Revision relations:
-ProductRevision:    is the parent revision of the OrderRevision and CustomerRevision
-OrderRevision:      is the child revision of the ProductRevision
-CustomerRevision:   is the child revision of the ProductRevision
-```
 
 ##### Create relational revision
 
@@ -227,11 +178,7 @@ You can create relational revision like this:
 ```php
 public function update(Request $request, $id) {
     // Eager loading with relations
-    $customer = Customer::where('id', $id)->with([
-        'order' => function ($order) {
-            $order->with('product');
-        }
-    ])->first();
+    $customer = Customer::where('id', 1)->with('order')->first();
     
     // Call this function after the relations are loaded
     // and before update the model
