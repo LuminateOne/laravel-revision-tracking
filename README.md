@@ -76,14 +76,14 @@ You can track a single model changes like this:
 ```php
 public function update(Request $request, $id) {
     $model = ExampleModel::find($id);
-    
+
     //A revision will be created after the model is updated
     $model->update($request->post());
 }
 
 public function delete($id) {
     $model = ExampleModel::find($id); 
-      
+
     //A revision will be created after the model is deleted
     $model->delete();
 }
@@ -127,7 +127,8 @@ $customer->setAsRelationalRevision();
 #### Retrieve all relational revisions
 You can retrieve all the relational revisions for a specific model like this:
 ```php
-// allRelationalRevisions() will return an EloquentBuilder, so you still can build query.
+// Returns a collection of revision model
+// allRelationalRevisions() will return an `EloquentBuilder`, so you still can build query.
 $relationalRevision = $model->allRelationalRevisions()->get();
 ```
 #### Retrieve a single relational revision
@@ -154,7 +155,6 @@ You can rollback to a specific revision for a model like this:
 ```php
 $model = ExampleModel::find($id);
 
-// You can rollback to a specific revision with a revision id for a specific model
 // $revisionId, integer, an id of a revision
 // $rollback,   boolean, true will save the “rollback” as a new revision of the model
 //                       false will delete the revisions that came after that revision
