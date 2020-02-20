@@ -49,7 +49,7 @@ php artisan table:revision {modelName}
 See the [revision_tracking.php](config/config.php) config file for more detail.
 
 ### Set up model
-Put these two line into your Model class `use LuminateOne\RevisionTracking\Traits\Revisionable;` and `use Revisionable;`.
+Put these two lines into your Model class `use LuminateOne\RevisionTracking\Traits\Revisionable;` and `use Revisionable;`.
 
 ```php
 <?php
@@ -65,12 +65,12 @@ class ExampleModel extends Model
 ## Features
 - [Single model](#markdown-header-track-changes-of-a-single-model)
     - [Track](#markdown-header-track-changes-of-a-single-model)
-    - [Retrieve all revision](#markdown-header-get-all-revisions)
-    - [Retrieve single revision](#markdown-header-get-a-single-revision)
+    - [Retrieve all revision](#markdown-header-retrieve-all-revisions)
+    - [Retrieve single revision](#markdown-header-retrieve-a-single-revision)
 - [Relational revision](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
     - [Track](#markdown-header-track-the-changes-of-a-model-when-it-has-relations-loaded)
     - [Retrieve all relational revision](#markdown-header-retrieve-all-relational-revisions)
-    - [Retrieve a single relational revision](#markdown-header-get-a-single-relational-revision)
+    - [Retrieve a single relational revision](#markdown-header-retrieve-a-single-relational-revision)
 - [Track bulk changes](#markdown-header-track-bulk-actions)
 - [Rollback](#markdown-header-rollback-to-a-revision)
 
@@ -92,7 +92,7 @@ public function delete($id) {
 }
 ```
 
-#### Get all revisions
+#### Retrieve all revisions
 You can retrieve all the revisions for a specific model like this:
 
 **`allRevisions()` will return an `EloquentBuilder`, so you still can build query.**
@@ -103,7 +103,7 @@ $model = ExampleModel::find($id);
 $allRevisions = $model->allRevisions()->get();
 ```
 
-#### Get a single revision
+#### Retrieve a single revision
 You can get a single revisions for a specific model like this:
 ```php
 $model = ExampleModel::find($id);
@@ -142,7 +142,7 @@ You can retrieve all the relational revisions for a specific model like this:
 // allRelationalRevisions() will return a EloquentBuilder, so you still can build query.
 $relationalRevision = $model->allRelationalRevisions()->get();
 ```
-#### Get a single relational revision
+#### Retrieve a single relational revision
 You can get a single relational revisions like this:
 ```php
 // Returns a single relational revision
