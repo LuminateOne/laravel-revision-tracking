@@ -23,9 +23,7 @@ composer require luminateone/revision-tracking
 ```
 
 ### Publish the config and migrations
-Run the following command to publish the config file and migration file, 
-it will copy and paste the config and migration file from the package 
-to the corresponding folder of your project:
+Run the following command to publish the config file and migration file:
 ```bash
 // Publish the config and migration file
 php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\RevisionServiceProvider"
@@ -34,14 +32,13 @@ php artisan vendor:publish --provider="LuminateOne\RevisionTracking\Providers\Re
 ### Run migrations
 
 #### If you are running mode `all`, run this command:
-Mode `all`, revisions will be stored in one table, you can change the mode in `./config/revision_tracking.php`.
+Mode `all`, revisions will be stored in one table.
 ```bash
 php artisan migrate
 ```
 
 #### If you are running mode `single`, run the following command for each model you want to track:
-Mode `single`, revisions will be stored in a separate table based on the model, 
-you can change the mode in `./config/revision_tracking.php`.
+Mode `single`, revisions will be stored in a separate table based on the model.
 ```bash
 // Please include the namespace
 php artisan table:revision {modelName}
@@ -94,27 +91,20 @@ public function delete($id) {
 
 #### Retrieve all revisions
 You can retrieve all the revisions for a specific model like this:
-
-**`allRevisions()` will return an `EloquentBuilder`, so you still can build query.**
 ```php
-$model = ExampleModel::find($id);
-
 // It returns collection of revision model
+// allRevisions() will return an `EloquentBuilder`, so you still can build query.
 $allRevisions = $model->allRevisions()->get();
 ```
 
 #### Retrieve a single revision
 You can get a single revisions for a specific model like this:
 ```php
-$model = ExampleModel::find($id);
-
 // Returns a single revision
 $revision = $model->getRevision($reivsionId);
 ```
 
 #### Track the changes of a model when it has relations loaded.
-You can track the changes of all the related models when a model has its relations loaded like this:
-
 If you want to create the relational revision, you have to invoke `setAsRelationalRevision()` function
 with the top-level model (in the following case, the top-level model is `Customer`).
 
@@ -135,11 +125,9 @@ $customer->setAsRelationalRevision();
 ```
 
 #### Retrieve all relational revisions
-`allRelationalRevisions()` will return a `EloquentBuilder`, so you still can build query.
-
 You can retrieve all the relational revisions for a specific model like this:
 ```php
-// allRelationalRevisions() will return a EloquentBuilder, so you still can build query.
+// allRelationalRevisions() will return an EloquentBuilder, so you still can build query.
 $relationalRevision = $model->allRelationalRevisions()->get();
 ```
 #### Retrieve a single relational revision
@@ -160,7 +148,7 @@ ExampleModel::where('first_name', '!=', '')->deleteTracked();
 ```
 
 #### Rollback to a revision
-If it is a relational revision it will rollback the related revision.
+**If it is a relational revision it will rollback the related revisions.**
 
 You can rollback to a specific revision for a model like this:
 ```php
