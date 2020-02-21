@@ -21,7 +21,7 @@ class Revision extends Model
         $revision = $this->revisions;
 
         if(!array_key_exists('child_revisions', $revision)){
-            $revision['child'] = [];
+            $revision['child_revisions'] = [];
         }
         array_push($revision['child_revisions'], $value);
         $this->revisions = $revision;

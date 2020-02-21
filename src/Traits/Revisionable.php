@@ -150,7 +150,7 @@ trait Revisionable
             $this->save();
         }
 
-        if (array_key_exists('child', $targetRevision->revisions)) {
+        if (array_key_exists('child_revisions', $targetRevision->revisions)) {
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
                 $childModel = new $modelName();

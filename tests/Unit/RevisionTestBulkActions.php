@@ -25,8 +25,8 @@ class RevisionTestBulkActions extends TestCase
         config(['revision_tracking.mode' => 'all']);
 
         $this->trackBulkUpdate();
-        $this->trackBulkDelete(true);
         $this->trackBulkDelete(false);
+        $this->trackBulkDelete(true);
     }
 
     /**
@@ -39,8 +39,8 @@ class RevisionTestBulkActions extends TestCase
         config(['revision_tracking.mode' => 'single']);
 
         $this->trackBulkUpdate();
-        $this->trackBulkDelete(true);
         $this->trackBulkDelete(false);
+        $this->trackBulkDelete(true);
     }
 
     /**
@@ -108,6 +108,6 @@ class RevisionTestBulkActions extends TestCase
         foreach ($grandParents as $aGrandParent) {
             $actual += $aGrandParent->allRevisions()->count();
         }
-        $this->assertEquals($expected, $actual, 'The count of bulk insert revision should be ' . $expected);
+        $this->assertEquals($expected, $actual, 'The count of revision should be ' . $expected);
     }
 }

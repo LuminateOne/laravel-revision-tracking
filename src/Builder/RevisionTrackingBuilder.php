@@ -37,11 +37,11 @@ class RevisionTrackingBuilder extends \Illuminate\Database\Eloquent\Builder
             parent::delete();
 
             if (config('revision_tracking.remove_on_delete', true)) {
-                $ids = [];
+                $identifiers = [];
                 foreach ($modelCollection as $aModel) {
-                    array_push($ids, $aModel->getKey());
+                    array_push($identifiers, $aModel->modelIdentifier(true));
                 }
-                $this->model->getRevisionModel()->whereIn($this->model->getKeyName(), $ids)->delete();
+                $this->model->getRevisionModel()->whereIn('model_identifier', $identifiers)->delete();
                 return;
             }
 
