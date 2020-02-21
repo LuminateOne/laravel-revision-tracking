@@ -5,8 +5,7 @@ changes. It can store, restore, retrieve all the Model changes. It stores only t
 ## Requirements
 1. [Laravel 5.8 and above](https://laravel.com/docs/5.8/releases)
 2. [PHP 7.1.0 and above](https://www.php.net/releases/7_1_0.php)
-3. [MySQL 5.7.8 and above](https://dev.mysql.com/doc/relnotes/mysql/5.7/en/news-5-7-8.html)
-4. This package can only work with models that have a primary key.
+3. This package can only work with models that have a primary key.
 
 ## Before you start
 The Laraval Revision Tracking package does work with a model that does not have the `int` primary key, for example, 
