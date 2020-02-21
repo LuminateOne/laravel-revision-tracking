@@ -1,7 +1,6 @@
 <?php
 namespace LuminateOne\RevisionTracking\Traits;
 
-use DB;
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
