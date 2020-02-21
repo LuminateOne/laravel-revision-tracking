@@ -83,8 +83,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
                 if (!Schema::hasTable($revisionTableName)) {
                     Schema::create($revisionTableName, function (Blueprint $table) {
                         $table->bigIncrements('id');
-                        $table->json('model_identifier');
-                        $table->json('revisions')->nullable();
+                        $table->text('model_identifier');
+                        $table->longText('revisions')->nullable();
                         $table->timestamps();
                     });
                 }

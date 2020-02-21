@@ -12,11 +12,6 @@ class Revision extends Model
 {
     protected $fillable = ['model_identifier', 'revisions', 'model_name'];
 
-    protected $casts = [
-        'model_identifier' => 'array',
-        'revisions' => 'array'
-    ];
-
     /**
      * A function to append the child revision to revisions attributes
      *
@@ -25,10 +20,10 @@ class Revision extends Model
     public function addChildRevision($value){
         $revision = $this->revisions;
 
-        if(!array_key_exists('child', $revision)){
+        if(!array_key_exists('child_revisions', $revision)){
             $revision['child'] = [];
         }
-        array_push($revision['child'], $value);
+        array_push($revision['child_revisions'], $value);
         $this->revisions = $revision;
         $this->save();
     }
@@ -37,11 +32,22 @@ class Revision extends Model
      * An accessor to retrieve the revision
      *
      * @param $value
-     * @return mixed
+     * @return array
+     */
+    public function getModelIdentifierAttribute($value)
+    {
+        return unserialize($value);
+    }
+
+    /**
+     * An accessor to retrieve the revision
+     *
+     * @param $value
+     * @return array
      */
     public function getRevisionsAttribute($value)
     {
-        return $value ? json_decode($value, true) : [];
+        return $value ? unserialize($value) : [];
     }
 
     /**
@@ -59,7 +65,7 @@ class Revision extends Model
      * @return mixed
      */
     public function getChildRevisionsAttribute(){
-        return array_key_exists('child', $this->revisions) ? $this->revisions['child'] : null;
+        return array_key_exists('child_revisions', $this->revisions) ? $this->revisions['child_revisions'] : null;
     }
 
     /**
@@ -75,5 +81,27 @@ class Revision extends Model
         $revisions['original_values'] = $value;
 
         $this->revisions = $revisions;
+    }
+
+    /**
+     * An mutator to set model identifier
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function setModelIdentifierAttribute($value)
+    {
+        $this->attributes['model_identifier'] = serialize($value);
+    }
+
+    /**
+     * An mutator to set revisions
+     *
+     * @param $value
+     * @return mixed
+     */
+    public function setRevisionsAttribute($value)
+    {
+        $this->attributes['revisions'] = serialize($value);
     }
 }

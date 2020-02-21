@@ -15,8 +15,8 @@ class CreateRevisionsTable extends Migration
         Schema::create('revisions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('model_name');
-            $table->json('model_identifier');
-            $table->json('revisions')->nullable();
+            $table->text('model_identifier');
+            $table->longText('revisions')->nullable();
             $table->timestamps();
         });
     }
