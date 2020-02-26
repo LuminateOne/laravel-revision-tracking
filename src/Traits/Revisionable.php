@@ -1,7 +1,6 @@
 <?php
 namespace LuminateOne\RevisionTracking\Traits;
 
-use DB;
 use ErrorException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
@@ -80,7 +79,6 @@ trait Revisionable
 
         RevisionTracking::eloquentStoreDiff($this, $originalFields);
 
-        $this->addThisModelToItsChildModels($this, $this);
         $this->updateParentRevision();
     }
 
@@ -151,7 +149,7 @@ trait Revisionable
             $this->save();
         }
 
-        if (array_key_exists('child', $targetRevision->revisions)) {
+        if (array_key_exists('child_revisions', $targetRevision->revisions)) {
             foreach ($targetRevision->child_revisions as $aChildRevision) {
                 $modelName = $aChildRevision['model_name'];
                 $childModel = new $modelName();
@@ -196,7 +194,7 @@ trait Revisionable
      */
     public function allRevisions()
     {
-        $targetRevision = $this->getRevisionModel()->where('model_identifier->' . $this->getKeyName(), $this->getKey());
+        $targetRevision = $this->getRevisionModel()->where('model_identifier', $this->modelIdentifier(true));
 
         if ($this->revisionMode() === 'all') {
             $targetRevision = $targetRevision->where('model_name', get_class($this));
@@ -226,7 +224,7 @@ trait Revisionable
      */
     public function allRelationalRevisions()
     {
-        return $this->allRevisions()->whereNotNull('revisions->child');
+        return $this->allRevisions()->where('revisions', 'regexp', '"child_revisions";a:[0-9]+:');
     }
 
     /**
@@ -260,11 +258,13 @@ trait Revisionable
     /**
      * A function to create the model identifier
      *
+     * @param boolean $serialize serialize the model identifier or not
      * @return mixed
      */
-    public function modelIdentifier()
+    public function modelIdentifier($serialize = false)
     {
-        return [$this->getKeyName() => $this->getKey()];
+        $identifier = [$this->getKeyName() => $this->getKey()];
+        return $serialize ? serialize($identifier) : $identifier;
     }
 
     /**
@@ -297,10 +297,7 @@ trait Revisionable
      */
     public function hasRelationLoaded()
     {
-        foreach ($this->relations as $relations) {
-            return true;
-        }
-        return false;
+        return !empty($this->relations);
     }
 
     /**

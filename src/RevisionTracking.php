@@ -8,7 +8,7 @@ use LuminateOne\RevisionTracking\Models\Revision;
 /**
  * This class can find and store the diff of a model
  *
- * @package     LuminateOne\RevisionTracking\Providers
+ * @package     LuminateOne\RevisionTracking
  */
 class RevisionTracking
 {
@@ -62,7 +62,7 @@ class RevisionTracking
         $revisions = [];
         foreach ($modelCollection as $aModel) {
             $aRevision = [
-                'model_identifier' => json_encode($aModel->modelIdentifier()),
+                'model_identifier' => $aModel->modelIdentifier(true),
                 'revisions' => []
             ];
 
@@ -70,7 +70,7 @@ class RevisionTracking
                 $aRevision['model_name'] = get_class($aModel);
             }
 
-            $aRevision['revisions'] = json_encode(['original_values' => self::eloquentDiff($aModel, $newValue)]);
+            $aRevision['revisions'] = serialize(['original_values' => self::eloquentDiff($aModel, $newValue)]);
             array_push($revisions, $aRevision);
         }
         return $revisions;
